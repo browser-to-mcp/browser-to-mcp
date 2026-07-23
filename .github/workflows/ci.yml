@@ -12,5 +12,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --all-groups
-      - run: uv run ruff check .
-      - run: uv run pytest
+      - run: uv run pre-commit run --all-files
+      - run: uv run browser-to-mcp validate workflows/hn_search.yaml

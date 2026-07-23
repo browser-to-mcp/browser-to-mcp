@@ -20,6 +20,7 @@ browser-to-mcp = "browser_to_mcp.cli:main"
 
 [dependency-groups]
 dev = [
+  "pre-commit>=4.0,<5",
   "pytest>=8.3,<9",
   "ruff>=0.11,<1",
 ]

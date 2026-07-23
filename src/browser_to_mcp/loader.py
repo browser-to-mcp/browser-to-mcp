@@ -51,7 +51,7 @@ def load_workflow(path: Path) -> LoadedWorkflow:
         path_hint = ".".join(str(part) for part in detail["loc"])
         raise WorkflowValidationError(
             FailureCategory.SCHEMA,
-            path_hint,
+            f"{path}:{path_hint}",
             detail["msg"],
         ) from error
 

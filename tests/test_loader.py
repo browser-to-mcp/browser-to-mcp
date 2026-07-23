@@ -24,6 +24,19 @@ def test_manifest_digest_is_stable() -> None:
     assert manifest_digest(first) == manifest_digest(second)
 
 
+def test_manifest_digest_changes_when_reviewed_definition_changes(tmp_path: Path) -> None:
+    changed = tmp_path / "changed.yaml"
+    changed.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(
+            "Search Hacker News and return visible matching results.",
+            "Search Hacker News with a revised reviewed description.",
+        ),
+        encoding="utf-8",
+    )
+
+    assert load_workflow(changed).manifest_digest != load_workflow(WORKFLOW_PATH).manifest_digest
+
+
 def test_rejects_non_read_only_workflow(tmp_path: Path) -> None:
     invalid = tmp_path / "write.yaml"
     source = WORKFLOW_PATH.read_text(encoding="utf-8")
@@ -55,6 +68,62 @@ def test_rejects_assertion_for_undeclared_output(tmp_path: Path) -> None:
     invalid = tmp_path / "assertion.yaml"
     invalid.write_text(
         WORKFLOW_PATH.read_text(encoding="utf-8").replace("field: results", "field: missing"),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.SCHEMA
+
+
+def test_rejects_missing_action_fields(tmp_path: Path) -> None:
+    invalid = tmp_path / "step.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace("    selector: main\n", ""),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.SCHEMA
+    assert "steps.1" in error.value.path
+
+
+def test_rejects_non_string_min_length(tmp_path: Path) -> None:
+    invalid = tmp_path / "input.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace("type: string", "type: integer"),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.SCHEMA
+
+
+def test_rejects_retry_for_non_retryable_step(tmp_path: Path) -> None:
+    invalid = tmp_path / "retry.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(
+            "    timeout_seconds: 30",
+            "    timeout_seconds: 30\n    idempotency: non_retryable\n    retry: one",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.POLICY
+
+
+def test_rejects_undeclared_contract_fields(tmp_path: Path) -> None:
+    invalid = tmp_path / "extra.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8") + "\nundocumented_setting: true\n",
         encoding="utf-8",
     )
 

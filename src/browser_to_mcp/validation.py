@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from urllib.parse import urlparse
 
-from browser_to_mcp.models import Risk, StepAction, Workflow
+from browser_to_mcp.models import Idempotency, Retry, Risk, StepAction, Workflow
 
 
 class FailureCategory(StrEnum):
@@ -57,6 +57,12 @@ def validate_workflow_policy(workflow: Workflow) -> None:
                 FailureCategory.POLICY,
                 f"steps.{step.id}.risk",
                 "V0 accepts only read_only steps.",
+            )
+        if step.idempotency is Idempotency.NON_RETRYABLE and step.retry is not Retry.NONE:
+            raise WorkflowValidationError(
+                FailureCategory.POLICY,
+                f"steps.{step.id}.retry",
+                "A non_retryable step must declare retry: none.",
             )
         if step.action is StepAction.DOWNLOAD and not workflow.permissions.downloads:
             raise WorkflowValidationError(

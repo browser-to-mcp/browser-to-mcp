@@ -1,0 +1,42 @@
+name: hn_search
+description: Search Hacker News and return visible matching results.
+version: 1
+risk: read_only
+
+manifest:
+  version: 1
+
+permissions:
+  allowed_domains:
+    - hn.algolia.com
+  downloads: false
+  uploads: false
+  submit_forms: false
+  send_messages: false
+  spend_money: false
+
+inputs:
+  query:
+    type: string
+    required: true
+    min_length: 1
+    description: Search query.
+
+steps:
+  - id: search
+    action: goto
+    url: https://hn.algolia.com/?q={{query}}
+    timeout_seconds: 30
+  - id: results
+    action: extract_text
+    selector: main
+
+outputs:
+  results:
+    type: string
+    description: Visible matching results.
+
+success:
+  - id: results_present
+    assertion: output_not_empty
+    field: results

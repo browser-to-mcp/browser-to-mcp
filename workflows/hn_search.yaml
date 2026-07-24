@@ -9,6 +9,10 @@ manifest:
 permissions:
   allowed_domains:
     - hn.algolia.com
+    - cdn.jsdelivr.net
+    - telemetry.algolia.com
+    - www.google-analytics.com
+    - uj5wyc0l7x-dsn.algolia.net
   downloads: false
   uploads: false
   submit_forms: false

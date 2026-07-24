@@ -41,6 +41,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("traces"),
         help="Directory for redacted JSON traces and failure screenshots.",
     )
+    replay_parser.add_argument(
+        "--timeout-seconds",
+        type=_positive_int,
+        default=300,
+        help="Maximum time allowed for the complete browser run.",
+    )
     return parser
 
 
@@ -55,7 +61,12 @@ def run(arguments: list[str] | None = None) -> int:
     if namespace.command == "dry-run":
         return _dry_run(namespace.workflow_path)
     if namespace.command == "replay":
-        return _replay(namespace.workflow_path, namespace.input, namespace.trace_dir)
+        return _replay(
+            namespace.workflow_path,
+            namespace.input,
+            namespace.trace_dir,
+            namespace.timeout_seconds,
+        )
     parser.error(f"Unsupported command: {namespace.command}")
     return 2
 
@@ -111,10 +122,17 @@ def _dry_run(path: Path) -> int:
     return 0
 
 
-def _replay(path: Path, input_pairs: list[str], trace_dir: Path) -> int:
+def _replay(
+    path: Path,
+    input_pairs: list[str],
+    trace_dir: Path,
+    timeout_seconds: int,
+) -> int:
     try:
         loaded = load_workflow(path)
-        result = asyncio.run(replay_workflow(loaded, input_pairs, trace_dir))
+        result = asyncio.run(
+            replay_workflow(loaded, input_pairs, trace_dir, timeout_seconds)
+        )
     except WorkflowValidationError as error:
         _print_error("invalid", error.category, error.path, error.message)
         return 2
@@ -150,6 +168,13 @@ def _replay(path: Path, input_pairs: list[str], trace_dir: Path) -> int:
         )
     )
     return 0
+
+
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
 
 
 def _print_error(

@@ -35,6 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="NAME=VALUE",
         help="Provide one declared workflow input. Repeat for multiple inputs.",
     )
+    replay_parser.add_argument(
+        "--trace-dir",
+        type=Path,
+        default=Path("traces"),
+        help="Directory for redacted JSON traces and failure screenshots.",
+    )
     return parser
 
 
@@ -49,7 +55,7 @@ def run(arguments: list[str] | None = None) -> int:
     if namespace.command == "dry-run":
         return _dry_run(namespace.workflow_path)
     if namespace.command == "replay":
-        return _replay(namespace.workflow_path, namespace.input)
+        return _replay(namespace.workflow_path, namespace.input, namespace.trace_dir)
     parser.error(f"Unsupported command: {namespace.command}")
     return 2
 
@@ -105,15 +111,21 @@ def _dry_run(path: Path) -> int:
     return 0
 
 
-def _replay(path: Path, input_pairs: list[str]) -> int:
+def _replay(path: Path, input_pairs: list[str], trace_dir: Path) -> int:
     try:
         loaded = load_workflow(path)
-        result = asyncio.run(replay_workflow(loaded, input_pairs))
+        result = asyncio.run(replay_workflow(loaded, input_pairs, trace_dir))
     except WorkflowValidationError as error:
         _print_error("invalid", error.category, error.path, error.message)
         return 2
     except WorkflowExecutionError as error:
-        _print_error("failed", error.category, error.path, error.message)
+        _print_error(
+            "failed",
+            error.category,
+            error.path,
+            error.message,
+            trace_path=error.trace_path,
+        )
         return 2 if error.category.value == "input" else 1
 
     print(
@@ -123,6 +135,7 @@ def _replay(path: Path, input_pairs: list[str]) -> int:
                 "workflow": result.workflow,
                 "manifest_digest": result.manifest_digest,
                 "outputs": result.outputs,
+                "trace_path": result.trace_path,
                 "actions": [
                     {
                         "step_id": action.step_id,
@@ -139,18 +152,25 @@ def _replay(path: Path, input_pairs: list[str]) -> int:
     return 0
 
 
-def _print_error(status: str, category: str, path: str, message: str) -> None:
+def _print_error(
+    status: str,
+    category: str,
+    path: str,
+    message: str,
+    trace_path: str | None = None,
+) -> None:
     """Write one structured command error to stderr."""
 
+    payload = {
+        "status": status,
+        "category": category,
+        "path": path,
+        "message": message,
+    }
+    if trace_path is not None:
+        payload["trace_path"] = trace_path
     print(
-        json.dumps(
-            {
-                "status": status,
-                "category": category,
-                "path": path,
-                "message": message,
-            }
-        ),
+        json.dumps(payload),
         file=sys.stderr,
     )
 

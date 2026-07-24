@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from collections.abc import Coroutine
 from pathlib import Path
 from typing import Any
@@ -10,7 +11,7 @@ from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 import browser_to_mcp.replay as replay_module
-from browser_to_mcp.loader import load_workflow
+from browser_to_mcp.loader import LoadedWorkflow, load_workflow, manifest_digest
 from browser_to_mcp.models import StepAction, WorkflowInput, WorkflowOutput, WorkflowStep
 from browser_to_mcp.replay import (
     ExecutionFailureCategory,
@@ -146,6 +147,37 @@ class SelectorFailurePage(FakePage):
     def locator(self, selector: str) -> FailingLocator:
         self.selectors.append(selector)
         return FailingLocator(self, selector)
+
+
+class ScreenshotPage(FailingPage):
+    """Failing page double that can persist a failure screenshot."""
+
+    async def screenshot(self, path: str, full_page: bool) -> None:
+        assert full_page is True
+        Path(path).write_bytes(b"png-test-data")
+
+
+class SensitiveErrorPage(ScreenshotPage):
+    """Failing page double whose diagnostic contains the sensitive input."""
+
+    async def goto(self, url: str, **kwargs: object) -> None:
+        raise PlaywrightError("navigation failed while processing secret")
+
+
+class SensitiveOutputLocator(FakeLocator):
+    """Locator double returning output that contains the sensitive input."""
+
+    async def inner_text(self, timeout: int) -> str:
+        assert timeout == 30000
+        return "visible secret"
+
+
+class SensitiveOutputPage(FakePage):
+    """Page double for output redaction coverage."""
+
+    def locator(self, selector: str) -> SensitiveOutputLocator:
+        self.selectors.append(selector)
+        return SensitiveOutputLocator(self, selector)
 
 
 class FakeContext:
@@ -497,6 +529,7 @@ def test_replay_maps_browser_navigation_errors(monkeypatch: pytest.MonkeyPatch) 
     assert error.value.category is ExecutionFailureCategory.RUNTIME
     assert error.value.message == "net::ERR_NAME_NOT_RESOLVED"
     assert context.closed is True
+    assert error.value.actions[-1].status is replay_module.ActionStatus.FAILED
 
 
 def test_replay_maps_selector_errors(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -532,3 +565,60 @@ def test_replay_closes_resources_after_step_failure(monkeypatch: pytest.MonkeyPa
     assert error.value.path == "steps.search"
     assert context.closed is True
     assert browser.closed is True
+
+
+def test_replay_writes_redacted_success_trace(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    context = FakeContext(SensitiveOutputPage())
+    patch_playwright(monkeypatch, FakeChromium(browser=FakeBrowser(context)))
+    source = load_workflow(WORKFLOW_PATH)
+    workflow = source.workflow.model_copy(
+        update={"inputs": {"query": WorkflowInput(type="string", sensitive=True, min_length=1)}}
+    )
+    loaded = LoadedWorkflow(workflow=workflow, manifest_digest=manifest_digest(workflow))
+
+    result = asyncio.run(replay_module.replay_workflow(loaded, ["query=secret"], tmp_path))
+
+    assert result.trace_path is not None
+    trace = json.loads(Path(result.trace_path).read_text(encoding="utf-8"))
+    assert trace["status"] == "completed"
+    assert trace["inputs"] == {"query": "[REDACTED]"}
+    assert trace["outputs"]["results"] == "visible [REDACTED]"
+    assert trace["assertions"] == [
+        {
+            "assertion": "output_not_empty",
+            "assertion_id": "results_present",
+            "field": "results",
+            "status": "passed",
+        }
+    ]
+    assert trace["actions"][0]["duration_seconds"] >= 0
+    assert trace["metadata"]["manifest_digest"] == loaded.manifest_digest
+    assert trace["metadata"]["playwright_version"] != ""
+
+
+def test_replay_writes_failure_trace_and_screenshot(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    context = FakeContext(SensitiveErrorPage())
+    patch_playwright(monkeypatch, FakeChromium(browser=FakeBrowser(context)))
+    source = load_workflow(WORKFLOW_PATH)
+    workflow = source.workflow.model_copy(
+        update={"inputs": {"query": WorkflowInput(type="string", sensitive=True, min_length=1)}}
+    )
+    loaded = LoadedWorkflow(workflow=workflow, manifest_digest=manifest_digest(workflow))
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(replay_module.replay_workflow(loaded, ["query=secret"], tmp_path))
+
+    assert error.value.trace_path is not None
+    trace = json.loads(Path(error.value.trace_path).read_text(encoding="utf-8"))
+    assert trace["status"] == "failed"
+    assert trace["inputs"] == {"query": "[REDACTED]"}
+    assert trace["error"]["category"] == "runtime"
+    assert trace["error"]["path"] == "steps.search"
+    assert trace["error"]["screenshot_path"] in trace["screenshots"]
+    assert Path(trace["error"]["screenshot_path"]).read_bytes() == b"png-test-data"
+    assert trace["actions"][-1]["status"] == "failed"
+    assert "secret" not in Path(error.value.trace_path).read_text(encoding="utf-8")

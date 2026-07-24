@@ -25,4 +25,6 @@ uv run pytest
 `wait_for_text`, `extract_text`, and permission-gated `download` steps. It runs
 in a fresh headless Chromium context and returns structured JSON, including
 one result for each completed action. Traces and MCP serving are tracked
-separately.
+separately. Each replay writes a redacted JSON trace under `traces/`; use
+`--trace-dir` to choose another directory. Failed runs also attempt to save a
+failure screenshot and include its path in the trace.

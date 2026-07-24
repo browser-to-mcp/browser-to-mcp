@@ -3,16 +3,33 @@
 from __future__ import annotations
 
 import asyncio
+import platform
 import re
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as package_version
+from pathlib import Path
 from time import monotonic
+from uuid import uuid4
 
 from playwright.async_api import Page, async_playwright
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from browser_to_mcp.loader import LoadedWorkflow
 from browser_to_mcp.models import StepAction, SuccessAssertion, Workflow, WorkflowInput
+from browser_to_mcp.tracing import (
+    TraceAction,
+    TraceAssertion,
+    TraceError,
+    TraceMetadata,
+    TraceStatus,
+    WorkflowTrace,
+    redact_inputs,
+    redact_text,
+    write_trace,
+)
 
 _TEMPLATE_PATTERN = re.compile(r"{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}")
 
@@ -29,6 +46,14 @@ class ActionStatus(StrEnum):
     """Result state for a declared browser action."""
 
     COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class AssertionStatus(StrEnum):
+    """Result state for a post-run workflow assertion."""
+
+    PASSED = "passed"
+    FAILED = "failed"
 
 
 @dataclass(slots=True)
@@ -38,6 +63,10 @@ class WorkflowExecutionError(Exception):
     category: ExecutionFailureCategory
     path: str
     message: str
+    actions: tuple[ActionResult, ...] = ()
+    assertions: tuple[AssertionResult, ...] = ()
+    screenshot_path: str | None = None
+    trace_path: str | None = None
 
     def __str__(self) -> str:
         return f"{self.category}: {self.path}: {self.message}"
@@ -52,6 +81,7 @@ class ReplayResult:
     outputs: dict[str, str]
     actions: tuple[ActionResult, ...]
     duration_seconds: float
+    trace_path: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,6 +92,17 @@ class ActionResult:
     action: StepAction
     status: ActionStatus
     output_key: str | None = None
+    duration_seconds: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class AssertionResult:
+    """Structured outcome for one post-run assertion."""
+
+    assertion_id: str
+    assertion: str
+    field: str
+    status: AssertionStatus
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,46 +194,229 @@ def _parse_input_value(name: str, value: str, definition: WorkflowInput) -> obje
     )
 
 
-async def replay_workflow(loaded: LoadedWorkflow, input_pairs: list[str]) -> ReplayResult:
-    """Replay the supported V0 steps in a fresh headless Chromium context."""
+async def replay_workflow(
+    loaded: LoadedWorkflow,
+    input_pairs: list[str],
+    trace_dir: Path | None = None,
+) -> ReplayResult:
+    """Replay a workflow and optionally persist a redacted provenance trace."""
 
-    inputs = parse_input_pairs(input_pairs, loaded.workflow)
+    run_id = uuid4().hex
     started_at = monotonic()
+    started_at_utc = datetime.now(UTC)
+    inputs: dict[str, object] = {}
+    outputs: dict[str, str] = {}
+    actions: tuple[ActionResult, ...] = ()
+    assertions: tuple[AssertionResult, ...] = ()
+    browser_version = "unknown"
+    page: Page | None = None
+
     try:
+        inputs = parse_input_pairs(input_pairs, loaded.workflow)
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(headless=True)
+            browser_version = getattr(browser, "version", "unknown")
             try:
                 context = await browser.new_context()
                 try:
                     page = await context.new_page()
-                    execution = await execute_steps(page, loaded.workflow, inputs)
-                    evaluate_success_assertions(loaded.workflow.success, execution.outputs)
+                    try:
+                        execution = await execute_steps(page, loaded.workflow, inputs)
+                        outputs = execution.outputs
+                        actions = execution.actions
+                    except WorkflowExecutionError as error:
+                        error.screenshot_path = await _capture_failure_screenshot(
+                            page, _failure_screenshot_path(trace_dir, run_id)
+                        )
+                        raise
+
+                    try:
+                        assertions = evaluate_success_assertions(loaded.workflow.success, outputs)
+                    except WorkflowExecutionError as error:
+                        error.actions = actions
+                        error.screenshot_path = await _capture_failure_screenshot(
+                            page, _failure_screenshot_path(trace_dir, run_id)
+                        )
+                        raise
                 finally:
                     await context.close()
             finally:
                 await browser.close()
-    except WorkflowExecutionError:
+    except WorkflowExecutionError as error:
+        error.trace_path = _persist_trace(
+            trace_dir,
+            run_id,
+            loaded,
+            started_at_utc,
+            started_at,
+            inputs,
+            actions=error.actions,
+            outputs=outputs,
+            assertions=error.assertions,
+            browser_version=browser_version,
+            error=error,
+        )
         raise
     except PlaywrightTimeoutError as error:
-        raise WorkflowExecutionError(
+        execution_error = WorkflowExecutionError(
             ExecutionFailureCategory.RUNTIME,
             "replay",
             "Browser operation timed out.",
-        ) from error
+        )
+        execution_error.trace_path = _persist_trace(
+            trace_dir,
+            run_id,
+            loaded,
+            started_at_utc,
+            started_at,
+            inputs,
+            actions=actions,
+            outputs=outputs,
+            assertions=assertions,
+            browser_version=browser_version,
+            error=execution_error,
+        )
+        raise execution_error from error
     except Exception as error:
-        raise WorkflowExecutionError(
+        execution_error = WorkflowExecutionError(
             ExecutionFailureCategory.RUNTIME,
             "replay",
             _runtime_message(error),
-        ) from error
+        )
+        execution_error.trace_path = _persist_trace(
+            trace_dir,
+            run_id,
+            loaded,
+            started_at_utc,
+            started_at,
+            inputs,
+            actions=actions,
+            outputs=outputs,
+            assertions=assertions,
+            browser_version=browser_version,
+            error=execution_error,
+        )
+        raise execution_error from error
 
+    trace_path = _persist_trace(
+        trace_dir,
+        run_id,
+        loaded,
+        started_at_utc,
+        started_at,
+        inputs,
+        actions=actions,
+        outputs=outputs,
+        assertions=assertions,
+        browser_version=browser_version,
+    )
     return ReplayResult(
         workflow=loaded.workflow.name,
         manifest_digest=loaded.manifest_digest,
-        outputs=execution.outputs,
-        actions=execution.actions,
+        outputs=outputs,
+        actions=actions,
         duration_seconds=monotonic() - started_at,
+        trace_path=trace_path,
     )
+
+
+def _persist_trace(
+    trace_dir: Path | None,
+    run_id: str,
+    loaded: LoadedWorkflow,
+    started_at_utc: datetime,
+    started_at: float,
+    inputs: dict[str, object],
+    *,
+    actions: tuple[ActionResult, ...],
+    outputs: dict[str, str],
+    assertions: tuple[AssertionResult, ...],
+    browser_version: str,
+    error: WorkflowExecutionError | None = None,
+) -> str | None:
+    """Build and write one trace, returning its path when persistence is enabled."""
+
+    if trace_dir is None:
+        return None
+
+    finished_at = datetime.now(UTC)
+    trace = WorkflowTrace(
+        status=TraceStatus.FAILED if error else TraceStatus.COMPLETED,
+        metadata=TraceMetadata(
+            run_id=run_id,
+            started_at=started_at_utc,
+            finished_at=finished_at,
+            duration_seconds=max(0.0, monotonic() - started_at),
+            workflow_name=loaded.workflow.name,
+            workflow_version=loaded.workflow.version,
+            manifest_digest=loaded.manifest_digest,
+            python_version=platform.python_version(),
+            playwright_version=_package_version("playwright"),
+            browser_name="chromium",
+            browser_version=browser_version,
+            platform=platform.platform(),
+        ),
+        inputs=redact_inputs(loaded.workflow, inputs),
+        actions=[
+            TraceAction(
+                step_id=action.step_id,
+                action=str(action.action),
+                status=str(action.status),
+                output_key=action.output_key,
+                duration_seconds=max(0.0, action.duration_seconds),
+            )
+            for action in actions
+        ],
+        outputs={
+            key: redact_text(value, loaded.workflow, inputs) for key, value in outputs.items()
+        },
+        assertions=[
+            TraceAssertion(
+                assertion_id=assertion.assertion_id,
+                assertion=assertion.assertion,
+                field=assertion.field,
+                status=str(assertion.status),
+            )
+            for assertion in assertions
+        ],
+        error=(
+            TraceError(
+                category=str(error.category),
+                path=error.path,
+                message=redact_text(error.message, loaded.workflow, inputs),
+                screenshot_path=error.screenshot_path,
+            )
+            if error
+            else None
+        ),
+        screenshots=[error.screenshot_path] if error and error.screenshot_path else [],
+    )
+    return str(write_trace(trace, trace_dir, run_id))
+
+
+def _failure_screenshot_path(trace_dir: Path | None, run_id: str) -> Path | None:
+    if trace_dir is None:
+        return None
+    return trace_dir / f"{run_id}-failure.png"
+
+
+async def _capture_failure_screenshot(page: Page, path: Path | None) -> str | None:
+    """Capture a best-effort failure screenshot without hiding the original error."""
+
+    if path is None:
+        return None
+    try:
+        await page.screenshot(path=str(path), full_page=True)
+    except Exception:
+        return None
+    return str(path)
+
+
+def _package_version(package_name: str) -> str:
+    try:
+        return package_version(package_name)
+    except PackageNotFoundError:
+        return "unknown"
 
 
 async def execute_steps(
@@ -206,6 +430,7 @@ async def execute_steps(
     actions: list[ActionResult] = []
     for step in workflow.steps:
         output_key: str | None = step.id if step.id in workflow.outputs else None
+        step_started_at = monotonic()
         try:
             if step.action is StepAction.GOTO:
                 await page.goto(
@@ -254,19 +479,49 @@ async def execute_steps(
                     f"steps.{step.id}",
                     f"Replay does not support action '{step.action}'.",
                 )
-        except WorkflowExecutionError:
+        except WorkflowExecutionError as error:
+            if not error.actions:
+                error.actions = tuple(actions) + (
+                    ActionResult(
+                        step_id=step.id,
+                        action=step.action,
+                        status=ActionStatus.FAILED,
+                        output_key=output_key,
+                        duration_seconds=monotonic() - step_started_at,
+                    ),
+                )
             raise
         except (TimeoutError, PlaywrightTimeoutError) as error:
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.RUNTIME,
                 f"steps.{step.id}",
                 f"Action '{step.action}' timed out after {step.timeout_seconds} seconds.",
+                actions=tuple(actions)
+                + (
+                    ActionResult(
+                        step_id=step.id,
+                        action=step.action,
+                        status=ActionStatus.FAILED,
+                        output_key=output_key,
+                        duration_seconds=monotonic() - step_started_at,
+                    ),
+                ),
             ) from error
         except Exception as error:
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.RUNTIME,
                 f"steps.{step.id}",
                 _runtime_message(error),
+                actions=tuple(actions)
+                + (
+                    ActionResult(
+                        step_id=step.id,
+                        action=step.action,
+                        status=ActionStatus.FAILED,
+                        output_key=output_key,
+                        duration_seconds=monotonic() - step_started_at,
+                    ),
+                ),
             ) from error
 
         actions.append(
@@ -275,6 +530,7 @@ async def execute_steps(
                 action=step.action,
                 status=ActionStatus.COMPLETED,
                 output_key=output_key,
+                duration_seconds=monotonic() - step_started_at,
             )
         )
     return StepExecution(outputs=outputs, actions=tuple(actions))
@@ -299,9 +555,10 @@ def render_template(template: str, inputs: dict[str, object]) -> str:
 
 def evaluate_success_assertions(
     assertions: list[SuccessAssertion], outputs: dict[str, str]
-) -> None:
+) -> tuple[AssertionResult, ...]:
     """Verify V0 post-run output assertions before reporting replay success."""
 
+    results: list[AssertionResult] = []
     for assertion in assertions:
         value = outputs.get(assertion.field)
         if assertion.assertion == "output_not_empty" and (value is None or not value.strip()):
@@ -309,7 +566,25 @@ def evaluate_success_assertions(
                 ExecutionFailureCategory.ASSERTION,
                 f"success.{assertion.id}",
                 f"Output '{assertion.field}' is empty or was not extracted.",
+                assertions=tuple(results)
+                + (
+                    AssertionResult(
+                        assertion_id=assertion.id,
+                        assertion=assertion.assertion,
+                        field=assertion.field,
+                        status=AssertionStatus.FAILED,
+                    ),
+                ),
             )
+        results.append(
+            AssertionResult(
+                assertion_id=assertion.id,
+                assertion=assertion.assertion,
+                field=assertion.field,
+                status=AssertionStatus.PASSED,
+            )
+        )
+    return tuple(results)
 
 
 def _runtime_message(error: Exception) -> str:

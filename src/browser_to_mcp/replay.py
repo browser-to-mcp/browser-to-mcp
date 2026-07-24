@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import platform
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -12,6 +13,8 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
 from pathlib import Path
 from time import monotonic
+from typing import Protocol
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from playwright.async_api import Page, async_playwright
@@ -39,6 +42,7 @@ class ExecutionFailureCategory(StrEnum):
 
     ASSERTION = "assertion"
     INPUT = "input"
+    PERMISSION = "permission"
     RUNTIME = "runtime"
 
 
@@ -65,6 +69,7 @@ class WorkflowExecutionError(Exception):
     message: str
     actions: tuple[ActionResult, ...] = ()
     assertions: tuple[AssertionResult, ...] = ()
+    browser_version: str = "unknown"
     screenshot_path: str | None = None
     trace_path: str | None = None
 
@@ -111,6 +116,113 @@ class StepExecution:
 
     outputs: dict[str, str]
     actions: tuple[ActionResult, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class EngineResult:
+    """Structured output from one isolated browser execution."""
+
+    execution: StepExecution
+    assertions: tuple[AssertionResult, ...]
+    browser_version: str
+
+
+class ReplayEngine(Protocol):
+    """Async interface shared by CLI replay and future MCP callers."""
+
+    async def run(
+        self,
+        workflow: Workflow,
+        inputs: dict[str, object],
+        failure_screenshot_path: Path | None = None,
+    ) -> EngineResult:
+        """Execute one validated workflow in an isolated browser context."""
+
+
+class PlaywrightReplayEngine:
+    """Run a validated workflow in a fresh, policy-bound Playwright context."""
+
+    def __init__(
+        self,
+        overall_timeout_seconds: int = 300,
+        playwright_factory: Callable[[], object] | None = None,
+    ) -> None:
+        if overall_timeout_seconds <= 0:
+            raise ValueError("overall_timeout_seconds must be positive.")
+        self.overall_timeout_seconds = overall_timeout_seconds
+        self._playwright_factory = playwright_factory or async_playwright
+
+    async def run(
+        self,
+        workflow: Workflow,
+        inputs: dict[str, object],
+        failure_screenshot_path: Path | None = None,
+    ) -> EngineResult:
+        """Bound the complete run while allowing cancellation to clean up normally."""
+
+        try:
+            return await asyncio.wait_for(
+                self._run(workflow, inputs, failure_screenshot_path),
+                timeout=self.overall_timeout_seconds,
+            )
+        except TimeoutError as error:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.RUNTIME,
+                "replay",
+                f"Workflow exceeded overall timeout of {self.overall_timeout_seconds} seconds.",
+            ) from error
+
+    async def _run(
+        self,
+        workflow: Workflow,
+        inputs: dict[str, object],
+        failure_screenshot_path: Path | None,
+    ) -> EngineResult:
+        async with self._playwright_factory() as playwright:
+            browser = await playwright.chromium.launch(headless=True)
+            browser_version = getattr(browser, "version", "unknown")
+            try:
+                context = await browser.new_context()
+                try:
+                    blocked_requests: list[str] = []
+
+                    async def enforce_request_policy(route: object) -> None:
+                        request = getattr(route, "request")
+                        url = getattr(request, "url")
+                        if _is_allowed_url(url, workflow.permissions.allowed_domains):
+                            await route.continue_()
+                            return
+                        blocked_requests.append(url)
+                        await route.abort()
+
+                    await context.route("**/*", enforce_request_policy)
+                    page = await context.new_page()
+                    try:
+                        execution = await execute_steps(
+                            page,
+                            workflow,
+                            inputs,
+                            allowed_domains=workflow.permissions.allowed_domains,
+                            blocked_request_getter=lambda: (
+                                blocked_requests[0] if blocked_requests else None
+                            ),
+                        )
+                        assertions = evaluate_success_assertions(
+                            workflow.success, execution.outputs
+                        )
+                    except WorkflowExecutionError as error:
+                        error.browser_version = browser_version
+                        if not error.actions and "execution" in locals():
+                            error.actions = execution.actions
+                        error.screenshot_path = await _capture_failure_screenshot(
+                            page, failure_screenshot_path
+                        )
+                        raise
+                    return EngineResult(execution, assertions, browser_version)
+                finally:
+                    await context.close()
+            finally:
+                await browser.close()
 
 
 def parse_input_pairs(input_pairs: list[str], workflow: Workflow) -> dict[str, object]:
@@ -198,6 +310,7 @@ async def replay_workflow(
     loaded: LoadedWorkflow,
     input_pairs: list[str],
     trace_dir: Path | None = None,
+    timeout_seconds: int = 300,
 ) -> ReplayResult:
     """Replay a workflow and optionally persist a redacted provenance trace."""
 
@@ -209,39 +322,19 @@ async def replay_workflow(
     actions: tuple[ActionResult, ...] = ()
     assertions: tuple[AssertionResult, ...] = ()
     browser_version = "unknown"
-    page: Page | None = None
 
     try:
         inputs = parse_input_pairs(input_pairs, loaded.workflow)
-        async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=True)
-            browser_version = getattr(browser, "version", "unknown")
-            try:
-                context = await browser.new_context()
-                try:
-                    page = await context.new_page()
-                    try:
-                        execution = await execute_steps(page, loaded.workflow, inputs)
-                        outputs = execution.outputs
-                        actions = execution.actions
-                    except WorkflowExecutionError as error:
-                        error.screenshot_path = await _capture_failure_screenshot(
-                            page, _failure_screenshot_path(trace_dir, run_id)
-                        )
-                        raise
-
-                    try:
-                        assertions = evaluate_success_assertions(loaded.workflow.success, outputs)
-                    except WorkflowExecutionError as error:
-                        error.actions = actions
-                        error.screenshot_path = await _capture_failure_screenshot(
-                            page, _failure_screenshot_path(trace_dir, run_id)
-                        )
-                        raise
-                finally:
-                    await context.close()
-            finally:
-                await browser.close()
+        engine = PlaywrightReplayEngine(overall_timeout_seconds=timeout_seconds)
+        engine_result = await engine.run(
+            loaded.workflow,
+            inputs,
+            _failure_screenshot_path(trace_dir, run_id),
+        )
+        browser_version = engine_result.browser_version
+        outputs = engine_result.execution.outputs
+        actions = engine_result.execution.actions
+        assertions = engine_result.assertions
     except WorkflowExecutionError as error:
         error.trace_path = _persist_trace(
             trace_dir,
@@ -253,7 +346,9 @@ async def replay_workflow(
             actions=error.actions,
             outputs=outputs,
             assertions=error.assertions,
-            browser_version=browser_version,
+            browser_version=error.browser_version
+            if error.browser_version != "unknown"
+            else browser_version,
             error=error,
         )
         raise
@@ -423,6 +518,9 @@ async def execute_steps(
     page: Page,
     workflow: Workflow,
     inputs: dict[str, object],
+    *,
+    allowed_domains: list[str] | None = None,
+    blocked_request_getter: Callable[[], str | None] | None = None,
 ) -> StepExecution:
     """Execute the declared read-only steps in their authored order."""
 
@@ -433,8 +531,15 @@ async def execute_steps(
         step_started_at = monotonic()
         try:
             if step.action is StepAction.GOTO:
+                url = render_template(step.url or "", inputs)
+                if allowed_domains is not None and not _is_allowed_url(url, allowed_domains):
+                    raise WorkflowExecutionError(
+                        ExecutionFailureCategory.PERMISSION,
+                        f"steps.{step.id}.url",
+                        f"URL '{url}' is outside permissions.allowed_domains.",
+                    )
                 await page.goto(
-                    render_template(step.url or "", inputs),
+                    url,
                     wait_until="domcontentloaded",
                     timeout=step.timeout_seconds * 1000,
                 )
@@ -479,6 +584,13 @@ async def execute_steps(
                     f"steps.{step.id}",
                     f"Replay does not support action '{step.action}'.",
                 )
+            blocked_url = blocked_request_getter() if blocked_request_getter else None
+            if blocked_url is not None:
+                raise WorkflowExecutionError(
+                    ExecutionFailureCategory.PERMISSION,
+                    f"steps.{step.id}",
+                    f"Request URL '{blocked_url}' is outside permissions.allowed_domains.",
+                )
         except WorkflowExecutionError as error:
             if not error.actions:
                 error.actions = tuple(actions) + (
@@ -508,6 +620,23 @@ async def execute_steps(
                 ),
             ) from error
         except Exception as error:
+            blocked_url = blocked_request_getter() if blocked_request_getter else None
+            if blocked_url is not None:
+                raise WorkflowExecutionError(
+                    ExecutionFailureCategory.PERMISSION,
+                    f"steps.{step.id}",
+                    f"Request URL '{blocked_url}' is outside permissions.allowed_domains.",
+                    actions=tuple(actions)
+                    + (
+                        ActionResult(
+                            step_id=step.id,
+                            action=step.action,
+                            status=ActionStatus.FAILED,
+                            output_key=output_key,
+                            duration_seconds=monotonic() - step_started_at,
+                        ),
+                    ),
+                ) from error
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.RUNTIME,
                 f"steps.{step.id}",
@@ -534,6 +663,18 @@ async def execute_steps(
             )
         )
     return StepExecution(outputs=outputs, actions=tuple(actions))
+
+
+def _is_allowed_url(url: str, allowed_domains: list[str]) -> bool:
+    """Allow declared hosts and browser-internal document URLs only."""
+
+    parsed = urlparse(url)
+    if parsed.scheme in {"about", "blob", "data"}:
+        return True
+    if parsed.scheme not in {"http", "https"} or parsed.hostname is None:
+        return False
+    host = parsed.hostname.lower().rstrip(".")
+    return any(host == domain or host.endswith(f".{domain}") for domain in allowed_domains)
 
 
 def render_template(template: str, inputs: dict[str, object]) -> str:

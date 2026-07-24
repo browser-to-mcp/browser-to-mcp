@@ -45,16 +45,17 @@ def test_dry_run_reports_a_serializable_replay_plan(capsys: CaptureFixture[str])
     ]
 
 
-def test_replay_rejects_missing_input_before_browser_start(capsys: CaptureFixture[str]) -> None:
-    assert run(["replay", str(WORKFLOW_PATH)]) == 2
+def test_replay_rejects_missing_input_before_browser_start(
+    tmp_path: Path, capsys: CaptureFixture[str]
+) -> None:
+    assert run(["replay", str(WORKFLOW_PATH), "--trace-dir", str(tmp_path)]) == 2
 
     result = json.loads(capsys.readouterr().err)
-    assert result == {
-        "status": "failed",
-        "category": "input",
-        "path": "inputs.query",
-        "message": "A required input was not provided.",
-    }
+    assert result["status"] == "failed"
+    assert result["category"] == "input"
+    assert result["path"] == "inputs.query"
+    assert result["message"] == "A required input was not provided."
+    assert Path(result["trace_path"]).exists()
 
 
 def test_replay_command_reports_structured_action_results(
@@ -73,6 +74,7 @@ def test_replay_command_reports_structured_action_results(
                 ),
             ),
             duration_seconds=0.01,
+            trace_path="traces/trace.json",
         )
 
     monkeypatch.setattr("browser_to_mcp.cli.replay_workflow", fake_replay)
@@ -88,3 +90,4 @@ def test_replay_command_reports_structured_action_results(
             "output_key": None,
         }
     ]
+    assert result["trace_path"] == "traces/trace.json"

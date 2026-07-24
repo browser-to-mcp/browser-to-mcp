@@ -1,16 +1,21 @@
-name: CI
+name: Workflow contract
 
 on:
   pull_request:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  validate-reference-workflow:
+    name: Validate reference workflow
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --all-groups
-      - run: uv run pre-commit run --all-files
+        with:
+          enable-cache: true
+      - run: uv sync --locked --all-groups
       - run: uv run browser-to-mcp validate workflows/hn_search.yaml

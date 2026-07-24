@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 from dataclasses import dataclass
 from enum import StrEnum
@@ -24,6 +25,12 @@ class ExecutionFailureCategory(StrEnum):
     RUNTIME = "runtime"
 
 
+class ActionStatus(StrEnum):
+    """Result state for a declared browser action."""
+
+    COMPLETED = "completed"
+
+
 @dataclass(slots=True)
 class WorkflowExecutionError(Exception):
     """An execution failure that can be returned by the CLI or future MCP server."""
@@ -43,7 +50,26 @@ class ReplayResult:
     workflow: str
     manifest_digest: str
     outputs: dict[str, str]
+    actions: tuple[ActionResult, ...]
     duration_seconds: float
+
+
+@dataclass(frozen=True, slots=True)
+class ActionResult:
+    """Structured outcome for one successfully executed workflow step."""
+
+    step_id: str
+    action: StepAction
+    status: ActionStatus
+    output_key: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class StepExecution:
+    """Collected outputs and action outcomes from one workflow run."""
+
+    outputs: dict[str, str]
+    actions: tuple[ActionResult, ...]
 
 
 def parse_input_pairs(input_pairs: list[str], workflow: Workflow) -> dict[str, object]:
@@ -139,8 +165,8 @@ async def replay_workflow(loaded: LoadedWorkflow, input_pairs: list[str]) -> Rep
                 context = await browser.new_context()
                 try:
                     page = await context.new_page()
-                    outputs = await execute_steps(page, loaded.workflow, inputs)
-                    evaluate_success_assertions(loaded.workflow.success, outputs)
+                    execution = await execute_steps(page, loaded.workflow, inputs)
+                    evaluate_success_assertions(loaded.workflow.success, execution.outputs)
                 finally:
                     await context.close()
             finally:
@@ -163,7 +189,8 @@ async def replay_workflow(loaded: LoadedWorkflow, input_pairs: list[str]) -> Rep
     return ReplayResult(
         workflow=loaded.workflow.name,
         manifest_digest=loaded.manifest_digest,
-        outputs=outputs,
+        outputs=execution.outputs,
+        actions=execution.actions,
         duration_seconds=monotonic() - started_at,
     )
 
@@ -172,30 +199,85 @@ async def execute_steps(
     page: Page,
     workflow: Workflow,
     inputs: dict[str, object],
-) -> dict[str, str]:
-    """Execute the reference workflow's declared navigation and extraction steps."""
+) -> StepExecution:
+    """Execute the declared read-only steps in their authored order."""
 
     outputs: dict[str, str] = {}
+    actions: list[ActionResult] = []
     for step in workflow.steps:
-        if step.action is StepAction.GOTO:
-            await page.goto(
-                render_template(step.url or "", inputs),
-                wait_until="domcontentloaded",
-                timeout=step.timeout_seconds * 1000,
-            )
-        elif step.action is StepAction.EXTRACT_TEXT:
-            extracted = await page.locator(render_template(step.selector or "", inputs)).inner_text(
-                timeout=step.timeout_seconds * 1000
-            )
-            if step.id in workflow.outputs:
-                outputs[step.id] = extracted
-        else:
+        output_key: str | None = step.id if step.id in workflow.outputs else None
+        try:
+            if step.action is StepAction.GOTO:
+                await page.goto(
+                    render_template(step.url or "", inputs),
+                    wait_until="domcontentloaded",
+                    timeout=step.timeout_seconds * 1000,
+                )
+            elif step.action is StepAction.FILL:
+                await page.locator(render_template(step.selector or "", inputs)).fill(
+                    render_template(step.value or "", inputs),
+                    timeout=step.timeout_seconds * 1000,
+                )
+            elif step.action is StepAction.PRESS:
+                await asyncio.wait_for(
+                    page.keyboard.press(render_template(step.key or "", inputs)),
+                    timeout=step.timeout_seconds,
+                )
+            elif step.action is StepAction.CLICK:
+                await page.locator(render_template(step.selector or "", inputs)).click(
+                    timeout=step.timeout_seconds * 1000,
+                )
+            elif step.action is StepAction.WAIT_FOR_TEXT:
+                await page.get_by_text(render_template(step.text or "", inputs)).wait_for(
+                    state="visible",
+                    timeout=step.timeout_seconds * 1000,
+                )
+            elif step.action is StepAction.EXTRACT_TEXT:
+                extracted = await page.locator(
+                    render_template(step.selector or "", inputs)
+                ).inner_text(timeout=step.timeout_seconds * 1000)
+                if output_key is not None:
+                    outputs[output_key] = extracted
+            elif step.action is StepAction.DOWNLOAD:
+                async with page.expect_download(
+                    timeout=step.timeout_seconds * 1000
+                ) as download_info:
+                    await page.locator(render_template(step.selector or "", inputs)).click(
+                        timeout=step.timeout_seconds * 1000,
+                    )
+                download = await download_info.value
+                if output_key is not None:
+                    outputs[output_key] = download.suggested_filename
+            else:
+                raise WorkflowExecutionError(
+                    ExecutionFailureCategory.RUNTIME,
+                    f"steps.{step.id}",
+                    f"Replay does not support action '{step.action}'.",
+                )
+        except WorkflowExecutionError:
+            raise
+        except (TimeoutError, PlaywrightTimeoutError) as error:
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.RUNTIME,
                 f"steps.{step.id}",
-                f"Replay does not yet support action '{step.action}'.",
+                f"Action '{step.action}' timed out after {step.timeout_seconds} seconds.",
+            ) from error
+        except Exception as error:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.RUNTIME,
+                f"steps.{step.id}",
+                _runtime_message(error),
+            ) from error
+
+        actions.append(
+            ActionResult(
+                step_id=step.id,
+                action=step.action,
+                status=ActionStatus.COMPLETED,
+                output_key=output_key,
             )
-    return outputs
+        )
+    return StepExecution(outputs=outputs, actions=tuple(actions))
 
 
 def render_template(template: str, inputs: dict[str, object]) -> str:

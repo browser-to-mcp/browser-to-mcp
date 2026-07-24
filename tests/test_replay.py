@@ -15,7 +15,9 @@ from browser_to_mcp.loader import LoadedWorkflow, load_workflow, manifest_digest
 from browser_to_mcp.models import StepAction, WorkflowInput, WorkflowOutput, WorkflowStep
 from browser_to_mcp.replay import (
     ExecutionFailureCategory,
+    PlaywrightReplayEngine,
     WorkflowExecutionError,
+    _is_allowed_url,
     evaluate_success_assertions,
     execute_steps,
     parse_input_pairs,
@@ -186,6 +188,10 @@ class FakeContext:
     def __init__(self, page: FakePage) -> None:
         self.closed = False
         self.page = page
+        self.route_patterns: list[str] = []
+
+    async def route(self, pattern: str, handler: object) -> None:
+        self.route_patterns.append(pattern)
 
     async def new_page(self) -> FakePage:
         return self.page
@@ -200,6 +206,7 @@ class FakeBrowser:
     def __init__(self, context: FakeContext) -> None:
         self.closed = False
         self.context = context
+        self.version = "149.0.0"
 
     async def new_context(self) -> FakeContext:
         return self.context
@@ -221,6 +228,27 @@ class FakeChromium:
             raise self.error
         assert self.browser is not None
         return self.browser
+
+
+class FreshChromium:
+    """Launcher double that creates a new browser context for every run."""
+
+    def __init__(self) -> None:
+        self.browsers: list[FakeBrowser] = []
+
+    async def launch(self, headless: bool) -> FakeBrowser:
+        assert headless is True
+        browser = FakeBrowser(FakeContext(FakePage()))
+        self.browsers.append(browser)
+        return browser
+
+
+class SlowContext(FakeContext):
+    """Context double that can be interrupted by the engine timeout."""
+
+    async def new_page(self) -> FakePage:
+        await asyncio.sleep(2)
+        return await super().new_page()
 
 
 class FakePlaywright:
@@ -370,6 +398,72 @@ def test_execute_steps_replays_reference_workflow() -> None:
     assert execution.actions[1].output_key == "results"
 
 
+@pytest.mark.parametrize(
+    ("url", "allowed", "expected"),
+    [
+        ("https://hn.algolia.com/", ["hn.algolia.com"], True),
+        ("https://api.hn.algolia.com/results", ["hn.algolia.com"], True),
+        ("https://not-hn.algolia.com/", ["hn.algolia.com"], False),
+        ("https://hn.algolia.com.evil.example/", ["hn.algolia.com"], False),
+        ("about:blank", ["hn.algolia.com"], True),
+        ("data:text/plain,results", ["hn.algolia.com"], True),
+        ("file:///tmp/results", ["hn.algolia.com"], False),
+    ],
+)
+def test_request_policy_matches_declared_hosts_only(
+    url: str, allowed: list[str], expected: bool
+) -> None:
+    assert _is_allowed_url(url, allowed) is expected
+
+
+def test_execute_steps_rejects_runtime_navigation_outside_allowlist() -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(
+        update={
+            "steps": [
+                WorkflowStep(
+                    id="search",
+                    action=StepAction.GOTO,
+                    url="https://evil.example/results",
+                )
+            ]
+        }
+    )
+    page = FakePage()
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(
+            execute_steps(
+                page,
+                workflow,
+                {},
+                allowed_domains=workflow.permissions.allowed_domains,
+            )
+        )
+
+    assert error.value.category is ExecutionFailureCategory.PERMISSION
+    assert error.value.path == "steps.search.url"
+    assert page.goto_calls == []
+
+
+def test_execute_steps_reports_blocked_page_request() -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(
+            execute_steps(
+                FakePage(),
+                workflow,
+                {"query": "mcp"},
+                allowed_domains=workflow.permissions.allowed_domains,
+                blocked_request_getter=lambda: "https://evil.example/script.js",
+            )
+        )
+
+    assert error.value.category is ExecutionFailureCategory.PERMISSION
+    assert error.value.path == "steps.search"
+    assert "evil.example" in error.value.message
+
+
 def test_execute_steps_runs_declared_read_only_actions_in_order() -> None:
     base_workflow = load_workflow(WORKFLOW_PATH).workflow
     workflow = base_workflow.model_copy(
@@ -492,6 +586,62 @@ def test_success_assertion_rejects_missing_output() -> None:
 
     assert error.value.category is ExecutionFailureCategory.ASSERTION
     assert error.value.path == "success.results_present"
+
+
+def test_engine_uses_a_fresh_context_for_each_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    chromium = FreshChromium()
+    patch_playwright(monkeypatch, chromium)
+    workflow = load_workflow(WORKFLOW_PATH).workflow
+    engine = PlaywrightReplayEngine()
+
+    first = asyncio.run(engine.run(workflow, {"query": "first"}))
+    second = asyncio.run(engine.run(workflow, {"query": "second"}))
+
+    assert first.execution.outputs == {"results": "Matching Hacker News results"}
+    assert second.execution.outputs == {"results": "Matching Hacker News results"}
+    assert len(chromium.browsers) == 2
+    assert chromium.browsers[0].context is not chromium.browsers[1].context
+    assert all(browser.context.closed for browser in chromium.browsers)
+    assert all(browser.closed for browser in chromium.browsers)
+
+
+def test_engine_maps_overall_timeout_and_closes_resources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context = SlowContext(FakePage())
+    browser = FakeBrowser(context)
+    patch_playwright(monkeypatch, FakeChromium(browser=browser))
+    workflow = load_workflow(WORKFLOW_PATH).workflow
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(PlaywrightReplayEngine(overall_timeout_seconds=1).run(workflow, {}))
+
+    assert error.value.category is ExecutionFailureCategory.RUNTIME
+    assert error.value.path == "replay"
+    assert error.value.message == "Workflow exceeded overall timeout of 1 seconds."
+    assert context.closed is True
+    assert browser.closed is True
+
+
+def test_engine_preserves_cancellation_and_closes_resources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context = SlowContext(FakePage())
+    browser = FakeBrowser(context)
+    patch_playwright(monkeypatch, FakeChromium(browser=browser))
+    workflow = load_workflow(WORKFLOW_PATH).workflow
+
+    async def cancel_run() -> None:
+        task = asyncio.create_task(PlaywrightReplayEngine().run(workflow, {}))
+        await asyncio.sleep(0.01)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    asyncio.run(cancel_run())
+
+    assert context.closed is True
+    assert browser.closed is True
 
 
 def test_replay_reports_missing_chromium(monkeypatch: pytest.MonkeyPatch) -> None:

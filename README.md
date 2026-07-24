@@ -23,8 +23,10 @@ uv run pytest
 
 `replay` supports the read-only `goto`, `fill`, `press`, `click`,
 `wait_for_text`, `extract_text`, and permission-gated `download` steps. It runs
-in a fresh headless Chromium context and returns structured JSON, including
-one result for each completed action. Traces and MCP serving are tracked
-separately. Each replay writes a redacted JSON trace under `traces/`; use
-`--trace-dir` to choose another directory. Failed runs also attempt to save a
-failure screenshot and include its path in the trace.
+in a fresh headless Chromium context, limits every action and the complete run,
+and blocks navigation or page requests outside `permissions.allowed_domains`.
+Use `--timeout-seconds` to set the overall run limit. It returns structured
+JSON, including one result for each completed action. Traces and MCP serving
+are tracked separately. Each replay writes a redacted JSON trace under
+`traces/`; use `--trace-dir` to choose another directory. Failed runs also
+attempt to save a failure screenshot and include its path in the trace.

@@ -91,3 +91,38 @@ def test_replay_command_reports_structured_action_results(
         }
     ]
     assert result["trace_path"] == "traces/trace.json"
+
+
+def test_replay_command_forwards_overall_timeout(
+    monkeypatch, capsys: CaptureFixture[str]
+) -> None:
+    received: dict[str, object] = {}
+
+    async def fake_replay(*args, **kwargs) -> ReplayResult:
+        received["timeout_seconds"] = args[3]
+        return ReplayResult(
+            workflow="hn_search",
+            manifest_digest="sha256:test",
+            outputs={"results": "visible results"},
+            actions=(),
+            duration_seconds=0.01,
+        )
+
+    monkeypatch.setattr("browser_to_mcp.cli.replay_workflow", fake_replay)
+
+    assert (
+        run(
+            [
+                "replay",
+                str(WORKFLOW_PATH),
+                "--input",
+                "query=mcp",
+                "--timeout-seconds",
+                "12",
+            ]
+        )
+        == 0
+    )
+
+    assert received["timeout_seconds"] == 12
+    assert json.loads(capsys.readouterr().out)["status"] == "completed"

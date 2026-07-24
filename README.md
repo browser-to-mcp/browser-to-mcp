@@ -21,6 +21,8 @@ uv run browser-to-mcp replay workflows/hn_search.yaml --input query=mcp
 uv run pytest
 ```
 
-`replay` currently supports the `goto` and `extract_text` steps used by the
-reference workflow. It runs in a fresh headless Chromium context and returns
-structured JSON. More actions, traces, and MCP serving are tracked separately.
+`replay` supports the read-only `goto`, `fill`, `press`, `click`,
+`wait_for_text`, `extract_text`, and permission-gated `download` steps. It runs
+in a fresh headless Chromium context and returns structured JSON, including
+one result for each completed action. Traces and MCP serving are tracked
+separately.

@@ -123,6 +123,15 @@ def _replay(path: Path, input_pairs: list[str]) -> int:
                 "workflow": result.workflow,
                 "manifest_digest": result.manifest_digest,
                 "outputs": result.outputs,
+                "actions": [
+                    {
+                        "step_id": action.step_id,
+                        "action": action.action,
+                        "status": action.status,
+                        "output_key": action.output_key,
+                    }
+                    for action in result.actions
+                ],
                 "duration_seconds": round(result.duration_seconds, 3),
             }
         )

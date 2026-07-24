@@ -6,6 +6,7 @@ from pathlib import Path
 from pytest import CaptureFixture
 
 from browser_to_mcp.cli import run
+from browser_to_mcp.replay import ActionResult, ActionStatus, ReplayResult
 
 WORKFLOW_PATH = Path(__file__).parents[1] / "workflows" / "hn_search.yaml"
 
@@ -54,3 +55,36 @@ def test_replay_rejects_missing_input_before_browser_start(capsys: CaptureFixtur
         "path": "inputs.query",
         "message": "A required input was not provided.",
     }
+
+
+def test_replay_command_reports_structured_action_results(
+    monkeypatch, capsys: CaptureFixture[str]
+) -> None:
+    async def fake_replay(*args, **kwargs) -> ReplayResult:
+        return ReplayResult(
+            workflow="hn_search",
+            manifest_digest="sha256:test",
+            outputs={"results": "visible results"},
+            actions=(
+                ActionResult(
+                    step_id="search",
+                    action="goto",
+                    status=ActionStatus.COMPLETED,
+                ),
+            ),
+            duration_seconds=0.01,
+        )
+
+    monkeypatch.setattr("browser_to_mcp.cli.replay_workflow", fake_replay)
+
+    assert run(["replay", str(WORKFLOW_PATH), "--input", "query=mcp"]) == 0
+
+    result = json.loads(capsys.readouterr().out)
+    assert result["actions"] == [
+        {
+            "step_id": "search",
+            "action": "goto",
+            "status": "completed",
+            "output_key": None,
+        }
+    ]

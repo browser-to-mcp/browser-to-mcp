@@ -86,6 +86,7 @@ class WorkflowInput(StrictModel):
 
     type: Literal["string", "integer", "number", "boolean"]
     required: bool = True
+    sensitive: bool = False
     description: str | None = None
     min_length: PositiveInt | None = None
 

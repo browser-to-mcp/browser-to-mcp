@@ -10,6 +10,7 @@ from pathlib import Path
 
 from browser_to_mcp.loader import load_workflow
 from browser_to_mcp.replay import WorkflowExecutionError, replay_workflow
+from browser_to_mcp.server import ServerConfigurationError, serve_workflows
 from browser_to_mcp.validation import WorkflowValidationError
 
 
@@ -47,6 +48,27 @@ def build_parser() -> argparse.ArgumentParser:
         default=300,
         help="Maximum time allowed for the complete browser run.",
     )
+    server_parser = subparsers.add_parser(
+        "server", help="Serve validated workflows over a local MCP STDIO connection."
+    )
+    server_parser.add_argument(
+        "--workflow-dir",
+        type=Path,
+        default=Path("workflows"),
+        help="Directory containing YAML workflow contracts.",
+    )
+    server_parser.add_argument(
+        "--trace-dir",
+        type=Path,
+        default=Path("traces"),
+        help="Directory for redacted JSON traces and failure screenshots.",
+    )
+    server_parser.add_argument(
+        "--timeout-seconds",
+        type=_positive_int,
+        default=300,
+        help="Maximum time allowed for each browser run.",
+    )
     return parser
 
 
@@ -67,6 +89,8 @@ def run(arguments: list[str] | None = None) -> int:
             namespace.trace_dir,
             namespace.timeout_seconds,
         )
+    if namespace.command == "server":
+        return _server(namespace.workflow_dir, namespace.trace_dir, namespace.timeout_seconds)
     parser.error(f"Unsupported command: {namespace.command}")
     return 2
 
@@ -171,6 +195,15 @@ def _replay(
             }
         )
     )
+    return 0
+
+
+def _server(workflow_dir: Path, trace_dir: Path, timeout_seconds: int) -> int:
+    try:
+        serve_workflows(workflow_dir, trace_dir, timeout_seconds)
+    except ServerConfigurationError as error:
+        _print_error("invalid", "configuration", error.path, error.message)
+        return 2
     return 0
 
 

@@ -142,3 +142,19 @@ def test_replay_command_forwards_overall_timeout(
 
     assert received["timeout_seconds"] == 12
     assert json.loads(capsys.readouterr().out)["status"] == "completed"
+
+
+def test_server_command_reports_invalid_workflow_directory(
+    tmp_path: Path, capsys: CaptureFixture[str]
+) -> None:
+    missing = tmp_path / "missing-workflows"
+
+    assert run(["server", "--workflow-dir", str(missing)]) == 2
+
+    result = json.loads(capsys.readouterr().err)
+    assert result == {
+        "status": "invalid",
+        "category": "configuration",
+        "path": str(missing),
+        "message": "Workflow directory does not exist.",
+    }

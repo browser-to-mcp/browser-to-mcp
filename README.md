@@ -27,6 +27,7 @@ uv run browser-to-mcp validate workflows/hn_search.yaml
 uv run browser-to-mcp dry-run workflows/hn_search.yaml
 uv run playwright install chromium
 uv run browser-to-mcp replay workflows/hn_search.yaml --input query=mcp
+uv run browser-to-mcp server --workflow-dir workflows
 uv run pytest
 ```
 
@@ -39,3 +40,10 @@ JSON, including one result for each completed action. Traces and MCP serving
 are tracked separately. Each replay writes a redacted JSON trace under
 `traces/`; use `--trace-dir` to choose another directory. Failed runs also
 attempt to save a failure screenshot and include its path in the trace.
+
+`server` exposes every valid YAML workflow in the selected directory over a
+local STDIO MCP connection. Startup validates all workflows before registering
+any tools, and invalid or unsafe files prevent startup. Tool calls validate
+typed inputs before opening a browser, then return workflow outputs, the
+manifest digest, and the trace path. The server exposes workflow-backed tools;
+it does not discover or invoke native page-provided tools.

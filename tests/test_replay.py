@@ -12,7 +12,16 @@ from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 import browser_to_mcp.replay as replay_module
 from browser_to_mcp.loader import LoadedWorkflow, load_workflow, manifest_digest
-from browser_to_mcp.models import StepAction, WorkflowInput, WorkflowOutput, WorkflowStep
+from browser_to_mcp.models import (
+    Confirmation,
+    Idempotency,
+    Retry,
+    Risk,
+    StepAction,
+    WorkflowInput,
+    WorkflowOutput,
+    WorkflowStep,
+)
 from browser_to_mcp.replay import (
     ExecutionFailureCategory,
     PlaywrightReplayEngine,
@@ -23,8 +32,23 @@ from browser_to_mcp.replay import (
     parse_input_pairs,
     render_template,
 )
+from browser_to_mcp.validation import FailureCategory, WorkflowValidationError
 
 WORKFLOW_PATH = Path(__file__).parents[1] / "workflows" / "hn_search.yaml"
+
+
+def read_only_step(**fields: object) -> WorkflowStep:
+    """Build explicit V0 step declarations without hiding their policy values."""
+
+    defaults: dict[str, object] = {
+        "timeout_seconds": 30,
+        "risk": Risk.READ_ONLY,
+        "idempotency": Idempotency.SAFE,
+        "retry": Retry.NONE,
+        "confirmation": Confirmation.NEVER,
+    }
+    defaults.update(fields)
+    return WorkflowStep(**defaults)
 
 
 class FakeLocator:
@@ -420,7 +444,7 @@ def test_execute_steps_rejects_runtime_navigation_outside_allowlist() -> None:
     workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(
         update={
             "steps": [
-                WorkflowStep(
+                read_only_step(
                     id="search",
                     action=StepAction.GOTO,
                     url="https://evil.example/results",
@@ -469,26 +493,26 @@ def test_execute_steps_runs_declared_read_only_actions_in_order() -> None:
     workflow = base_workflow.model_copy(
         update={
             "steps": [
-                WorkflowStep(
+                read_only_step(
                     id="navigate",
                     action=StepAction.GOTO,
                     url="https://hn.algolia.com/",
                 ),
-                WorkflowStep(
+                read_only_step(
                     id="fill_query",
                     action=StepAction.FILL,
                     selector="#search",
                     value="{{query}}",
                 ),
-                WorkflowStep(id="submit", action=StepAction.PRESS, key="Enter"),
-                WorkflowStep(id="click_more", action=StepAction.CLICK, selector="#more"),
-                WorkflowStep(
+                read_only_step(id="submit", action=StepAction.PRESS, key="Enter"),
+                read_only_step(id="click_more", action=StepAction.CLICK, selector="#more"),
+                read_only_step(
                     id="wait_results",
                     action=StepAction.WAIT_FOR_TEXT,
                     text="Results",
                 ),
-                WorkflowStep(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
-                WorkflowStep(id="save", action=StepAction.DOWNLOAD, selector="#download"),
+                read_only_step(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
+                read_only_step(id="save", action=StepAction.DOWNLOAD, selector="#download"),
             ],
             "outputs": {
                 **base_workflow.outputs,
@@ -550,7 +574,7 @@ def test_execute_steps_bounds_keyboard_presses() -> None:
     workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(
         update={
             "steps": [
-                WorkflowStep(
+                read_only_step(
                     id="submit",
                     action=StepAction.PRESS,
                     key="Enter",
@@ -642,6 +666,21 @@ def test_engine_preserves_cancellation_and_closes_resources(
 
     assert context.closed is True
     assert browser.closed is True
+
+
+def test_replay_boundary_revalidates_unsafe_workflow() -> None:
+    source = load_workflow(WORKFLOW_PATH)
+    unsafe_workflow = source.workflow.model_copy(update={"risk": Risk.FINANCIAL})
+    unsafe = LoadedWorkflow(
+        workflow=unsafe_workflow,
+        manifest_digest=manifest_digest(unsafe_workflow),
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        asyncio.run(replay_module.replay_workflow(unsafe, ["query=mcp"]))
+
+    assert error.value.category is FailureCategory.POLICY
+    assert error.value.path == "risk"
 
 
 def test_replay_reports_missing_chromium(monkeypatch: pytest.MonkeyPatch) -> None:

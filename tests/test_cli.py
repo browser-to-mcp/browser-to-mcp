@@ -40,8 +40,24 @@ def test_dry_run_reports_a_serializable_replay_plan(capsys: CaptureFixture[str])
     assert result["workflow"] == "hn_search"
     assert result["inputs"]["query"]["type"] == "string"
     assert result["steps"] == [
-        {"id": "search", "action": "goto", "timeout_seconds": 30},
-        {"id": "results", "action": "extract_text", "timeout_seconds": 30},
+        {
+            "id": "search",
+            "action": "goto",
+            "timeout_seconds": 30,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never",
+        },
+        {
+            "id": "results",
+            "action": "extract_text",
+            "timeout_seconds": 30,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never",
+        },
     ]
 
 

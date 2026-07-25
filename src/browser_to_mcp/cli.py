@@ -111,6 +111,10 @@ def _dry_run(path: Path) -> int:
                         "id": step.id,
                         "action": step.action,
                         "timeout_seconds": step.timeout_seconds,
+                        "risk": step.risk,
+                        "idempotency": step.idempotency,
+                        "retry": step.retry,
+                        "confirmation": step.confirmation,
                     }
                     for step in loaded.workflow.steps
                 ],

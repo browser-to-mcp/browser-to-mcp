@@ -28,6 +28,21 @@ def test_protocol_lists_expected_tool_schema() -> None:
             "title": "HnSearchArguments",
             "type": "object",
         }
+        assert tool.outputSchema is not None
+        assert tool.outputSchema["type"] == "object"
+        assert tool.outputSchema["required"] == [
+            "workflow",
+            "manifest_digest",
+            "outputs",
+            "trace_path",
+            "duration_seconds",
+        ]
+        assert tool.outputSchema["properties"]["outputs"]["$ref"] == (
+            "#/$defs/HnSearchOutputs"
+        )
+        assert tool.outputSchema["$defs"]["HnSearchOutputs"]["properties"]["results"]["type"] == (
+            "string"
+        )
 
     run_protocol_test(assert_tools)
 

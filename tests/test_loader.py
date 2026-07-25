@@ -107,9 +107,49 @@ def test_rejects_non_string_min_length(tmp_path: Path) -> None:
 def test_rejects_retry_for_non_retryable_step(tmp_path: Path) -> None:
     invalid = tmp_path / "retry.yaml"
     invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8")
+        .replace("    idempotency: safe", "    idempotency: non_retryable", 1)
+        .replace("    retry: none", "    retry: one", 1),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.POLICY
+
+
+@pytest.mark.parametrize(
+    "declaration",
+    [
+        "    timeout_seconds: 30\n",
+        "    risk: read_only\n",
+        "    idempotency: safe\n",
+        "    retry: none\n",
+        "    confirmation: never\n",
+    ],
+)
+def test_rejects_missing_explicit_safety_declaration(
+    tmp_path: Path, declaration: str
+) -> None:
+    invalid = tmp_path / "missing-declaration.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(declaration, "", 1),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.SCHEMA
+    assert ":steps." in error.value.path
+
+
+def test_rejects_confirmation_required_by_unsupported_v0_policy(tmp_path: Path) -> None:
+    invalid = tmp_path / "confirmation.yaml"
+    invalid.write_text(
         WORKFLOW_PATH.read_text(encoding="utf-8").replace(
-            "    timeout_seconds: 30",
-            "    timeout_seconds: 30\n    idempotency: non_retryable\n    retry: one",
+            "    confirmation: never", "    confirmation: before_action", 1
         ),
         encoding="utf-8",
     )
@@ -118,6 +158,40 @@ def test_rejects_retry_for_non_retryable_step(tmp_path: Path) -> None:
         load_workflow(invalid)
 
     assert error.value.category is FailureCategory.POLICY
+    assert error.value.path == "steps.search.confirmation"
+
+
+@pytest.mark.parametrize("capability", ["uploads", "submit_forms", "send_messages", "spend_money"])
+def test_rejects_unsupported_side_effect_capability(tmp_path: Path, capability: str) -> None:
+    invalid = tmp_path / f"{capability}.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(
+            f"  {capability}: false", f"  {capability}: true", 1
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.PERMISSION
+    assert error.value.path == f"permissions.{capability}"
+
+
+def test_rejects_authentication_sensitive_workflow(tmp_path: Path) -> None:
+    invalid = tmp_path / "authentication.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(
+            "  spend_money: false", "  spend_money: false\n  requires_authentication: true", 1
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.PERMISSION
+    assert error.value.path == "permissions.requires_authentication"
 
 
 def test_rejects_undeclared_contract_fields(tmp_path: Path) -> None:

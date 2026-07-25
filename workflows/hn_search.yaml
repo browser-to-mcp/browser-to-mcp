@@ -31,9 +31,18 @@ steps:
     action: goto
     url: https://hn.algolia.com/?q={{query}}
     timeout_seconds: 30
+    risk: read_only
+    idempotency: safe
+    retry: none
+    confirmation: never
   - id: results
     action: extract_text
     selector: main
+    timeout_seconds: 30
+    risk: read_only
+    idempotency: safe
+    retry: none
+    confirmation: never
 
 outputs:
   results:

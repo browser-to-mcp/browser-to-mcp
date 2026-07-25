@@ -9,6 +9,10 @@ https://browser-to-mcp.github.io/spec/.
 
 M1 adds deterministic replay for the current read-only reference workflow.
 Browser workflow coverage and MCP serving are tracked as later milestones.
+Every step must explicitly declare its timeout, risk, idempotency, retry, and
+confirmation policy. V0 accepts only read-only workflows and refuses writes,
+destructive or financial actions, uploads, messaging, and authentication-
+sensitive workflows before a browser starts.
 
 ## Development
 

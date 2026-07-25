@@ -33,6 +33,7 @@ from browser_to_mcp.tracing import (
     redact_text,
     write_trace,
 )
+from browser_to_mcp.validation import validate_workflow_policy
 
 _TEMPLATE_PATTERN = re.compile(r"{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}")
 
@@ -160,6 +161,7 @@ class PlaywrightReplayEngine:
     ) -> EngineResult:
         """Bound the complete run while allowing cancellation to clean up normally."""
 
+        validate_workflow_policy(workflow)
         try:
             return await asyncio.wait_for(
                 self._run(workflow, inputs, failure_screenshot_path),
@@ -314,6 +316,7 @@ async def replay_workflow(
 ) -> ReplayResult:
     """Replay a workflow and optionally persist a redacted provenance trace."""
 
+    validate_workflow_policy(loaded.workflow)
     run_id = uuid4().hex
     started_at = monotonic()
     started_at_utc = datetime.now(UTC)

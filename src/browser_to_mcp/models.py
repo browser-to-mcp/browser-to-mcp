@@ -64,6 +64,7 @@ class Permissions(StrictModel):
     submit_forms: bool = False
     send_messages: bool = False
     spend_money: bool = False
+    requires_authentication: bool = False
 
     @field_validator("allowed_domains")
     @classmethod
@@ -116,11 +117,11 @@ class WorkflowStep(StrictModel):
     value: str | None = None
     key: str | None = None
     text: str | None = None
-    timeout_seconds: PositiveInt = 30
-    risk: Risk = Risk.READ_ONLY
-    idempotency: Idempotency = Idempotency.SAFE
-    retry: Retry = Retry.NONE
-    confirmation: Confirmation = Confirmation.NEVER
+    timeout_seconds: PositiveInt
+    risk: Risk
+    idempotency: Idempotency
+    retry: Retry
+    confirmation: Confirmation
 
     @model_validator(mode="after")
     def validate_action_fields(self) -> WorkflowStep:

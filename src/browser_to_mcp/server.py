@@ -10,10 +10,14 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.tools.base import Tool
-from mcp.server.fastmcp.utilities.func_metadata import ArgModelBase, FuncMetadata
+from mcp.server.fastmcp.utilities.func_metadata import FuncMetadata
 from mcp.types import CallToolResult, TextContent, ToolAnnotations
-from pydantic import ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, create_model
 
+from browser_to_mcp.compiler import (
+    CompiledWorkflow,
+    SchemaCompilationError,
+    compile_workflows,
+)
 from browser_to_mcp.loader import LoadedWorkflow, load_workflow
 from browser_to_mcp.models import Workflow
 from browser_to_mcp.replay import (
@@ -23,19 +27,6 @@ from browser_to_mcp.replay import (
 )
 from browser_to_mcp.tracing import redact_text
 from browser_to_mcp.validation import WorkflowValidationError, validate_workflow_policy
-
-_INPUT_TYPES: dict[str, type[Any]] = {
-    "string": StrictStr,
-    "integer": StrictInt,
-    "number": StrictFloat,
-    "boolean": StrictBool,
-}
-
-
-class StrictArguments(ArgModelBase):
-    """SDK argument model that rejects undeclared workflow inputs."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
 
 @dataclass(slots=True)
@@ -118,9 +109,14 @@ def create_server(
         except WorkflowValidationError as error:
             raise ServerConfigurationError(error.path, error.message) from error
 
+    try:
+        compiled_workflows = compile_workflows(loaded_workflows)
+    except SchemaCompilationError as error:
+        raise ServerConfigurationError(error.path, error.message) from error
+
     tools = [
         _workflow_tool(item, trace_dir=trace_dir, timeout_seconds=timeout_seconds)
-        for item in loaded_workflows
+        for item in compiled_workflows
     ]
     return FastMCP(
         name="browser-to-mcp",
@@ -146,11 +142,12 @@ def serve_workflows(
 
 
 def _workflow_tool(
-    loaded: LoadedWorkflow,
+    compiled: CompiledWorkflow,
     *,
     trace_dir: Path | None,
     timeout_seconds: int,
 ) -> Tool:
+    loaded = compiled.loaded
     workflow = loaded.workflow
 
     async def invoke(**kwargs: object) -> CallToolResult:
@@ -181,13 +178,16 @@ def _workflow_tool(
     invoke.__name__ = workflow.name
     invoke.__doc__ = workflow.description
 
-    argument_model = _argument_model(workflow)
-    metadata = FuncMetadata(arg_model=argument_model)
+    metadata = WorkflowFuncMetadata(
+        arg_model=compiled.input_model,
+        output_model=compiled.output_model,
+        output_schema=compiled.output_schema,
+    )
     return Tool(
         fn=invoke,
         name=workflow.name,
-        description=_tool_description(workflow),
-        parameters=argument_model.model_json_schema(by_alias=True),
+        description=compiled.description,
+        parameters=compiled.input_schema,
         fn_metadata=metadata,
         is_async=True,
         annotations=ToolAnnotations(
@@ -199,33 +199,13 @@ def _workflow_tool(
     )
 
 
-def _argument_model(workflow: Workflow) -> type[ArgModelBase]:
-    fields: dict[str, tuple[Any, Any]] = {}
-    for name, definition in workflow.inputs.items():
-        annotation: Any = _INPUT_TYPES[definition.type]
-        default: Any = ...
-        if not definition.required:
-            annotation = annotation | None
-            default = None
-        field_kwargs: dict[str, Any] = {}
-        if definition.description is not None:
-            field_kwargs["description"] = definition.description
-        if definition.min_length is not None:
-            field_kwargs["min_length"] = definition.min_length
-        fields[name] = (annotation, Field(default=default, **field_kwargs))
+class WorkflowFuncMetadata(FuncMetadata):
+    """Validate successful structured results while preserving structured errors."""
 
-    return create_model(
-        f"{workflow.name.title().replace('_', '')}Arguments",
-        __base__=StrictArguments,
-        **fields,
-    )
-
-
-def _tool_description(workflow: Workflow) -> str:
-    return (
-        f"{workflow.description} Read-only reviewed workflow; "
-        "no writes or side effects are allowed."
-    )
+    def convert_result(self, result: Any) -> Any:
+        if isinstance(result, CallToolResult) and result.isError:
+            return result
+        return super().convert_result(result)
 
 
 def _input_pairs(workflow: Workflow, values: dict[str, object]) -> list[str]:

@@ -5,6 +5,11 @@ Turn reviewed browser workflows into typed, reliable MCP tools.
 This private repository contains the implementation of the proposal at
 https://browser-to-mcp.github.io/spec/.
 
+Current product scope and implementation sequencing are documented in
+[`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) and
+[`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md). Historical research remains in the
+[research repository](https://github.com/browser-to-mcp/research).
+
 ## Current milestone
 
 M1 adds deterministic replay for the current read-only reference workflow.

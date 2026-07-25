@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from urllib.parse import urlparse
 
-from browser_to_mcp.models import Idempotency, Retry, Risk, StepAction, Workflow
+from browser_to_mcp.models import Confirmation, Idempotency, Retry, Risk, StepAction, Workflow
 
 
 class FailureCategory(StrEnum):
@@ -42,6 +42,7 @@ def validate_workflow_policy(workflow: Workflow) -> None:
         "submit_forms",
         "send_messages",
         "spend_money",
+        "requires_authentication",
     )
     for capability in disallowed_capabilities:
         if getattr(workflow.permissions, capability):
@@ -50,6 +51,14 @@ def validate_workflow_policy(workflow: Workflow) -> None:
                 f"permissions.{capability}",
                 "V0 accepts only read-only capabilities.",
             )
+
+    has_download_step = any(step.action is StepAction.DOWNLOAD for step in workflow.steps)
+    if workflow.permissions.downloads and not has_download_step:
+        raise WorkflowValidationError(
+            FailureCategory.PERMISSION,
+            "permissions.downloads",
+            "Downloads permission is only valid for a download step.",
+        )
 
     for step in workflow.steps:
         if step.risk is not Risk.READ_ONLY:
@@ -63,6 +72,12 @@ def validate_workflow_policy(workflow: Workflow) -> None:
                 FailureCategory.POLICY,
                 f"steps.{step.id}.retry",
                 "A non_retryable step must declare retry: none.",
+            )
+        if step.confirmation is not Confirmation.NEVER:
+            raise WorkflowValidationError(
+                FailureCategory.POLICY,
+                f"steps.{step.id}.confirmation",
+                "V0 does not support confirmation-gated steps.",
             )
         if step.action is StepAction.DOWNLOAD and not workflow.permissions.downloads:
             raise WorkflowValidationError(

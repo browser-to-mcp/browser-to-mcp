@@ -53,6 +53,13 @@ def test_create_server_rejects_unsafe_workflows() -> None:
         create_server([loaded])
 
 
+def test_create_server_rejects_compiler_name_collisions() -> None:
+    loaded = load_workflow(WORKFLOW_PATH)
+
+    with pytest.raises(ServerConfigurationError, match="Tool name 'hn_search'"):
+        create_server([loaded, loaded])
+
+
 def test_server_lists_typed_read_only_workflow_tools() -> None:
     server = create_server(load_workflows(WORKFLOW_PATH.parent))
 
@@ -78,6 +85,23 @@ def test_server_lists_typed_read_only_workflow_tools() -> None:
     assert tool.annotations.readOnlyHint is True
     assert tool.annotations.destructiveHint is False
     assert "Read-only reviewed workflow" in (tool.description or "")
+
+
+def test_server_lists_declared_output_schema() -> None:
+    server = create_server(load_workflows(WORKFLOW_PATH.parent))
+
+    tools = asyncio.run(server.list_tools())
+
+    assert tools[0].outputSchema is not None
+    assert tools[0].outputSchema["properties"]["workflow"] == {
+        "const": "hn_search",
+        "title": "Workflow",
+        "type": "string",
+    }
+    assert tools[0].outputSchema["properties"]["manifest_digest"]["const"].startswith(
+        "sha256:"
+    )
+    assert tools[0].outputSchema["properties"]["outputs"]["$ref"].endswith("Outputs")
 
 
 def test_server_exposes_workflow_over_stdio() -> None:

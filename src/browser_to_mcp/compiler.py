@@ -191,7 +191,10 @@ def _class_name(name: str) -> str:
 
 
 def _tool_description(workflow: Workflow) -> str:
-    return (
-        f"{workflow.description} Read-only reviewed workflow; "
-        "no writes or side effects are allowed."
+    boundary = (
+        "Read-only reviewed workflow; no forms are submitted, messages are sent, "
+        "files are uploaded, money is spent, or authentication is used."
     )
+    if workflow.permissions.downloads:
+        boundary += " Declared downloads are permitted."
+    return f"{workflow.description} {boundary}"

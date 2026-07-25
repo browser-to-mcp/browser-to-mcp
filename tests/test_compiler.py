@@ -11,7 +11,7 @@ from browser_to_mcp.compiler import (
     compile_workflows,
 )
 from browser_to_mcp.loader import LoadedWorkflow, load_workflow
-from browser_to_mcp.models import WorkflowInput
+from browser_to_mcp.models import WorkflowInput, WorkflowOutput
 
 WORKFLOW_PATH = Path(__file__).parents[1] / "workflows" / "hn_search.yaml"
 
@@ -85,6 +85,46 @@ def test_compiled_output_model_maps_declared_fields_and_provenance() -> None:
         "type": "string",
     }
     assert outputs_schema["required"] == ["results"]
+
+
+def test_compiler_maps_all_supported_primitive_types() -> None:
+    source = load_workflow(WORKFLOW_PATH)
+    workflow = source.workflow.model_copy(
+        update={
+            "inputs": {
+                "text": WorkflowInput(type="string"),
+                "count": WorkflowInput(type="integer"),
+                "ratio": WorkflowInput(type="number"),
+                "enabled": WorkflowInput(type="boolean"),
+            },
+            "outputs": {
+                "text": WorkflowOutput(type="string"),
+                "count": WorkflowOutput(type="integer"),
+                "ratio": WorkflowOutput(type="number"),
+                "enabled": WorkflowOutput(type="boolean"),
+            },
+        }
+    )
+    compiled = compile_workflow(LoadedWorkflow(workflow, source.manifest_digest))
+
+    assert {
+        name: compiled.input_schema["properties"][name]["type"]
+        for name in ("text", "count", "ratio", "enabled")
+    } == {
+        "text": "string",
+        "count": "integer",
+        "ratio": "number",
+        "enabled": "boolean",
+    }
+    assert {
+        name: compiled.output_schema["$defs"]["HnSearchOutputs"]["properties"][name]["type"]
+        for name in ("text", "count", "ratio", "enabled")
+    } == {
+        "text": "string",
+        "count": "integer",
+        "ratio": "number",
+        "enabled": "boolean",
+    }
 
 
 def test_compiler_rejects_generated_name_collisions() -> None:

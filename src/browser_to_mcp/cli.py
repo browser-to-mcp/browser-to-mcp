@@ -95,6 +95,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=30,
         help="Maximum time allowed for page load and discovery.",
     )
+    discover_parser.add_argument(
+        "--browser-channel",
+        default=None,
+        help="Playwright browser channel, such as chrome or chrome-canary.",
+    )
+    discover_parser.add_argument(
+        "--browser-arg",
+        action="append",
+        default=[],
+        dest="browser_args",
+        metavar="ARG",
+        help="Pass an argument to Chromium. Repeat for multiple arguments.",
+    )
     return parser
 
 
@@ -123,6 +136,8 @@ def run(arguments: list[str] | None = None) -> int:
             namespace.trace_dir,
             namespace.timeout_seconds,
             namespace.from_origins,
+            namespace.browser_channel,
+            namespace.browser_args,
         )
     parser.error(f"Unsupported command: {namespace.command}")
     return 2
@@ -245,6 +260,8 @@ def _discover(
     trace_dir: Path,
     timeout_seconds: int,
     from_origins: list[str],
+    browser_channel: str | None,
+    browser_args: list[str],
 ) -> int:
     snapshot, trace_path = asyncio.run(
         discover_url(
@@ -252,6 +269,8 @@ def _discover(
             trace_dir=trace_dir,
             timeout_seconds=timeout_seconds,
             from_origins=from_origins,
+            browser_channel=browser_channel,
+            browser_args=browser_args,
         )
     )
     payload = snapshot.model_dump(mode="json")

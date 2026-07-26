@@ -74,6 +74,16 @@ def test_discovery_returns_stable_sorted_metadata_without_invocation() -> None:
     assert "executeTool" not in first_page.expression
 
 
+def test_discovery_supports_legacy_navigator_model_context_surface() -> None:
+    page = FakePage(_supported_payload())
+
+    snapshot = asyncio.run(discover_page_tools(page))
+
+    assert snapshot.status is NativeDiscoveryStatus.SUPPORTED
+    assert 'globalThis.navigator?.modelContext' in page.expression
+    assert '`${modelContextPath}.getTools`' in page.expression
+
+
 def test_discovery_handles_a_page_with_no_native_tools() -> None:
     page = FakePage(
         {
@@ -249,9 +259,11 @@ class FakePlaywright:
     def __init__(self, browser: FakeBrowser) -> None:
         self.browser = browser
         self.chromium = self
+        self.launch_options: dict[str, object] = {}
 
-    async def launch(self, *, headless: bool) -> FakeBrowser:
-        assert headless is True
+    async def launch(self, **options: object) -> FakeBrowser:
+        self.launch_options = options
+        assert options["headless"] is True
         return self.browser
 
 
@@ -279,12 +291,15 @@ def test_discover_url_writes_content_addressed_snapshot(tmp_path: Path) -> None:
         )
 
     page.goto = goto  # type: ignore[attr-defined]
+    playwright = FakePlaywright(browser)
 
     snapshot, trace_path = asyncio.run(
         discover_url(
             "https://example.test/page",
             trace_dir=tmp_path,
-            playwright_factory=lambda: FakePlaywrightContext(FakePlaywright(browser)),
+            browser_channel="chrome-canary",
+            browser_args=["--enable-features=WebMCPTesting"],
+            playwright_factory=lambda: FakePlaywrightContext(playwright),
         )
     )
 
@@ -297,6 +312,11 @@ def test_discover_url_writes_content_addressed_snapshot(tmp_path: Path) -> None:
     )
     assert context.closed is True
     assert browser.closed is True
+    assert playwright.launch_options == {
+        "headless": True,
+        "channel": "chrome-canary",
+        "args": ["--enable-features=WebMCPTesting"],
+    }
 
 
 def test_write_discovery_snapshot_is_repeatable(tmp_path: Path) -> None:
@@ -311,14 +331,32 @@ def test_write_discovery_snapshot_is_repeatable(tmp_path: Path) -> None:
 
 
 def test_discover_command_reports_snapshot_and_trace(monkeypatch, tmp_path: Path, capsys) -> None:
+    captured: dict[str, object] = {}
+
     async def fake_discover(*args, **kwargs):
+        captured.update(kwargs)
         snapshot = await discover_page_tools(FakePage(_supported_payload()))
         return snapshot, str(tmp_path / "snapshot.json")
 
     monkeypatch.setattr("browser_to_mcp.cli.discover_url", fake_discover)
 
-    assert run(["discover", "https://example.test/page", "--trace-dir", str(tmp_path)]) == 0
+    assert (
+        run(
+            [
+                "discover",
+                "https://example.test/page",
+                "--trace-dir",
+                str(tmp_path),
+                "--browser-channel",
+                "chrome-canary",
+                "--browser-arg=--enable-features=WebMCPTesting",
+            ]
+        )
+        == 0
+    )
 
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == "supported"
     assert result["trace_path"] == str(tmp_path / "snapshot.json")
+    assert captured["browser_channel"] == "chrome-canary"
+    assert captured["browser_args"] == ["--enable-features=WebMCPTesting"]

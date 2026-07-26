@@ -42,13 +42,13 @@ V0 does:
   overall run timeout;
 - return structured outputs and action results;
 - write redacted JSON traces and failure screenshots.
+- inspect native WebMCP tool metadata without invoking native tools.
 
 V0 does not:
 
 - plan or repair workflows with an LLM;
 - execute writes, payments, uploads, messages, or destructive actions;
 - handle authentication-sensitive workflows;
-- serve MCP tools yet;
 - execute native WebMCP tools;
 - provide hosted browsers, persistent profiles, or a public workflow registry.
 
@@ -110,9 +110,17 @@ Available now:
 
 - `validate`: validate a workflow without opening a browser;
 - `dry-run`: print the reviewed execution plan and safety declarations;
-- `replay`: execute a workflow and emit structured JSON plus a trace.
+- `replay`: execute a workflow and emit structured JSON plus a trace;
+- `server`: expose validated workflows over local STDIO MCP;
+- `discover`: snapshot native WebMCP metadata and Permissions Policy state without
+  invoking native tools.
 
-Planned next:
+Workflow-backed MCP tools and native WebMCP tools are separate interfaces. The
+workflow server compiles reviewed YAML contracts and replays them through the
+project's policy-bound engine. Native discovery only observes page-provided
+metadata; it does not invoke, import, or convert those tools.
+
+Historical implementation milestones:
 
 - local STDIO MCP server and generated tool schemas ([issue #11](https://github.com/browser-to-mcp/browser-to-mcp/issues/11),
   [issue #13](https://github.com/browser-to-mcp/browser-to-mcp/issues/13));
@@ -126,7 +134,7 @@ Planned next:
 - YAML for reviewed workflow files;
 - Playwright Python for deterministic browser execution;
 - Apache-2.0 license;
-- official MCP Python SDK for the planned local server.
+- official MCP Python SDK for the local workflow-backed server.
 
 ## V0 Completion Criteria
 

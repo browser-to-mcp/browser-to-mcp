@@ -12,8 +12,8 @@ Current product scope and implementation sequencing are documented in
 
 ## Current milestone
 
-M1 adds deterministic replay for the current read-only reference workflow.
-Browser workflow coverage and MCP serving are tracked as later milestones.
+M3 adds policy, native WebMCP discovery, regression, and readiness coverage.
+The local workflow-backed MCP server and protocol coverage are implemented.
 Every step must explicitly declare its timeout, risk, idempotency, retry, and
 confirmation policy. V0 accepts only read-only workflows and refuses writes,
 destructive or financial actions, uploads, messaging, and authentication-
@@ -28,6 +28,7 @@ uv run browser-to-mcp dry-run workflows/hn_search.yaml
 uv run playwright install chromium
 uv run browser-to-mcp replay workflows/hn_search.yaml --input query=mcp
 uv run browser-to-mcp server --workflow-dir workflows
+uv run browser-to-mcp discover https://example.com
 uv run pytest
 ```
 
@@ -47,3 +48,12 @@ any tools, and invalid or unsafe files prevent startup. Tool calls validate
 typed inputs before opening a browser, then return workflow outputs, the
 manifest digest, and the trace path. The server exposes workflow-backed tools;
 it does not discover or invoke native page-provided tools.
+
+`discover` opens a page and records native WebMCP tool metadata, including names,
+descriptions, input schemas, origins, annotations, and the page's `tools`
+Permissions Policy state. Discovery never invokes a native tool. It writes a
+content-addressed JSON snapshot under `traces/`, and reports unsupported browsers,
+permission blocking, empty tool lists, and malformed metadata as structured
+diagnostics. Native page-provided tools are an interoperability boundary; they
+are separate from reviewed workflow-backed MCP tools and are not converted or
+executed by this project.

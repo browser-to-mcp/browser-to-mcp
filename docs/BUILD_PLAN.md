@@ -35,7 +35,7 @@ cleanup.
 - [#10](https://github.com/browser-to-mcp/browser-to-mcp/issues/10) Enforce step
   risk and idempotency policy: complete.
 - [#14](https://github.com/browser-to-mcp/browser-to-mcp/issues/14) Snapshot
-  native WebMCP tool discovery: pending.
+  native WebMCP tool discovery: complete.
 - [#17](https://github.com/browser-to-mcp/browser-to-mcp/issues/17) Build
   regression fixtures and readiness metrics: pending.
 
@@ -43,16 +43,16 @@ The M3 release gate is repeatable replay, stable refusal categories, and
 diagnosable traces. No public release should claim readiness before this gate
 passes.
 
-### M2: Local MCP Server, next
+### M2: Local MCP Server, complete
 
 This milestone turns validated workflows into local typed MCP tools.
 
 - [#13](https://github.com/browser-to-mcp/browser-to-mcp/issues/13): compile
-  workflow inputs and outputs into deterministic tool schemas;
+  workflow inputs and outputs into deterministic tool schemas: complete;
 - [#11](https://github.com/browser-to-mcp/browser-to-mcp/issues/11): serve valid
-  workflows over local STDIO using the official MCP Python SDK;
+  workflows over local STDIO using the official MCP Python SDK: complete;
 - [#12](https://github.com/browser-to-mcp/browser-to-mcp/issues/12): cover tool
-  listing, invocation, invalid input, startup refusal, and cleanup.
+  listing, invocation, invalid input, startup refusal, and cleanup: complete.
 
 The server must reuse the existing loader, policy, replay engine, and trace
 format. It must never register an invalid workflow.

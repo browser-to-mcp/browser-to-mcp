@@ -113,7 +113,10 @@ async ({ from_origins: fromOrigins }) => {
     page_origin: location.origin,
     permission_state: permissionState,
   };
-  const modelContext = document.modelContext;
+  const modelContext = document.modelContext ?? globalThis.navigator?.modelContext;
+  const modelContextPath = document.modelContext
+    ? "document.modelContext"
+    : "navigator.modelContext";
   if (!modelContext || typeof modelContext.getTools !== "function") {
     return {
       ...base,
@@ -137,7 +140,7 @@ async ({ from_origins: fromOrigins }) => {
         tools: [],
         diagnostics: [{
           code: "invalid_tool_list",
-          path: "document.modelContext.getTools",
+          path: `${modelContextPath}.getTools`,
           message: "WebMCP getTools did not return an array.",
         }],
       };
@@ -164,7 +167,7 @@ async ({ from_origins: fromOrigins }) => {
       tools: [],
       diagnostics: [{
         code: blocked ? "permission_denied" : "discovery_failed",
-        path: "document.modelContext.getTools",
+        path: `${modelContextPath}.getTools`,
         message: blocked
           ? "The WebMCP tools feature is blocked by Permissions Policy."
           : `WebMCP tool discovery failed with ${name}.`,
@@ -202,6 +205,8 @@ async def discover_url(
     trace_dir: Path | None = Path("traces"),
     timeout_seconds: int = 30,
     from_origins: Sequence[str] = (),
+    browser_channel: str | None = None,
+    browser_args: Sequence[str] = (),
     playwright_factory: Any = async_playwright,
 ) -> tuple[NativeDiscoverySnapshot, str | None]:
     """Open a URL, capture native tool metadata, and optionally persist a snapshot."""
@@ -216,6 +221,8 @@ async def discover_url(
                 from_origins=from_origins,
                 playwright_factory=playwright_factory,
                 timeout_seconds=timeout_seconds,
+                browser_channel=browser_channel,
+                browser_args=browser_args,
             ),
             timeout=timeout_seconds,
         )
@@ -242,9 +249,16 @@ async def _discover_url(
     from_origins: Sequence[str],
     playwright_factory: Any,
     timeout_seconds: int,
+    browser_channel: str | None,
+    browser_args: Sequence[str],
 ) -> NativeDiscoverySnapshot:
     async with playwright_factory() as playwright:
-        browser = await playwright.chromium.launch(headless=True)
+        launch_options: dict[str, Any] = {"headless": True}
+        if browser_channel is not None:
+            launch_options["channel"] = browser_channel
+        if browser_args:
+            launch_options["args"] = list(browser_args)
+        browser = await playwright.chromium.launch(**launch_options)
         try:
             context = await browser.new_context()
             try:

@@ -28,7 +28,8 @@ uv run browser-to-mcp dry-run workflows/hn_search.yaml
 uv run playwright install chromium
 uv run browser-to-mcp replay workflows/hn_search.yaml --input query=mcp
 uv run browser-to-mcp server --workflow-dir workflows
-uv run browser-to-mcp discover https://example.com
+uv run browser-to-mcp discover https://webmcp.sh/ \
+  --browser-arg=--enable-features=WebMCPTesting
 uv run pytest
 ```
 
@@ -54,6 +55,10 @@ descriptions, input schemas, origins, annotations, and the page's `tools`
 Permissions Policy state. Discovery never invokes a native tool. It writes a
 content-addressed JSON snapshot under `traces/`, and reports unsupported browsers,
 permission blocking, empty tool lists, and malformed metadata as structured
-diagnostics. Native page-provided tools are an interoperability boundary; they
-are separate from reviewed workflow-backed MCP tools and are not converted or
-executed by this project.
+diagnostics. Current Chromium testing builds expose the API behind the
+`WebMCPTesting` feature, which can be passed with repeated `--browser-arg`
+options. Use the `--browser-arg=VALUE` form when the browser argument itself
+starts with a dash; use `--browser-channel` when the API is available in a
+separately installed Playwright browser channel. Native page-provided tools are an
+interoperability boundary; they are separate from reviewed workflow-backed MCP
+tools and are not converted or executed by this project.

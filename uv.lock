@@ -41,7 +41,7 @@ wheels = [
 
 [[package]]
 name = "browser-to-mcp"
-version = "0.0.1"
+version = "0.0.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },

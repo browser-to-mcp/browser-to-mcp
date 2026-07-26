@@ -71,12 +71,14 @@ separately installed Playwright browser channel. Native page-provided tools are 
 interoperability boundary; they are separate from reviewed workflow-backed MCP
 tools and are not converted or executed by this project.
 
-## Public V0 scope
+## V0 scope
 
-This release is a local, read-only demonstration. It requires no credentials
-or persistent browser state and does not claim broad website coverage. It does
-not support writes, destructive actions, payments, uploads, messaging,
-authentication-sensitive workflows, hosted browsers, or remote transports.
+This private pre-release is a local, read-only demonstration. It requires no
+credentials or persistent browser state and does not claim broad website
+coverage. It does not support writes, destructive actions, payments, uploads,
+messaging, authentication-sensitive workflows, hosted browsers, or remote
+transports. Repository access remains restricted to collaborators until a
+separate public-release decision completes the M3 readiness gate.
 
 See [`docs/DEMO.md`](docs/DEMO.md) for the clean-checkout walkthrough,
 [`CONTRIBUTING.md`](CONTRIBUTING.md) for development, and

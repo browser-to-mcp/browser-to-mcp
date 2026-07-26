@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "browser-to-mcp"
-version = "0.0.1"
+version = "0.0.1a1"
 description = "Turn reviewed browser workflows into typed, reliable MCP tools."
 readme = "README.md"
 requires-python = ">=3.11"

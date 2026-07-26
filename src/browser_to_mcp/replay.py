@@ -561,7 +561,7 @@ async def execute_steps(
                     timeout=step.timeout_seconds * 1000,
                 )
             elif step.action is StepAction.WAIT_FOR_TEXT:
-                await page.get_by_text(render_template(step.text or "", inputs)).wait_for(
+                await page.get_by_text(render_template(step.text or "", inputs)).first.wait_for(
                     state="visible",
                     timeout=step.timeout_seconds * 1000,
                 )

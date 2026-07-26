@@ -12,6 +12,7 @@ from browser_to_mcp.loader import load_workflow
 from browser_to_mcp.replay import WorkflowExecutionError, replay_workflow
 from browser_to_mcp.server import ServerConfigurationError, serve_workflows
 from browser_to_mcp.validation import WorkflowValidationError
+from browser_to_mcp.webmcp import discover_url
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +70,31 @@ def build_parser() -> argparse.ArgumentParser:
         default=300,
         help="Maximum time allowed for each browser run.",
     )
+    discover_parser = subparsers.add_parser(
+        "discover",
+        help="Snapshot native WebMCP tools exposed by a page without invoking them.",
+    )
+    discover_parser.add_argument("url", help="Page URL to inspect.")
+    discover_parser.add_argument(
+        "--from-origin",
+        action="append",
+        default=[],
+        dest="from_origins",
+        metavar="ORIGIN",
+        help="Request tools exposed to this origin. Repeat for multiple origins.",
+    )
+    discover_parser.add_argument(
+        "--trace-dir",
+        type=Path,
+        default=Path("traces"),
+        help="Directory for content-addressed native discovery snapshots.",
+    )
+    discover_parser.add_argument(
+        "--timeout-seconds",
+        type=_positive_int,
+        default=30,
+        help="Maximum time allowed for page load and discovery.",
+    )
     return parser
 
 
@@ -91,6 +117,13 @@ def run(arguments: list[str] | None = None) -> int:
         )
     if namespace.command == "server":
         return _server(namespace.workflow_dir, namespace.trace_dir, namespace.timeout_seconds)
+    if namespace.command == "discover":
+        return _discover(
+            namespace.url,
+            namespace.trace_dir,
+            namespace.timeout_seconds,
+            namespace.from_origins,
+        )
     parser.error(f"Unsupported command: {namespace.command}")
     return 2
 
@@ -204,6 +237,26 @@ def _server(workflow_dir: Path, trace_dir: Path, timeout_seconds: int) -> int:
     except ServerConfigurationError as error:
         _print_error("invalid", "configuration", error.path, error.message)
         return 2
+    return 0
+
+
+def _discover(
+    url: str,
+    trace_dir: Path,
+    timeout_seconds: int,
+    from_origins: list[str],
+) -> int:
+    snapshot, trace_path = asyncio.run(
+        discover_url(
+            url,
+            trace_dir=trace_dir,
+            timeout_seconds=timeout_seconds,
+            from_origins=from_origins,
+        )
+    )
+    payload = snapshot.model_dump(mode="json")
+    payload["trace_path"] = trace_path
+    print(json.dumps(payload, sort_keys=True))
     return 0
 
 

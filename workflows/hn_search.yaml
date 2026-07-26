@@ -12,6 +12,7 @@ permissions:
     - cdn.jsdelivr.net
     - telemetry.algolia.com
     - www.google-analytics.com
+    - www.googletagmanager.com
     - uj5wyc0l7x-dsn.algolia.net
   downloads: false
   uploads: false
@@ -30,6 +31,14 @@ steps:
   - id: search
     action: goto
     url: https://hn.algolia.com/?q={{query}}
+    timeout_seconds: 30
+    risk: read_only
+    idempotency: safe
+    retry: none
+    confirmation: never
+  - id: wait_for_results
+    action: wait_for_text
+    text: points
     timeout_seconds: 30
     risk: read_only
     idempotency: safe

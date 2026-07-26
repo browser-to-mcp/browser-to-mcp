@@ -88,7 +88,7 @@ def test_rejects_missing_action_fields(tmp_path: Path) -> None:
         load_workflow(invalid)
 
     assert error.value.category is FailureCategory.SCHEMA
-    assert "steps.1" in error.value.path
+    assert "steps.2" in error.value.path
 
 
 def test_rejects_non_string_min_length(tmp_path: Path) -> None:

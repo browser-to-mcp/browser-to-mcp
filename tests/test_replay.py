@@ -58,6 +58,10 @@ class FakeLocator:
         self.page = page
         self.value = value
 
+    @property
+    def first(self) -> FakeLocator:
+        return self
+
     async def inner_text(self, timeout: int) -> str:
         assert timeout == 30000
         return "Matching Hacker News results"
@@ -418,8 +422,10 @@ def test_execute_steps_replays_reference_workflow() -> None:
     assert execution.outputs == {"results": "Matching Hacker News results"}
     assert execution.actions[0].step_id == "search"
     assert execution.actions[0].action is StepAction.GOTO
-    assert execution.actions[1].step_id == "results"
-    assert execution.actions[1].output_key == "results"
+    assert execution.actions[1].step_id == "wait_for_results"
+    assert execution.actions[1].action is StepAction.WAIT_FOR_TEXT
+    assert execution.actions[2].step_id == "results"
+    assert execution.actions[2].output_key == "results"
 
 
 @pytest.mark.parametrize(

@@ -57,7 +57,8 @@ content-addressed JSON snapshot under `traces/`, and reports unsupported browser
 permission blocking, empty tool lists, and malformed metadata as structured
 diagnostics. Current Chromium testing builds expose the API behind the
 `WebMCPTesting` feature, which can be passed with repeated `--browser-arg`
-options; use `--browser-channel` when the API is available in a separately
-installed Playwright browser channel. Native page-provided tools are an
+options. Use the `--browser-arg=VALUE` form when the browser argument itself
+starts with a dash; use `--browser-channel` when the API is available in a
+separately installed Playwright browser channel. Native page-provided tools are an
 interoperability boundary; they are separate from reviewed workflow-backed MCP
 tools and are not converted or executed by this project.

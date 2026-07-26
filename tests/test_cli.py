@@ -50,6 +50,15 @@ def test_dry_run_reports_a_serializable_replay_plan(capsys: CaptureFixture[str])
             "confirmation": "never",
         },
         {
+            "id": "wait_for_results",
+            "action": "wait_for_text",
+            "timeout_seconds": 30,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never",
+        },
+        {
             "id": "results",
             "action": "extract_text",
             "timeout_seconds": 30,

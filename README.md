@@ -2,7 +2,7 @@
 
 Turn reviewed browser workflows into typed, reliable MCP tools.
 
-This private repository contains the implementation of the proposal at
+This repository contains the implementation of the proposal at
 https://browser-to-mcp.github.io/spec/.
 
 Current product scope and implementation sequencing are documented in
@@ -26,10 +26,11 @@ uv sync --all-groups
 uv run browser-to-mcp validate workflows/hn_search.yaml
 uv run browser-to-mcp dry-run workflows/hn_search.yaml
 uv run playwright install chromium
-uv run browser-to-mcp replay workflows/hn_search.yaml --input query=mcp
-uv run browser-to-mcp server --workflow-dir workflows
+uv run browser-to-mcp replay workflows/hn_search.yaml --input query=python
+uv run python examples/mcp_demo.py --query python
 uv run browser-to-mcp discover https://webmcp.sh/ \
   --browser-arg=--enable-features=WebMCPTesting
+uv build
 uv run pytest
 ```
 
@@ -50,6 +51,13 @@ typed inputs before opening a browser, then return workflow outputs, the
 manifest digest, and the trace path. The server exposes workflow-backed tools;
 it does not discover or invoke native page-provided tools.
 
+The checked-in [`examples/mcp_demo.py`](examples/mcp_demo.py) starts that STDIO
+server as a child process, lists the generated `hn_search` schema, calls the
+tool, and prints its structured result and trace path. Run it when you want to
+see the complete MCP request instead of leaving the server waiting for a
+client. The live Hacker News result set changes over time; the protocol tests
+use a deterministic fixture for repeatable schema and invocation checks.
+
 `discover` opens a page and records native WebMCP tool metadata, including names,
 descriptions, input schemas, origins, annotations, and the page's `tools`
 Permissions Policy state. Discovery never invokes a native tool. It writes a
@@ -62,3 +70,15 @@ starts with a dash; use `--browser-channel` when the API is available in a
 separately installed Playwright browser channel. Native page-provided tools are an
 interoperability boundary; they are separate from reviewed workflow-backed MCP
 tools and are not converted or executed by this project.
+
+## Public V0 scope
+
+This release is a local, read-only demonstration. It requires no credentials
+or persistent browser state and does not claim broad website coverage. It does
+not support writes, destructive actions, payments, uploads, messaging,
+authentication-sensitive workflows, hosted browsers, or remote transports.
+
+See [`docs/DEMO.md`](docs/DEMO.md) for the clean-checkout walkthrough,
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for development, and
+[`SECURITY.md`](SECURITY.md) for security reports. Release preparation is
+described in [`docs/RELEASE.md`](docs/RELEASE.md).

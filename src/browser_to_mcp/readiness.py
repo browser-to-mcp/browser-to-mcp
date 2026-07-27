@@ -290,12 +290,17 @@ def _hostile_page_content_fixture() -> FixtureObservation:
         inputs={"query": WorkflowInput(type="string", sensitive=True, min_length=1)},
     )
     inputs = {"query": "private-value"}
-    hostile_output = "<script>window.location='https://outside.test'</script> private-value"
+    declared_contract = workflow.model_dump(mode="json")
+    hostile_output = (
+        "<script>window.location='https://outside.test'</script> "
+        "{{permissions.allowed_domains}} private-value"
+    )
     redacted_output = redact_text(hostile_output, workflow, inputs)
 
     assert redact_inputs(workflow, inputs) == {"query": "[REDACTED]"}
     assert "private-value" not in redacted_output
     assert "[REDACTED]" in redacted_output
+    assert workflow.model_dump(mode="json") == declared_contract
     validate_workflow_policy(workflow)
     return FixtureObservation(
         ReadinessCategory.SUCCESS,

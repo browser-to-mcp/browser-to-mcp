@@ -81,8 +81,8 @@ messaging, authentication-sensitive workflows, hosted browsers, or remote
 transports. Repository access remains restricted to collaborators until a
 separate public-release decision completes the M3 readiness gate.
 
-See [`docs/DEMO.md`](docs/DEMO.md) for the clean-checkout walkthrough,
-[`CONTRIBUTING.md`](CONTRIBUTING.md) for development, and
+See [`docs/DEMO.md`](docs/DEMO.md) for clean-checkout setup, MCP client
+configuration, and successful/failed trace walkthroughs, [`CONTRIBUTING.md`](CONTRIBUTING.md) for development, and
 [`SECURITY.md`](SECURITY.md) for security reports. Release preparation is
 described in [`docs/RELEASE.md`](docs/RELEASE.md). The M3 fixture matrix and
 its reproducible measurements are in [`docs/READINESS.md`](docs/READINESS.md).

@@ -30,18 +30,18 @@ dry-run commands, declared action execution, assertions, redacted traces,
 provenance, isolated Playwright contexts, request enforcement, and bounded
 cleanup.
 
-### M3: Policy, Regression, And Readiness, in progress
+### M3: Policy, Regression, And Readiness, complete
 
 - [#10](https://github.com/browser-to-mcp/browser-to-mcp/issues/10) Enforce step
   risk and idempotency policy: complete.
 - [#14](https://github.com/browser-to-mcp/browser-to-mcp/issues/14) Snapshot
   native WebMCP tool discovery: complete.
 - [#17](https://github.com/browser-to-mcp/browser-to-mcp/issues/17) Build
-  regression fixtures and readiness metrics: pending.
+  regression fixtures and readiness metrics: complete.
 
 The M3 release gate is repeatable replay, stable refusal categories, and
-diagnosable traces. No public release should claim readiness before this gate
-passes.
+diagnosable traces. The checked-in readiness report and release workflow block
+publication when a required fixture fails.
 
 ### M2: Local MCP Server, complete
 

@@ -12,8 +12,9 @@ Current product scope and implementation sequencing are documented in
 
 ## Current milestone
 
-M3 adds policy, native WebMCP discovery, regression, and readiness coverage.
-The local workflow-backed MCP server and protocol coverage are implemented.
+M3 policy, native WebMCP discovery, regression, and readiness coverage are
+complete. The local workflow-backed MCP server and protocol coverage are
+implemented.
 Every step must explicitly declare its timeout, risk, idempotency, retry, and
 confirmation policy. V0 accepts only read-only workflows and refuses writes,
 destructive or financial actions, uploads, messaging, and authentication-
@@ -83,4 +84,5 @@ separate public-release decision completes the M3 readiness gate.
 See [`docs/DEMO.md`](docs/DEMO.md) for the clean-checkout walkthrough,
 [`CONTRIBUTING.md`](CONTRIBUTING.md) for development, and
 [`SECURITY.md`](SECURITY.md) for security reports. Release preparation is
-described in [`docs/RELEASE.md`](docs/RELEASE.md).
+described in [`docs/RELEASE.md`](docs/RELEASE.md). The M3 fixture matrix and
+its reproducible measurements are in [`docs/READINESS.md`](docs/READINESS.md).

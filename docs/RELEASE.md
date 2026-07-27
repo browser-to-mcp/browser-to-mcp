@@ -17,6 +17,7 @@ the regression and readiness work tracked in issue #17.
    ```bash
    uv run pytest
    uv run ruff check .
+   uv run python scripts/readiness_report.py --runs 10
    uv build
    ```
 
@@ -36,3 +37,5 @@ The release workflow builds the source distribution and wheel and creates a
 GitHub pre-release from the tagged commit. This private pre-release does not
 change repository visibility. Before making a later release public, complete
 the M3 gate in issue #17 and review the public security and onboarding docs.
+The release workflow independently runs the readiness command, so a failed M3
+fixture prevents artifact publication.

@@ -1,0 +1,52 @@
+name: wikipedia_search
+description: Search Wikipedia and return the visible article or search results.
+version: 1
+risk: read_only
+
+manifest:
+  version: 1
+
+permissions:
+  allowed_domains:
+    - en.wikipedia.org
+    - upload.wikimedia.org
+  downloads: false
+  uploads: false
+  submit_forms: false
+  send_messages: false
+  spend_money: false
+
+inputs:
+  query:
+    type: string
+    required: true
+    min_length: 1
+    description: Wikipedia search query.
+
+steps:
+  - id: search
+    action: goto
+    url: https://en.wikipedia.org/w/index.php?search={{query}}
+    timeout_seconds: 30
+    risk: read_only
+    idempotency: safe
+    retry: none
+    confirmation: never
+  - id: results
+    action: extract_text
+    selector: main
+    timeout_seconds: 30
+    risk: read_only
+    idempotency: safe
+    retry: none
+    confirmation: never
+
+outputs:
+  results:
+    type: string
+    description: Visible Wikipedia article or search results.
+
+success:
+  - id: results_present
+    assertion: output_not_empty
+    field: results

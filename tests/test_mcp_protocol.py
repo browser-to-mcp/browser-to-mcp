@@ -10,8 +10,11 @@ def test_protocol_lists_expected_tool_schema() -> None:
     async def assert_tools(session: ClientSession) -> None:
         response = await session.list_tools()
 
-        assert [tool.name for tool in response.tools] == ["hn_search"]
-        tool = response.tools[0]
+        assert [tool.name for tool in response.tools] == [
+            "hn_search",
+            "wikipedia_search",
+        ]
+        tool = next(tool for tool in response.tools if tool.name == "hn_search")
         assert tool.description is not None
         assert "Read-only reviewed workflow" in tool.description
         assert tool.inputSchema == {

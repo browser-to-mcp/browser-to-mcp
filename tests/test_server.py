@@ -65,8 +65,11 @@ def test_server_lists_typed_read_only_workflow_tools() -> None:
 
     tools = asyncio.run(server.list_tools())
 
-    assert [tool.name for tool in tools] == ["hn_search"]
-    tool = tools[0]
+    assert [tool.name for tool in tools] == [
+        "hn_search",
+        "wikipedia_search",
+    ]
+    tool = next(tool for tool in tools if tool.name == "hn_search")
     assert tool.inputSchema == {
         "additionalProperties": False,
         "properties": {
@@ -122,7 +125,7 @@ def test_server_exposes_workflow_over_stdio() -> None:
                 response = await session.list_tools()
                 return [tool.name for tool in response.tools]
 
-    assert asyncio.run(inspect_server()) == ["hn_search"]
+    assert asyncio.run(inspect_server()) == ["hn_search", "wikipedia_search"]
 
 
 def test_server_invocation_replays_and_returns_structured_provenance(monkeypatch) -> None:

@@ -1,88 +1,95 @@
 # browser-to-mcp
 
-Turn reviewed browser workflows into typed, reliable MCP tools.
+Turn reviewed browser workflows into typed, read-only MCP tools.
 
-This repository contains the implementation of the proposal at
-https://browser-to-mcp.github.io/spec/.
+You describe a browser task in YAML. The project validates the permissions,
+runs the workflow in Chromium, and exposes each valid workflow as an MCP tool.
 
-Current product scope and implementation sequencing are documented in
-[`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) and
-[`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md). Historical research remains in the
-[research repository](https://github.com/browser-to-mcp/research).
-
-## Current milestone
-
-M3 policy, native WebMCP discovery, regression, and readiness coverage are
-complete. The local workflow-backed MCP server and protocol coverage are
-implemented.
-Every step must explicitly declare its timeout, risk, idempotency, retry, and
-confirmation policy. V0 accepts only read-only workflows and refuses writes,
-destructive or financial actions, uploads, messaging, and authentication-
-sensitive workflows before a browser starts.
-
-## Development
+## Quick start
 
 ```bash
 uv sync --all-groups
-uv run browser-to-mcp validate workflows/hn_search.yaml
-uv run browser-to-mcp dry-run workflows/hn_search.yaml
 uv run playwright install chromium
-uv run browser-to-mcp replay workflows/hn_search.yaml --input query=python
-uv run python examples/mcp_demo.py --query python
-uv run browser-to-mcp discover https://webmcp.sh/ \
-  --browser-arg=--enable-features=WebMCPTesting
-uv build
-uv run pytest
 ```
 
-`replay` supports the read-only `goto`, `fill`, `press`, `click`,
-`wait_for_text`, `extract_text`, and permission-gated `download` steps. It runs
-in a fresh headless Chromium context, limits every action and the complete run,
-and blocks navigation or page requests outside `permissions.allowed_domains`.
-Use `--timeout-seconds` to set the overall run limit. It returns structured
-JSON, including one result for each completed action. Traces and MCP serving
-are tracked separately. Each replay writes a redacted JSON trace under
-`traces/`; use `--trace-dir` to choose another directory. Failed runs also
-attempt to save a failure screenshot and include its path in the trace.
+Run a workflow directly:
 
-`server` exposes every valid YAML workflow in the selected directory over a
-local STDIO MCP connection. Startup validates all workflows before registering
-any tools, and invalid or unsafe files prevent startup. Tool calls validate
-typed inputs before opening a browser, then return workflow outputs, the
-manifest digest, and the trace path. The server exposes workflow-backed tools;
-it does not discover or invoke native page-provided tools.
+```bash
+uv run browser-to-mcp replay workflows/hn_search.yaml --input query=python
+uv run browser-to-mcp replay workflows/wikipedia_search.yaml --input query=python
+```
 
-The checked-in [`examples/mcp_demo.py`](examples/mcp_demo.py) starts that STDIO
-server as a child process, lists the generated `hn_search` schema, calls the
-tool, and prints its structured result and trace path. Run it when you want to
-see the complete MCP request instead of leaving the server waiting for a
-client. The live Hacker News result set changes over time; the protocol tests
-use a deterministic fixture for repeatable schema and invocation checks.
+Each run returns structured JSON with the workflow result, actions, duration,
+manifest digest, and trace path.
 
-`discover` opens a page and records native WebMCP tool metadata, including names,
-descriptions, input schemas, origins, annotations, and the page's `tools`
-Permissions Policy state. Discovery never invokes a native tool. It writes a
-content-addressed JSON snapshot under `traces/`, and reports unsupported browsers,
-permission blocking, empty tool lists, and malformed metadata as structured
-diagnostics. Current Chromium testing builds expose the API behind the
-`WebMCPTesting` feature, which can be passed with repeated `--browser-arg`
-options. Use the `--browser-arg=VALUE` form when the browser argument itself
-starts with a dash; use `--browser-channel` when the API is available in a
-separately installed Playwright browser channel. Native page-provided tools are an
-interoperability boundary; they are separate from reviewed workflow-backed MCP
-tools and are not converted or executed by this project.
+## Available workflows
 
-## V0 scope
+| Workflow | What it does |
+| --- | --- |
+| `hn_search` | Searches Hacker News and returns visible results. |
+| `wikipedia_search` | Searches Wikipedia and returns visible article or search text. |
 
-This private pre-release is a local, read-only demonstration. It requires no
-credentials or persistent browser state and does not claim broad website
-coverage. It does not support writes, destructive actions, payments, uploads,
-messaging, authentication-sensitive workflows, hosted browsers, or remote
-transports. Repository access remains restricted to collaborators until a
-separate public-release decision completes the M3 readiness gate.
+## Use as an MCP server
 
-See [`docs/DEMO.md`](docs/DEMO.md) for clean-checkout setup, MCP client
-configuration, and successful/failed trace walkthroughs, [`CONTRIBUTING.md`](CONTRIBUTING.md) for development, and
-[`SECURITY.md`](SECURITY.md) for security reports. Release preparation is
-described in [`docs/RELEASE.md`](docs/RELEASE.md). The M3 fixture matrix and
-its reproducible measurements are in [`docs/READINESS.md`](docs/READINESS.md).
+Start the local STDIO server:
+
+```bash
+uv run browser-to-mcp server --workflow-dir workflows
+```
+
+The server normally prints nothing after startup. It waits for an MCP client
+to connect and call one of the generated tools. See
+[`docs/DEMO.md`](docs/DEMO.md) for client configuration and a complete demo.
+
+You can also run the included client example:
+
+```bash
+uv run python examples/mcp_demo.py --query python
+```
+
+## How a workflow works
+
+A workflow is a YAML recipe containing:
+
+- typed inputs, such as `query`;
+- allowed domains and safety permissions;
+- browser actions, such as `goto`, `click`, `wait_for_text`, and `extract_text`;
+- named outputs and a success check.
+
+Every action declares its timeout, risk, retry, idempotency, and confirmation
+policy. The runner blocks navigation outside the declared domains and writes a
+redacted trace for every run.
+
+## WebMCP discovery
+
+The separate `discover` command inspects native tools exposed by a webpage. It
+does not call those tools or convert them into workflow-backed MCP tools.
+
+```bash
+uv run browser-to-mcp discover https://webmcp.sh/ \
+  --browser-arg=--enable-features=WebMCPTesting
+```
+
+## Current limitations
+
+This is a private, local, read-only pre-release. It currently does not provide:
+
+- hosted browsers or remote MCP transport;
+- login, persistent browser sessions, or credential storage;
+- writes, destructive actions, payments, uploads, or messaging;
+- automatic handling or bypassing of browser challenges;
+- broad coverage of arbitrary websites.
+
+The project is focused on reliable, permissioned browser workflows first.
+
+## Documentation
+
+- [`docs/DEMO.md`](docs/DEMO.md) — clean setup, MCP clients, and trace walkthroughs
+- [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — product behavior and boundaries
+- [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) — implementation roadmap
+- [`docs/READINESS.md`](docs/READINESS.md) — readiness checks and measurements
+- [`docs/RELEASE.md`](docs/RELEASE.md) — release preparation
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — development workflow
+- [`SECURITY.md`](SECURITY.md) — security reports
+
+The implementation follows the [browser-to-mcp specification](https://browser-to-mcp.github.io/spec/).

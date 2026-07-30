@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import json
 import re
+import runpy
 from pathlib import Path
+
+import pytest
 
 from browser_to_mcp.cli import build_parser
 
 ROOT = Path(__file__).parents[1]
 DEMO_PATH = ROOT / "docs" / "DEMO.md"
 WORKFLOW_PATH = ROOT / "workflows" / "hn_search.yaml"
+DEMO_SCRIPT = ROOT / "examples" / "mcp_demo.py"
 
 
 def test_demo_documents_every_supported_local_onboarding_command() -> None:
@@ -55,3 +59,25 @@ def test_demo_controlled_failure_matches_current_input_validation() -> None:
     assert '"category": "input"' in document
     assert '"path": "inputs.query"' in document
     assert WORKFLOW_PATH.exists()
+
+
+def test_demo_parses_selected_tool_inputs_from_its_schema() -> None:
+    namespace = runpy.run_path(str(DEMO_SCRIPT), run_name="mcp_demo_test")
+    parse_tool_inputs = namespace["parse_tool_inputs"]
+    schema = {
+        "properties": {
+            "query": {"type": "string"},
+            "limit": {"type": "integer"},
+            "include_archived": {"type": "boolean"},
+        },
+        "required": ["query", "limit"],
+    }
+
+    assert parse_tool_inputs(
+        ["query=python", "limit=5", "include_archived=true"], schema
+    ) == {"query": "python", "limit": 5, "include_archived": True}
+
+    with pytest.raises(ValueError, match="Required input 'limit'"):
+        parse_tool_inputs(["query=python"], schema)
+    with pytest.raises(ValueError, match="not declared"):
+        parse_tool_inputs(["unknown=value", "limit=5", "query=python"], schema)

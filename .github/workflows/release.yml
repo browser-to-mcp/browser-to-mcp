@@ -18,6 +18,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked --all-groups
+      - run: uv run playwright install --with-deps chromium
       - run: uv run pytest
       - run: uv run ruff check .
       - run: uv run python scripts/readiness_report.py --runs 10

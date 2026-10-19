@@ -12,4 +12,8 @@
 
 ## Unreleased
 
-No changes yet.
+- Encode navigation inputs once as URL data in query values and whole path
+  segments, preserving fixed parameters and fragments (#43).
+- Reject unsupported URL placeholder positions before browser startup; retain
+  runtime domain checks and plain-text substitution for other action fields.
+- Verify decoded inputs through CLI and MCP replay against a local HTTP server.

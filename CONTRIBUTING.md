@@ -25,6 +25,10 @@ Behavior changes should include focused tests. Keep workflow changes
 reviewable and preserve the explicit timeout, risk, idempotency, retry, and
 confirmation declarations on every step.
 
+The test suite includes real Chromium replay against a local HTTP server. Run
+the Playwright install command above before testing; no public website is
+needed. CI installs Chromium and its system dependencies before running tests.
+
 ## Scope
 
 The current V0 runtime is read-only. Do not add writes, payments, uploads,

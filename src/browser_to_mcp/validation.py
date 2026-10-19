@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from urllib.parse import urlparse
 
 from browser_to_mcp.models import Confirmation, Idempotency, Retry, Risk, StepAction, Workflow
+from browser_to_mcp.url_templates import validate_url_template
 
 
 class FailureCategory(StrEnum):
@@ -105,14 +105,16 @@ def _validate_navigation(step_id: str, url: str | None, allowed_domains: list[st
             "A goto step requires a URL.",
         )
 
-    host = urlparse(url).hostname
-    if not host:
+    try:
+        parsed = validate_url_template(url)
+    except ValueError as error:
         raise WorkflowValidationError(
             FailureCategory.SCHEMA,
             f"steps.{step_id}.url",
-            "A goto step requires an absolute URL with a hostname.",
-        )
+            str(error),
+        ) from error
 
+    host = parsed.hostname
     if not any(host == domain or host.endswith(f".{domain}") for domain in allowed_domains):
         raise WorkflowValidationError(
             FailureCategory.PERMISSION,

@@ -14,7 +14,7 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 from time import monotonic
 from typing import Protocol
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 from uuid import uuid4
 
 from playwright.async_api import Page, async_playwright
@@ -33,9 +33,8 @@ from browser_to_mcp.tracing import (
     redact_text,
     write_trace,
 )
+from browser_to_mcp.url_templates import TEMPLATE_PATTERN, validate_url_template
 from browser_to_mcp.validation import validate_workflow_policy
-
-_TEMPLATE_PATTERN = re.compile(r"{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}")
 
 
 class ExecutionFailureCategory(StrEnum):
@@ -162,6 +161,18 @@ class PlaywrightReplayEngine:
         """Bound the complete run while allowing cancellation to clean up normally."""
 
         validate_workflow_policy(workflow)
+        # Preflight every navigation, including later steps, before launching Chromium.
+        for step in workflow.steps:
+            if step.action is StepAction.GOTO:
+                for match in TEMPLATE_PATTERN.finditer(step.url or ""):
+                    name = match.group(1)
+                    if name not in workflow.inputs:
+                        raise WorkflowExecutionError(
+                            ExecutionFailureCategory.INPUT,
+                            f"inputs.{name}",
+                            "Input is not declared by the workflow.",
+                        )
+                render_url_template(step.url or "", inputs)
         try:
             return await asyncio.wait_for(
                 self._run(workflow, inputs, failure_screenshot_path),
@@ -534,7 +545,7 @@ async def execute_steps(
         step_started_at = monotonic()
         try:
             if step.action is StepAction.GOTO:
-                url = render_template(step.url or "", inputs)
+                url = render_url_template(step.url or "", inputs)
                 if allowed_domains is not None and not _is_allowed_url(url, allowed_domains):
                     raise WorkflowExecutionError(
                         ExecutionFailureCategory.PERMISSION,
@@ -684,17 +695,41 @@ def render_template(template: str, inputs: dict[str, object]) -> str:
     """Render declared workflow input placeholders without evaluating arbitrary expressions."""
 
     def replace(match: re.Match[str]) -> str:
+        return _template_value(match.group(1), inputs)
+
+    return TEMPLATE_PATTERN.sub(replace, template)
+
+
+def render_url_template(template: str, inputs: dict[str, object]) -> str:
+    """Encode raw inputs once as URL component data, preserving authored URL text."""
+
+    parsed = validate_url_template(template)
+    path_inputs = set(TEMPLATE_PATTERN.findall(parsed.path))
+
+    def replace(match: re.Match[str]) -> str:
         name = match.group(1)
-        if name not in inputs:
+        value = _template_value(name, inputs)
+        # Chromium normalizes dot segments even when their dots are percent-encoded.
+        if name in path_inputs and value in {"", ".", ".."}:
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.INPUT,
                 f"inputs.{name}",
-                "Template references an input that was not provided.",
+                "A path-segment input cannot be empty, '.' or '..'.",
             )
-        value = inputs[name]
-        return str(value).lower() if isinstance(value, bool) else str(value)
+        return quote(value, safe="")
 
-    return _TEMPLATE_PATTERN.sub(replace, template)
+    return TEMPLATE_PATTERN.sub(replace, template)
+
+
+def _template_value(name: str, inputs: dict[str, object]) -> str:
+    if name not in inputs:
+        raise WorkflowExecutionError(
+            ExecutionFailureCategory.INPUT,
+            f"inputs.{name}",
+            "Template references an input that was not provided.",
+        )
+    value = inputs[name]
+    return str(value).lower() if isinstance(value, bool) else str(value)
 
 
 def evaluate_success_assertions(

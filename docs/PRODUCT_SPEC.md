@@ -72,6 +72,10 @@ V0 supports `goto`, `fill`, `press`, `click`, `wait_for_text`,
 `read_only`. Domains are explicit, and every navigation and page request is
 checked against the allowlist.
 
+Navigation placeholders support query values and individual whole path segments.
+Inputs are encoded once as URL data; ordinary text substitution is unchanged.
+See [WORKFLOWS.md](WORKFLOWS.md) for syntax, examples, restrictions, and compatibility.
+
 ## Runtime Flow
 
 ```text

@@ -38,6 +38,8 @@ class Idempotency(StrEnum):
 
 
 class Retry(StrEnum):
+    """Stored retry vocabulary; V0 policy accepts only NONE."""
+
     NONE = "none"
     ONE = "one"
     BOUNDED = "bounded"

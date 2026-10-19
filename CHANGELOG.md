@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Reject unsupported `retry: one` and `retry: bounded` settings consistently
+  across validation, dry-run, replay, and MCP startup (#44). Preserve the
+  existing non-retryable contradiction error and single-attempt execution.
 - Encode navigation inputs once as URL data in query values and whole path
   segments, preserving fixed parameters and fragments (#43).
 - Reject unsupported URL placeholder positions before browser startup; retain

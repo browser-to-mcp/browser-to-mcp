@@ -57,8 +57,9 @@ A workflow is a YAML recipe containing:
 - named outputs and a success check.
 
 Every action declares its timeout, risk, retry, idempotency, and confirmation
-policy. The runner blocks navigation outside the declared domains and writes a
-redacted trace for every run.
+policy. V0 requires `retry: none` and attempts each step at most once. The
+runner blocks navigation outside the declared domains and writes a redacted
+trace for every run.
 
 ## WebMCP discovery
 
@@ -86,7 +87,7 @@ The project is focused on reliable, permissioned browser workflows first.
 
 - [`docs/DEMO.md`](docs/DEMO.md) — clean setup, MCP clients, and trace walkthroughs
 - [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — product behavior and boundaries
-- [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) — URL inputs, supported placeholders, and encoding rules
+- [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) — safety declarations, retry policy, and URL input rules
 - [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) — implementation roadmap
 - [`docs/PILOT.md`](docs/PILOT.md) — selected recorder task, examples, and test-page requirements
 - [`docs/READINESS.md`](docs/READINESS.md) — readiness checks and measurements

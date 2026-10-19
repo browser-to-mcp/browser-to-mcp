@@ -67,6 +67,13 @@ retry: none
 confirmation: never
 ```
 
+V0 attempts each declared step at most once and stops on action failure or
+timeout. Every step must use `retry: none`; policy rejects `one` and `bounded`
+before browser startup or MCP tool registration. Retry vocabulary retained in
+the model does not imply execution support. Idempotency records safety intent
+and does not enable retries. See [WORKFLOWS.md](WORKFLOWS.md) for the error
+messages and contradiction-check precedence.
+
 V0 supports `goto`, `fill`, `press`, `click`, `wait_for_text`,
 `extract_text`, and permission-gated `download` actions. The workflow must be
 `read_only`. Domains are explicit, and every navigation and page request is
@@ -101,6 +108,7 @@ The loader and replay boundary fail closed when:
 - authentication is required;
 - a step omits a required safety declaration;
 - retry and idempotency declarations conflict;
+- a step requests unsupported retries (`one` or `bounded`);
 - confirmation is requested, because V0 has no approval UI;
 - a download is undeclared or lacks download permission;
 - navigation or a page request leaves the domain allowlist.

@@ -1,4 +1,53 @@
-# Writing workflow URLs
+# Writing workflows
+
+## Step safety declarations and retries
+
+Every step must explicitly declare its timeout, risk, idempotency, retry, and
+confirmation policy:
+
+```yaml
+timeout_seconds: 30
+risk: read_only
+idempotency: safe
+retry: none
+confirmation: never
+```
+
+V0 attempts each declared browser step at most once. If an action fails or
+times out, the run stops and reports the failure. Set `retry: none` on every
+step. `retry: one` and `retry: bounded` are stored contract vocabulary reserved
+for future execution support; current V0 policy rejects both. There is no
+automatic action retry, backoff, or repair.
+
+Idempotency describes whether repeating an action has the same effect as doing
+it once. Declaring `idempotency: safe` or `idempotency: retryable` does not ask
+the engine to repeat it or enable retries. All three idempotency values remain
+available for review, including `non_retryable`, and all require `retry: none`.
+These declarations record reviewed safety intent; they do not prove an
+arbitrary website action is safe.
+
+Unsupported retries produce a `policy` error with the exact step path, for
+example:
+
+```text
+policy: steps.search.retry: V0 does not support retries. Set retry to none.
+```
+
+The existing contradiction check takes precedence when an explicitly
+`non_retryable` step requests `one` or `bounded`. Its error remains:
+
+```text
+policy: steps.search.retry: A non_retryable step must declare retry: none.
+```
+
+Validation, dry-run, replay, and MCP startup use the same policy. The public
+replay function and replay engine also recheck the policy for workflows passed
+directly in code. Unsupported settings are refused before browser startup;
+an invalid MCP workflow directory registers no tools. Existing workflows using
+`retry: none` need no changes. Required safety declarations, risk checks,
+timeouts, and confirmation restrictions still apply.
+
+## URL inputs
 
 Use `{{input_name}}` to insert a declared input. Spaces around the name, as in
 `{{ query }}`, are allowed. Expressions and filters are not supported.

@@ -3,11 +3,68 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
 
 from browser_to_mcp.loader import load_workflow, manifest_digest
 from browser_to_mcp.validation import FailureCategory, WorkflowValidationError
 
 WORKFLOW_PATH = Path(__file__).parents[1] / "workflows" / "hn_search.yaml"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "{{query}}://hn.algolia.com/",
+        "ht{{query}}ps://hn.algolia.com/",
+        "https://{{query}}.hn.algolia.com/",
+        "https://hn.algolia.com:{{query}}/",
+        "https://{{query}}@hn.algolia.com/",
+        "https://hn.algolia.com/?{{query}}=fixed",
+        "https://hn.algolia.com/?q=fixed&{{query}}",
+        "https://hn.algolia.com/#{{query}}",
+        "https://hn.algolia.com/prefix-{{query}}",
+        "https://hn.algolia.com/{{query}}.html",
+        "https://hn.algolia.com/?q={{query | urlencode}}",
+        "https://hn.algolia.com/?q={{query",
+        "https://hn.algolia.com/?q=%{{query}}",
+        "https://hn.algolia.com/?q=%2{{query}}",
+        "https://hn.algolia.com:invalid/",
+        "https://[{{query}}]/",
+        "ftp://hn.algolia.com/?q={{query}}",
+        "https://hn.algolia.com\\@evil.example/?q={{query}}",
+    ],
+)
+def test_rejects_unsupported_url_templates(tmp_path: Path, url: str) -> None:
+    invalid = tmp_path / "url.yaml"
+    contract = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    contract["steps"][0]["url"] = url
+    invalid.write_text(yaml.safe_dump(contract), encoding="utf-8")
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(invalid)
+
+    assert error.value.category is FailureCategory.SCHEMA
+    assert error.value.path == "steps.search.url"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://hn.algolia.com/?q={{ query }}&fixed=one%2Btwo#results",
+        "https://hn.algolia.com/items/{{query}}/details?lang=en#details",
+        "https://hn.algolia.com/?q=prefix-{{query}}&q={{query}}",
+    ],
+)
+def test_accepts_supported_url_templates(tmp_path: Path, url: str) -> None:
+    valid = tmp_path / "url.yaml"
+    valid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(
+            "https://hn.algolia.com/?q={{query}}", url
+        ),
+        encoding="utf-8",
+    )
+
+    assert load_workflow(valid).workflow.steps[0].url == url
 
 
 def test_loads_reference_workflow() -> None:
@@ -129,9 +186,7 @@ def test_rejects_retry_for_non_retryable_step(tmp_path: Path) -> None:
         "    confirmation: never\n",
     ],
 )
-def test_rejects_missing_explicit_safety_declaration(
-    tmp_path: Path, declaration: str
-) -> None:
+def test_rejects_missing_explicit_safety_declaration(tmp_path: Path, declaration: str) -> None:
     invalid = tmp_path / "missing-declaration.yaml"
     invalid.write_text(
         WORKFLOW_PATH.read_text(encoding="utf-8").replace(declaration, "", 1),

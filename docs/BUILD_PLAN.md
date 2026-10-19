@@ -66,6 +66,19 @@ format. It must never register an invalid workflow.
 
 This milestone starts only after M3 safety and repeatability gates pass.
 
+## Next: Recorder Pilot
+
+Issue [#42](https://github.com/browser-to-mcp/browser-to-mcp/issues/42) selects
+the first recorder example. The task, expected results, allowed websites, and
+local test-page requirements are in [PILOT.md](PILOT.md). The brief records
+live browser checks and clearly marks the user needs that are still assumptions.
+
+The parent milestone is
+[#41](https://github.com/browser-to-mcp/browser-to-mcp/issues/41). Recorder
+implementation, guided workflow setup, and full browser-to-MCP tests remain
+separate work in #46–#48. Selecting the pilot does not add a recorder or expand
+the current server's workflow list.
+
 ## Working Rules
 
 - Keep the workflow contract reviewable and versioned.

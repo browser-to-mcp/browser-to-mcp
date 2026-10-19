@@ -1,0 +1,401 @@
+{
+  "schema_version": 1,
+  "issue": "https://github.com/browser-to-mcp/browser-to-mcp/issues/42",
+  "purpose": "Select and define a feasible first recorder task; not a reliability benchmark.",
+  "selected": {
+    "observed_at_utc": "2026-10-19T08:56:53.198783+00:00",
+    "python_version": "3.12.12",
+    "playwright_version": "1.61.0",
+    "browser_observations": [
+      {
+        "input": "a-light-in-the-attic_1000",
+        "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "final_url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+        "http_status": 200,
+        "outputs": {
+          "title": "A Light in the Attic",
+          "price": "£51.77"
+        },
+        "observed_hosts": [
+          "ajax.googleapis.com",
+          "books.toscrape.com"
+        ]
+      },
+      {
+        "input": "shakespeares-sonnets_989",
+        "url": "https://books.toscrape.com/catalogue/shakespeares-sonnets_989/index.html",
+        "final_url": "https://books.toscrape.com/catalogue/shakespeares-sonnets_989/index.html",
+        "http_status": 200,
+        "outputs": {
+          "title": "Shakespeare's Sonnets",
+          "price": "£20.66"
+        },
+        "observed_hosts": [
+          "ajax.googleapis.com",
+          "books.toscrape.com"
+        ]
+      },
+      {
+        "input": "browser-to-mcp-missing_0",
+        "url": "https://books.toscrape.com/catalogue/browser-to-mcp-missing_0/index.html",
+        "final_url": "https://books.toscrape.com/catalogue/browser-to-mcp-missing_0/index.html",
+        "http_status": 404,
+        "outputs": {},
+        "observed_hosts": [
+          "books.toscrape.com"
+        ]
+      }
+    ],
+    "replay_trials": [
+      {
+        "input": "a-light-in-the-attic_1000",
+        "status": "completed",
+        "outputs": {
+          "title": "A Light in the Attic",
+          "price": "£51.77"
+        },
+        "duration_seconds": 3.181
+      },
+      {
+        "input": "shakespeares-sonnets_989",
+        "status": "completed",
+        "outputs": {
+          "title": "Shakespeare's Sonnets",
+          "price": "£20.66"
+        },
+        "duration_seconds": 4.018
+      },
+      {
+        "input": "browser-to-mcp-missing_0",
+        "status": "failed",
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      {
+        "input": "",
+        "status": "failed",
+        "category": "input",
+        "path": "inputs.product_slug",
+        "message": "Input must contain at least 1 characters."
+      }
+    ],
+    "trial_workflow": {
+      "name": "catalog_product_lookup",
+      "description": "Read a book title and displayed demo price from the public Books to Scrape sandbox.",
+      "version": 1,
+      "risk": "read_only",
+      "manifest": {
+        "version": 1
+      },
+      "permissions": {
+        "allowed_domains": [
+          "books.toscrape.com",
+          "ajax.googleapis.com"
+        ],
+        "downloads": false,
+        "uploads": false,
+        "submit_forms": false,
+        "send_messages": false,
+        "spend_money": false,
+        "requires_authentication": false
+      },
+      "inputs": {
+        "product_slug": {
+          "type": "string",
+          "required": true,
+          "sensitive": false,
+          "description": null,
+          "min_length": 1
+        }
+      },
+      "steps": [
+        {
+          "id": "open_product",
+          "action": "goto",
+          "url": "https://books.toscrape.com/catalogue/{{product_slug}}/index.html",
+          "selector": null,
+          "value": null,
+          "key": null,
+          "text": null,
+          "timeout_seconds": 30,
+          "risk": "read_only",
+          "idempotency": "safe",
+          "retry": "none",
+          "confirmation": "never"
+        },
+        {
+          "id": "title",
+          "action": "extract_text",
+          "url": null,
+          "selector": ".product_main h1",
+          "value": null,
+          "key": null,
+          "text": null,
+          "timeout_seconds": 5,
+          "risk": "read_only",
+          "idempotency": "safe",
+          "retry": "none",
+          "confirmation": "never"
+        },
+        {
+          "id": "price",
+          "action": "extract_text",
+          "url": null,
+          "selector": ".product_main .price_color",
+          "value": null,
+          "key": null,
+          "text": null,
+          "timeout_seconds": 5,
+          "risk": "read_only",
+          "idempotency": "safe",
+          "retry": "none",
+          "confirmation": "never"
+        }
+      ],
+      "outputs": {
+        "title": {
+          "type": "string",
+          "description": null
+        },
+        "price": {
+          "type": "string",
+          "description": null
+        }
+      },
+      "success": [
+        {
+          "id": "title_present",
+          "assertion": "output_not_empty",
+          "field": "title"
+        },
+        {
+          "id": "price_present",
+          "assertion": "output_not_empty",
+          "field": "price"
+        }
+      ]
+    },
+    "browser_version": "149.0.7827.55"
+  },
+  "other_candidates": [
+    {
+      "name": "Adafruit",
+      "decision": "Not selected: supporting requests varied and the existing engine refused an undeclared host.",
+      "browser_observed_at_utc": "2026-10-19T08:45:54.498775+00:00",
+      "browser_observations": [
+        {
+          "input": 581,
+          "url": "https://www.adafruit.com/product/581",
+          "final_url": "https://www.adafruit.com/product/581",
+          "http_status": 200,
+          "observed_hosts": [
+            "cdn-shop.adafruit.com",
+            "www.adafruit.com",
+            "www.googletagmanager.com"
+          ]
+        },
+        {
+          "input": 4400,
+          "url": "https://www.adafruit.com/product/4400",
+          "final_url": "https://www.adafruit.com/product/4400",
+          "http_status": 200,
+          "observed_hosts": [
+            "cdn-learn.adafruit.com",
+            "cdn-shop.adafruit.com",
+            "www.adafruit.com",
+            "www.googletagmanager.com"
+          ]
+        },
+        {
+          "input": 999999999,
+          "url": "https://www.adafruit.com/product/999999999",
+          "final_url": "https://www.adafruit.com/index.php?main_page=page_not_found",
+          "http_status": 404,
+          "observed_hosts": [
+            "ad.doubleclick.net",
+            "analytics.google.com",
+            "cdn-shop.adafruit.com",
+            "connect.facebook.net",
+            "stats.g.doubleclick.net",
+            "www.adafruit.com",
+            "www.google.co.in",
+            "www.google.com",
+            "www.googletagmanager.com"
+          ]
+        }
+      ],
+      "trials": [
+        {
+          "navigation_timeout_seconds": 5,
+          "observed_at_utc": "2026-10-19T08:48:12.459869+00:00",
+          "allowed_domains": [
+            "www.adafruit.com",
+            "cdn-shop.adafruit.com",
+            "cdn-learn.adafruit.com",
+            "www.googletagmanager.com"
+          ],
+          "runs": [
+            {
+              "input": "581",
+              "status": "failed",
+              "category": "runtime",
+              "path": "steps.open_product",
+              "message": "Action 'goto' timed out after 5 seconds."
+            },
+            {
+              "input": "4400",
+              "status": "completed",
+              "outputs": {
+                "title": "Adafruit EdgeBadge - TensorFlow Lite for Microcontrollers",
+                "availability": "Out of stock"
+              },
+              "duration_seconds": 3.907
+            },
+            {
+              "input": "581&product_id=4400",
+              "status": "failed",
+              "category": "input",
+              "path": "inputs.product_id",
+              "message": "Input must be a integer."
+            },
+            {
+              "input": "999999999",
+              "status": "failed",
+              "category": "runtime",
+              "path": "steps.title",
+              "message": "Action 'extract_text' timed out after 5 seconds."
+            }
+          ]
+        },
+        {
+          "navigation_timeout_seconds": 30,
+          "observed_at_utc": "2026-10-19T08:50:17.089495+00:00",
+          "allowed_domains": [
+            "www.adafruit.com",
+            "cdn-shop.adafruit.com",
+            "cdn-learn.adafruit.com",
+            "www.googletagmanager.com"
+          ],
+          "runs": [
+            {
+              "input": "581",
+              "status": "failed",
+              "category": "permission",
+              "path": "steps.open_product",
+              "message": "Request URL 'https://connect.facebook.net/en_US/fbevents.js' is outside permissions.allowed_domains."
+            },
+            {
+              "input": "4400",
+              "status": "completed",
+              "outputs": {
+                "title": "Adafruit EdgeBadge - TensorFlow Lite for Microcontrollers",
+                "availability": "Out of stock"
+              },
+              "duration_seconds": 6.242
+            },
+            {
+              "input": "581&product_id=4400",
+              "status": "failed",
+              "category": "input",
+              "path": "inputs.product_id",
+              "message": "Input must be a integer."
+            },
+            {
+              "input": "999999999",
+              "status": "failed",
+              "category": "runtime",
+              "path": "steps.title",
+              "message": "Action 'extract_text' timed out after 5 seconds."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Olimex",
+      "decision": "Not selected: replay refused an undeclared supporting script with the site-only allowlist.",
+      "observed_at_utc": "2026-10-19T08:53:44.754835+00:00",
+      "browser_observations": [
+        {
+          "input": "ESP32-POE",
+          "url": "https://www.olimex.com/Products/IoT/ESP32/ESP32-POE/open-source-hardware",
+          "final_url": "https://www.olimex.com/Products/IoT/ESP32/ESP32-POE/open-source-hardware",
+          "http_status": 200,
+          "observed_hosts": [
+            "connect.facebook.net",
+            "platform.twitter.com",
+            "www.googletagmanager.com",
+            "www.olimex.com"
+          ]
+        },
+        {
+          "input": "ESP32-POE-ISO",
+          "url": "https://www.olimex.com/Products/IoT/ESP32/ESP32-POE-ISO/open-source-hardware",
+          "final_url": "https://www.olimex.com/Products/IoT/ESP32/ESP32-POE-ISO/open-source-hardware",
+          "http_status": 200,
+          "observed_hosts": [
+            "connect.facebook.net",
+            "platform.twitter.com",
+            "www.googletagmanager.com",
+            "www.olimex.com"
+          ]
+        },
+        {
+          "input": "BROWSER-TO-MCP-MISSING-20261019",
+          "url": "https://www.olimex.com/Products/IoT/ESP32/BROWSER-TO-MCP-MISSING-20261019/open-source-hardware",
+          "final_url": "https://www.olimex.com/Products/IoT/ESP32/BROWSER-TO-MCP-MISSING-20261019/open-source-hardware",
+          "http_status": 404,
+          "observed_hosts": [
+            "connect.facebook.net",
+            "www.googletagmanager.com",
+            "www.olimex.com"
+          ]
+        }
+      ],
+      "allowed_domains": [
+        "www.olimex.com"
+      ],
+      "replay_trials": [
+        {
+          "input": "ESP32-POE",
+          "status": "failed",
+          "category": "permission",
+          "path": "steps.open_product",
+          "message": "Request URL 'https://www.googletagmanager.com/gtag/js?id=G-01V6MC2TE1' is outside permissions.allowed_domains."
+        },
+        {
+          "input": "ESP32-POE-ISO",
+          "status": "failed",
+          "category": "permission",
+          "path": "steps.open_product",
+          "message": "Request URL 'https://www.googletagmanager.com/gtag/js?id=G-01V6MC2TE1' is outside permissions.allowed_domains."
+        },
+        {
+          "input": "BROWSER-TO-MCP-MISSING-20261019",
+          "status": "failed",
+          "category": "permission",
+          "path": "steps.open_product",
+          "message": "Request URL 'https://www.googletagmanager.com/gtag/js?id=G-01V6MC2TE1' is outside permissions.allowed_domains."
+        },
+        {
+          "input": "",
+          "status": "failed",
+          "category": "input",
+          "path": "inputs.product_code",
+          "message": "Input must contain at least 1 characters."
+        }
+      ]
+    }
+  ],
+  "limits": {
+    "selected_browser_runs_per_case": 1,
+    "selected_replay_runs_per_case": 1,
+    "user_interviews": 0,
+    "controlled_page_tests_implemented": false,
+    "recorder_implemented": false,
+    "credentials_used": false,
+    "shopping_or_notification_actions_performed": false,
+    "source_code_or_policy_changed_for_trials": false
+  }
+}

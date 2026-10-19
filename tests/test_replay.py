@@ -5,6 +5,7 @@ import json
 from collections.abc import Coroutine
 from pathlib import Path
 from typing import Any
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from playwright.async_api import Error as PlaywrightError
@@ -864,6 +865,80 @@ def test_replay_boundary_revalidates_unsafe_workflow() -> None:
 
     assert error.value.category is FailureCategory.POLICY
     assert error.value.path == "risk"
+
+
+@pytest.mark.parametrize("retry", [Retry.ONE, Retry.BOUNDED])
+@pytest.mark.parametrize("boundary", ["replay", "engine"])
+def test_replay_boundaries_refuse_retries_before_browser_start(
+    monkeypatch, retry: Retry, boundary: str
+) -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(deep=True)
+    workflow.steps[-1].retry = retry
+    loaded = LoadedWorkflow(workflow, manifest_digest(workflow))
+    browser_start = Mock(side_effect=AssertionError("Policy refusal must not start Playwright."))
+    monkeypatch.setattr(replay_module, "async_playwright", browser_start)
+
+    with pytest.raises(WorkflowValidationError) as error:
+        if boundary == "replay":
+            asyncio.run(replay_module.replay_workflow(loaded, ["query=mcp"]))
+        else:
+            asyncio.run(PlaywrightReplayEngine().run(workflow, {"query": "mcp"}))
+
+    assert error.value.category is FailureCategory.POLICY
+    assert error.value.path == "steps.results.retry"
+    assert error.value.message == "V0 does not support retries. Set retry to none."
+    browser_start.assert_not_called()
+
+
+@pytest.mark.parametrize("action", list(StepAction))
+@pytest.mark.parametrize("failure_type", [PlaywrightError, PlaywrightTimeoutError])
+def test_failed_actions_are_attempted_once_and_stop_the_run(
+    monkeypatch, action: StepAction, failure_type: type[Exception]
+) -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(deep=True)
+    workflow.permissions.downloads = action is StepAction.DOWNLOAD
+    workflow.steps = [
+        read_only_step(
+            id="failing",
+            action=action,
+            url="https://hn.algolia.com/",
+            selector="#target",
+            value="mcp",
+            key="Enter",
+            text="results",
+        ),
+        read_only_step(id="never_reached", action=StepAction.GOTO, url="https://hn.algolia.com/"),
+    ]
+    page = FakePage()
+    locator = FakeLocator(page, "#target")
+    monkeypatch.setattr(page, "locator", lambda _selector: locator)
+    monkeypatch.setattr(page, "get_by_text", lambda _text: locator)
+    target, method = {
+        StepAction.GOTO: (page, "goto"),
+        StepAction.FILL: (locator, "fill"),
+        StepAction.PRESS: (page.keyboard, "press"),
+        StepAction.CLICK: (locator, "click"),
+        StepAction.WAIT_FOR_TEXT: (locator, "wait_for"),
+        StepAction.EXTRACT_TEXT: (locator, "inner_text"),
+        StepAction.DOWNLOAD: (locator, "click"),
+    }[action]
+    attempt = AsyncMock(side_effect=failure_type("Controlled action failure."))
+    monkeypatch.setattr(target, method, attempt)
+    context = FakeContext(page)
+    browser = FakeBrowser(context)
+    patch_playwright(monkeypatch, FakeChromium(browser=browser))
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(PlaywrightReplayEngine().run(workflow, {"query": "mcp"}))
+
+    attempt.assert_awaited_once()
+    assert error.value.category is ExecutionFailureCategory.RUNTIME
+    assert error.value.path == "steps.failing"
+    assert len(error.value.actions) == 1
+    assert error.value.actions[0].step_id == "failing"
+    assert error.value.actions[0].status is replay_module.ActionStatus.FAILED
+    assert page.goto_calls == []
+    assert context.closed and browser.closed
 
 
 def test_replay_reports_missing_chromium(monkeypatch: pytest.MonkeyPatch) -> None:

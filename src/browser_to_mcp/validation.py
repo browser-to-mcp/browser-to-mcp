@@ -67,11 +67,18 @@ def validate_workflow_policy(workflow: Workflow) -> None:
                 f"steps.{step.id}.risk",
                 "V0 accepts only read_only steps.",
             )
+        # Preserve the more specific contradiction error before the V0 capability rule.
         if step.idempotency is Idempotency.NON_RETRYABLE and step.retry is not Retry.NONE:
             raise WorkflowValidationError(
                 FailureCategory.POLICY,
                 f"steps.{step.id}.retry",
                 "A non_retryable step must declare retry: none.",
+            )
+        if step.retry is not Retry.NONE:
+            raise WorkflowValidationError(
+                FailureCategory.POLICY,
+                f"steps.{step.id}.retry",
+                "V0 does not support retries. Set retry to none.",
             )
         if step.confirmation is not Confirmation.NEVER:
             raise WorkflowValidationError(

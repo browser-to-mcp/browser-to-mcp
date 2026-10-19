@@ -161,19 +161,31 @@ def test_rejects_non_string_min_length(tmp_path: Path) -> None:
     assert error.value.category is FailureCategory.SCHEMA
 
 
-def test_rejects_retry_for_non_retryable_step(tmp_path: Path) -> None:
-    invalid = tmp_path / "retry.yaml"
-    invalid.write_text(
-        WORKFLOW_PATH.read_text(encoding="utf-8")
-        .replace("    idempotency: safe", "    idempotency: non_retryable", 1)
-        .replace("    retry: none", "    retry: one", 1),
-        encoding="utf-8",
-    )
+@pytest.mark.parametrize("retry", ["none", "one", "bounded"])
+@pytest.mark.parametrize("idempotency", ["safe", "retryable", "non_retryable"])
+def test_retry_policy_and_contradiction_precedence(
+    tmp_path: Path, retry: str, idempotency: str
+) -> None:
+    contract = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    # Use a later step to prove the rule applies beyond the first navigation.
+    contract["steps"][2].update(retry=retry, idempotency=idempotency)
+    path = tmp_path / "retry.yaml"
+    path.write_text(yaml.safe_dump(contract), encoding="utf-8")
+
+    if retry == "none":
+        assert load_workflow(path).workflow.steps[2].retry == retry
+        return
 
     with pytest.raises(WorkflowValidationError) as error:
-        load_workflow(invalid)
+        load_workflow(path)
 
     assert error.value.category is FailureCategory.POLICY
+    assert error.value.path == "steps.results.retry"
+    assert error.value.message == (
+        "A non_retryable step must declare retry: none."
+        if idempotency == "non_retryable"
+        else "V0 does not support retries. Set retry to none."
+    )
 
 
 @pytest.mark.parametrize(

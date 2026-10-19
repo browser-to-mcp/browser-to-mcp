@@ -105,8 +105,11 @@ record its path. Inputs marked `sensitive: true` in a workflow are replaced by
 ## Understand the workflow contract
 
 Each workflow declares a tool name, policy, typed inputs/outputs, ordered
-browser steps, and success assertions. Every step must declare its safety and
-retry behavior. This is a minimal read-only shape:
+browser steps, and success assertions. Every step must include explicit safety
+and retry declarations. V0 attempts each step at most once: every step must use
+`retry: none`, and workflows requesting `one` or `bounded` are rejected before
+the browser starts. Idempotency records safety intent and does not enable
+retries. This is a minimal read-only shape:
 
 ```yaml
 name: example_page_title

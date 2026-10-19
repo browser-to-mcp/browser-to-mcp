@@ -4,6 +4,7 @@ import asyncio
 import json
 import shutil
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from mcp import ClientSession, StdioServerParameters
@@ -12,12 +13,13 @@ from mcp.server.fastmcp.exceptions import ToolError
 
 import browser_to_mcp.server as server_module
 from browser_to_mcp.loader import LoadedWorkflow, load_workflow, manifest_digest
-from browser_to_mcp.models import Risk, WorkflowInput
+from browser_to_mcp.models import Retry, Risk, WorkflowInput
 from browser_to_mcp.replay import ReplayResult, WorkflowExecutionError
 from browser_to_mcp.server import (
     ServerConfigurationError,
     create_server,
     load_workflows,
+    serve_workflows,
 )
 
 WORKFLOW_PATH = Path(__file__).parents[1] / "workflows" / "hn_search.yaml"
@@ -51,6 +53,52 @@ def test_create_server_rejects_unsafe_workflows() -> None:
 
     with pytest.raises(ServerConfigurationError, match="read_only"):
         create_server([loaded])
+
+
+@pytest.mark.parametrize("retry", [Retry.ONE, Retry.BOUNDED])
+def test_create_server_revalidates_retry_policy_before_registering_any_tool(
+    monkeypatch, retry: Retry
+) -> None:
+    source = load_workflow(WORKFLOW_PATH)
+    workflow = source.workflow.model_copy(deep=True)
+    workflow.name = "unsupported_retries"
+    workflow.steps[0].retry = retry
+    invalid = LoadedWorkflow(workflow, manifest_digest(workflow))
+    register_tool = Mock(side_effect=AssertionError("Invalid workflows must not register tools."))
+    monkeypatch.setattr(server_module, "_workflow_tool", register_tool)
+
+    with pytest.raises(ServerConfigurationError) as error:
+        create_server([source, invalid])
+
+    assert error.value.path == "steps.search.retry"
+    assert error.value.message == "V0 does not support retries. Set retry to none."
+    register_tool.assert_not_called()
+
+
+@pytest.mark.parametrize("retry", ["one", "bounded"])
+def test_server_startup_refuses_retry_workflows_without_partial_registration(
+    tmp_path: Path, monkeypatch, retry: str
+) -> None:
+    source = WORKFLOW_PATH.read_text(encoding="utf-8")
+    (tmp_path / "a-valid.yaml").write_text(source, encoding="utf-8")
+    (tmp_path / "b-invalid.yaml").write_text(
+        source.replace("name: hn_search", "name: unsupported_retries").replace(
+            "    retry: none", f"    retry: {retry}", 1
+        ),
+        encoding="utf-8",
+    )
+    create = Mock(side_effect=AssertionError("Invalid directories must not start a server."))
+    monkeypatch.setattr(server_module, "create_server", create)
+
+    with pytest.raises(ServerConfigurationError) as error:
+        serve_workflows(tmp_path, trace_dir=None)
+
+    assert error.value.path == str(tmp_path)
+    assert error.value.message == (
+        "Workflow validation failed; no tools were registered. "
+        "steps.search.retry: V0 does not support retries. Set retry to none."
+    )
+    create.assert_not_called()
 
 
 def test_create_server_rejects_compiler_name_collisions() -> None:

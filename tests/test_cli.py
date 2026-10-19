@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import Mock
 
+import pytest
 from pytest import CaptureFixture
 
 from browser_to_mcp.cli import run
@@ -30,6 +32,38 @@ def test_validate_command_reports_invalid_yaml(tmp_path: Path, capsys: CaptureFi
     result = json.loads(output)
     assert result["status"] == "invalid"
     assert result["category"] == "schema"
+
+
+@pytest.mark.parametrize("command", ["validate", "dry-run", "replay"])
+@pytest.mark.parametrize("retry", ["one", "bounded"])
+def test_commands_refuse_unsupported_retries_before_browser_start(
+    tmp_path: Path, capsys: CaptureFixture[str], monkeypatch, command: str, retry: str
+) -> None:
+    invalid = tmp_path / "retry.yaml"
+    invalid.write_text(
+        WORKFLOW_PATH.read_text(encoding="utf-8").replace(
+            "    retry: none", f"    retry: {retry}", 1
+        ),
+        encoding="utf-8",
+    )
+    browser_start = Mock(side_effect=AssertionError("Policy refusal must not start Playwright."))
+    monkeypatch.setattr("browser_to_mcp.replay.async_playwright", browser_start)
+    arguments = [command, str(invalid)]
+    if command == "replay":
+        arguments.extend(["--input", "query=mcp", "--trace-dir", str(tmp_path / "traces")])
+
+    assert run(arguments) == 2
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert json.loads(captured.err) == {
+        "status": "invalid",
+        "category": "policy",
+        "path": "steps.search.retry",
+        "message": "V0 does not support retries. Set retry to none.",
+    }
+    browser_start.assert_not_called()
+    assert not (tmp_path / "traces").exists()
 
 
 def test_dry_run_reports_a_serializable_replay_plan(capsys: CaptureFixture[str]) -> None:

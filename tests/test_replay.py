@@ -31,7 +31,9 @@ from browser_to_mcp.replay import (
     execute_steps,
     parse_input_pairs,
     render_template,
+    render_url_template,
 )
+from browser_to_mcp.tracing import redact_text
 from browser_to_mcp.validation import FailureCategory, WorkflowValidationError
 
 WORKFLOW_PATH = Path(__file__).parents[1] / "workflows" / "hn_search.yaml"
@@ -405,6 +407,179 @@ def test_render_template_rejects_missing_value() -> None:
     assert error.value.path == "inputs.query"
 
 
+@pytest.mark.parametrize(
+    ("value", "encoded"),
+    [
+        ("python tools", "python%20tools"),
+        ("C++", "C%2B%2B"),
+        ("cats&admin=true", "cats%26admin%3Dtrue"),
+        ("chapter#2", "chapter%232"),
+        ("50% off", "50%25%20off"),
+        ("%2F", "%252F"),
+        ("日本語", "%E6%97%A5%E6%9C%AC%E8%AA%9E"),
+        ("../a/b?x=1", "..%2Fa%2Fb%3Fx%3D1"),
+        ("", ""),
+        (True, "true"),
+        (42, "42"),
+    ],
+)
+def test_url_inputs_are_encoded_once_and_fixed_url_text_is_preserved(
+    value: object, encoded: str
+) -> None:
+    template = "https://example.com/?q={{ query }}&fixed=a%2Bb&blank=#chapter-2"
+    assert render_url_template(template, {"query": value}) == (
+        f"https://example.com/?q={encoded}&fixed=a%2Bb&blank=#chapter-2"
+    )
+    assert render_template("text: {{query}}", {"query": value}) == (
+        f"text: {str(value).lower() if isinstance(value, bool) else value}"
+    )
+
+
+def test_url_renderer_does_not_reinterpret_inserted_templates() -> None:
+    assert (
+        render_url_template(
+            "https://example.com/{{query}}?q=prefix-{{query}}-{{other}}#fixed",
+            {"query": "{{other}}", "other": "C++"},
+        )
+        == "https://example.com/%7B%7Bother%7D%7D?q=prefix-%7B%7Bother%7D%7D-C%2B%2B#fixed"
+    )
+
+
+@pytest.mark.parametrize("value", ["", ".", ".."])
+def test_dot_and_empty_values_are_supported_in_query_values(value: str) -> None:
+    assert render_url_template("https://example.com/?q={{query}}", {"query": value}) == (
+        f"https://example.com/?q={value}"
+    )
+
+
+def test_encoded_sensitive_url_inputs_are_redacted_in_diagnostics() -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(deep=True)
+    workflow.inputs["query"].sensitive = True
+    inputs = {"query": "C++ & secret"}
+    url = render_url_template(workflow.steps[0].url, inputs)
+
+    assert redact_text(f"Failed: {url}; input: C++ & secret", workflow, inputs) == (
+        "Failed: https://hn.algolia.com/?q=[REDACTED]; input: [REDACTED]"
+    )
+
+
+def test_fill_values_keep_special_characters_unchanged() -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(deep=True)
+    workflow.steps = [
+        read_only_step(id="fill", action=StepAction.FILL, selector="#query", value="{{query}}")
+    ]
+    page = FakePage()
+    value = "C++ & tools #2 / 50% 日本語"
+
+    asyncio.run(execute_steps(page, workflow, {"query": value}))
+
+    assert page.fill_calls == [{"selector": "#query", "value": value, "timeout": 30000}]
+
+
+@pytest.mark.parametrize("value", ["", ".", ".."])
+def test_url_renderer_refuses_unrepresentable_path_segments(value: str) -> None:
+    with pytest.raises(WorkflowExecutionError) as error:
+        render_url_template("https://example.com/items/{{query}}/details", {"query": value})
+
+    assert error.value.category is ExecutionFailureCategory.INPUT
+    assert error.value.path == "inputs.query"
+
+
+@pytest.mark.parametrize(
+    ("template", "inputs", "path", "message"),
+    [
+        (
+            "https://hn.algolia.com/?q={{unknown}}",
+            {"query": "ok", "unknown": "value"},
+            "inputs.unknown",
+            "Input is not declared by the workflow.",
+        ),
+        (
+            "https://hn.algolia.com/?q={{query}}",
+            {},
+            "inputs.query",
+            "Template references an input that was not provided.",
+        ),
+        (
+            "https://hn.algolia.com/items/{{query}}",
+            {"query": ".."},
+            "inputs.query",
+            "A path-segment input cannot be empty, '.' or '..'.",
+        ),
+    ],
+)
+def test_all_url_inputs_are_preflighted_before_browser_start(
+    template: str, inputs: dict[str, object], path: str, message: str
+) -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(deep=True)
+    workflow.inputs["query"].required = False
+    workflow.steps = [
+        read_only_step(id="first", action=StepAction.GOTO, url="https://hn.algolia.com/"),
+        read_only_step(id="later", action=StepAction.GOTO, url=template),
+    ]
+
+    def forbidden_browser_start():
+        pytest.fail("Input preflight must finish before starting Playwright.")
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(
+            PlaywrightReplayEngine(playwright_factory=forbidden_browser_start).run(workflow, inputs)
+        )
+
+    assert error.value.category is ExecutionFailureCategory.INPUT
+    assert error.value.path == path
+    assert error.value.message == message
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "{{query}}://hn.algolia.com/",
+        "https://{{query}}.hn.algolia.com/",
+        "https://hn.algolia.com:{{query}}/",
+        "https://hn.algolia.com/?{{query}}=value",
+        "https://hn.algolia.com/#{{query}}",
+    ],
+)
+def test_engine_refuses_unsupported_url_positions_before_browser_start(url: str) -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow.model_copy(deep=True)
+    workflow.steps[0].url = url
+
+    def forbidden_browser_start():
+        pytest.fail("URL validation must finish before starting Playwright.")
+
+    with pytest.raises(WorkflowValidationError) as error:
+        asyncio.run(
+            PlaywrightReplayEngine(playwright_factory=forbidden_browser_start).run(
+                workflow, {"query": "mcp"}
+            )
+        )
+
+    assert error.value.category is FailureCategory.SCHEMA
+    assert error.value.path == "steps.search.url"
+
+
+@pytest.mark.parametrize("url", ["https://evil.example/", "ftp://hn.algolia.com/"])
+def test_runtime_policy_checks_the_final_rendered_url(monkeypatch, url: str) -> None:
+    workflow = load_workflow(WORKFLOW_PATH).workflow
+    monkeypatch.setattr(replay_module, "render_url_template", lambda *_: url)
+    page = FakePage()
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(
+            execute_steps(
+                page,
+                workflow,
+                {"query": "mcp"},
+                allowed_domains=workflow.permissions.allowed_domains,
+            )
+        )
+
+    assert error.value.category is ExecutionFailureCategory.PERMISSION
+    assert error.value.path == "steps.search.url"
+    assert page.goto_calls == []
+
+
 def test_execute_steps_replays_reference_workflow() -> None:
     workflow = load_workflow(WORKFLOW_PATH).workflow
     page = FakePage()
@@ -644,7 +819,9 @@ def test_engine_maps_overall_timeout_and_closes_resources(
     workflow = load_workflow(WORKFLOW_PATH).workflow
 
     with pytest.raises(WorkflowExecutionError) as error:
-        asyncio.run(PlaywrightReplayEngine(overall_timeout_seconds=1).run(workflow, {}))
+        asyncio.run(
+            PlaywrightReplayEngine(overall_timeout_seconds=1).run(workflow, {"query": "mcp"})
+        )
 
     assert error.value.category is ExecutionFailureCategory.RUNTIME
     assert error.value.path == "replay"
@@ -662,7 +839,7 @@ def test_engine_preserves_cancellation_and_closes_resources(
     workflow = load_workflow(WORKFLOW_PATH).workflow
 
     async def cancel_run() -> None:
-        task = asyncio.create_task(PlaywrightReplayEngine().run(workflow, {}))
+        task = asyncio.create_task(PlaywrightReplayEngine().run(workflow, {"query": "mcp"}))
         await asyncio.sleep(0.01)
         task.cancel()
         with pytest.raises(asyncio.CancelledError):

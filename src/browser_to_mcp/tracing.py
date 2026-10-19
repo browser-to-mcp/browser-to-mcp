@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -109,6 +110,7 @@ def redact_text(value: str, workflow: Workflow, inputs: dict[str, object]) -> st
         if definition.sensitive and name in inputs and str(inputs[name])
     ]
     for sensitive_value in sorted(sensitive_values, key=len, reverse=True):
+        redacted = redacted.replace(quote(sensitive_value, safe=""), "[REDACTED]")
         redacted = redacted.replace(sensitive_value, "[REDACTED]")
     return redacted
 

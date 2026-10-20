@@ -5,7 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from browser_to_mcp.models import Confirmation, Idempotency, Retry, Risk, StepAction, Workflow
+from browser_to_mcp.models import (
+    Confirmation,
+    Idempotency,
+    Retry,
+    Risk,
+    StepAction,
+    Workflow,
+    schema_field_name_error,
+)
 from browser_to_mcp.url_templates import validate_url_template
 
 
@@ -94,6 +102,28 @@ def validate_workflow_policy(workflow: Workflow) -> None:
             )
         if step.action is StepAction.GOTO:
             _validate_navigation(step.id, step.url, workflow.permissions.allowed_domains)
+
+    producers = {step.id: step for step in workflow.steps}
+    for name, definition in workflow.outputs.items():
+        name_error = schema_field_name_error(name)
+        if name_error:
+            raise WorkflowValidationError(FailureCategory.SCHEMA, f"outputs.{name}", name_error)
+        producer = producers.get(name)
+        if producer is None or producer.action not in {
+            StepAction.EXTRACT_TEXT,
+            StepAction.DOWNLOAD,
+        }:
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                f"outputs.{name}",
+                "Every output requires an extract_text or download step with the same ID.",
+            )
+        if producer.action is StepAction.DOWNLOAD and definition.type != "string":
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                f"outputs.{name}",
+                "A download step can produce only a string filename output.",
+            )
 
     for assertion in workflow.success:
         if assertion.field not in workflow.outputs:

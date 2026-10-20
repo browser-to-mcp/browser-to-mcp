@@ -517,6 +517,7 @@ def test_all_url_inputs_are_preflighted_before_browser_start(
     workflow.steps = [
         read_only_step(id="first", action=StepAction.GOTO, url="https://hn.algolia.com/"),
         read_only_step(id="later", action=StepAction.GOTO, url=template),
+        read_only_step(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
     ]
 
     def forbidden_browser_start():
@@ -908,6 +909,7 @@ def test_failed_actions_are_attempted_once_and_stop_the_run(
             text="results",
         ),
         read_only_step(id="never_reached", action=StepAction.GOTO, url="https://hn.algolia.com/"),
+        read_only_step(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
     ]
     page = FakePage()
     locator = FakeLocator(page, "#target")

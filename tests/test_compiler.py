@@ -160,3 +160,12 @@ def test_compiler_rejects_input_names_unsupported_by_python_argument_models() ->
 
     with pytest.raises(SchemaCompilationError, match="Field names"):
         compile_workflow(LoadedWorkflow(invalid, source.manifest_digest))
+
+
+def test_input_schema_preserves_its_additional_model_api_name_restriction() -> None:
+    source = load_workflow(WORKFLOW_PATH)
+    workflow = source.workflow.model_copy(
+        update={"inputs": {"model_dump_one_level": source.workflow.inputs["query"]}}
+    )
+    with pytest.raises(SchemaCompilationError, match="conflicts with the schema model API"):
+        compile_workflow(LoadedWorkflow(workflow, source.manifest_digest))

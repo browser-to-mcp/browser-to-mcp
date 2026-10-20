@@ -74,6 +74,64 @@ def test_loads_reference_workflow() -> None:
     assert loaded.manifest_digest.startswith("sha256:")
 
 
+@pytest.mark.parametrize("action", [None, "goto", "fill", "click", "wait_for_text", "press"])
+def test_outputs_require_supported_producers(tmp_path: Path, action: str | None) -> None:
+    contract = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    if action is None:
+        contract["steps"].pop()
+    else:
+        contract["steps"][-1].update(
+            action=action,
+            url="https://hn.algolia.com/",
+            value="text",
+            key="Enter",
+            text="Ready",
+        )
+    path = tmp_path / "producer.yaml"
+    path.write_text(yaml.safe_dump(contract), encoding="utf-8")
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(path)
+
+    assert error.value.category is FailureCategory.SCHEMA
+    assert error.value.path == "outputs.results"
+    assert "same ID" in error.value.message
+
+
+@pytest.mark.parametrize("name", ["not-valid", "class", "model_dump", "_private"])
+def test_output_names_must_be_supported_by_mcp(tmp_path: Path, name: str) -> None:
+    contract = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    contract["outputs"][name] = contract["outputs"].pop("results")
+    contract["steps"][-1]["id"] = name
+    contract["success"][0]["field"] = name
+    path = tmp_path / "name.yaml"
+    path.write_text(yaml.safe_dump(contract), encoding="utf-8")
+
+    with pytest.raises(WorkflowValidationError) as error:
+        load_workflow(path)
+
+    assert error.value.category is FailureCategory.SCHEMA
+    assert error.value.path == f"outputs.{name}"
+
+
+@pytest.mark.parametrize("type_name", ["string", "integer", "number", "boolean"])
+def test_download_produces_only_a_string_filename(tmp_path: Path, type_name: str) -> None:
+    contract = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    contract["permissions"]["downloads"] = True
+    contract["steps"][-1]["action"] = "download"
+    contract["outputs"]["results"]["type"] = type_name
+    path = tmp_path / "download.yaml"
+    path.write_text(yaml.safe_dump(contract), encoding="utf-8")
+
+    if type_name == "string":
+        assert load_workflow(path).workflow.outputs["results"].type == "string"
+    else:
+        with pytest.raises(WorkflowValidationError) as error:
+            load_workflow(path)
+        assert error.value.category is FailureCategory.SCHEMA
+        assert error.value.path == "outputs.results"
+
+
 def test_manifest_digest_is_stable() -> None:
     first = load_workflow(WORKFLOW_PATH).workflow
     second = load_workflow(WORKFLOW_PATH).workflow

@@ -2,10 +2,23 @@
 
 from __future__ import annotations
 
+import keyword
 from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PositiveInt, field_validator, model_validator
+
+OutputValue = str | int | float | bool
+
+
+def schema_field_name_error(name: str, model: type[BaseModel] = BaseModel) -> str | None:
+    """Share field-name restrictions between workflow validation and MCP schemas."""
+
+    if not name or not name.isidentifier() or keyword.iskeyword(name) or name.startswith("_"):
+        return "Field names must be Python identifiers that are not keywords or private names."
+    if hasattr(model, name):
+        return f"Field name '{name}' conflicts with the schema model API."
+    return None
 
 
 class StrictModel(BaseModel):

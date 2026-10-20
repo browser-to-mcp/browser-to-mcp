@@ -47,6 +47,15 @@ an invalid MCP workflow directory registers no tools. Existing workflows using
 `retry: none` need no changes. Required safety declarations, risk checks,
 timeouts, and confirmation restrictions still apply.
 
+## Named typed outputs
+
+Each declared output is required and must have an `extract_text` or `download`
+step with the same ID. The engine validates and converts all outputs before
+reporting completion. Strings retain their extracted text; integers, finite
+numbers, and booleans follow explicit JSON parsing rules. Valid `0` and `false`
+pass a presence check. See [OUTPUTS.md](OUTPUTS.md) for the full rules, a
+four-field workflow, compatibility, and error/redaction behavior.
+
 ## URL inputs
 
 Use `{{input_name}}` to insert a declared input. Spaces around the name, as in

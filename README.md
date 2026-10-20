@@ -88,6 +88,7 @@ The project is focused on reliable, permissioned browser workflows first.
 - [`docs/DEMO.md`](docs/DEMO.md) — clean setup, MCP clients, and trace walkthroughs
 - [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — product behavior and boundaries
 - [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) — safety declarations, retry policy, and URL input rules
+- [`docs/OUTPUTS.md`](docs/OUTPUTS.md) — named fields, result types, parsing, and failure behavior
 - [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) — implementation roadmap
 - [`docs/PILOT.md`](docs/PILOT.md) — selected recorder task, examples, and test-page requirements
 - [`docs/READINESS.md`](docs/READINESS.md) — readiness checks and measurements

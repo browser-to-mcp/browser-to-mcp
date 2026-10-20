@@ -74,6 +74,15 @@ the model does not imply execution support. Idempotency records safety intent
 and does not enable retries. See [WORKFLOWS.md](WORKFLOWS.md) for the error
 messages and contradiction-check precedence.
 
+Every output is required and must map by step ID to an `extract_text` step or
+a string-producing `download` step. Missing or unsupported producers are
+rejected before browser startup. The engine parses integer, finite number,
+and boolean outputs using explicit JSON rules while preserving string text.
+It validates the complete result before declaring success, so CLI, MCP, and
+traces agree on output types. Conversion failures use `assertion` errors at
+`outputs.<name>`; `0` and `false` pass presence assertions. See
+[OUTPUTS.md](OUTPUTS.md) for conversion, multiple-field examples, and redaction.
+
 V0 supports `goto`, `fill`, `press`, `click`, `wait_for_text`,
 `extract_text`, and permission-gated `download` actions. The workflow must be
 `read_only`. Domains are explicit, and every navigation and page request is
@@ -91,6 +100,7 @@ YAML
   -> typed input validation
   -> isolated PlaywrightReplayEngine
   -> declared actions and output extraction
+  -> shared output conversion and validation
   -> success assertions
   -> structured result or stable failure
   -> redacted trace

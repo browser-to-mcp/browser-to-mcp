@@ -180,3 +180,9 @@ See [AUTHORING.md](AUTHORING.md) for supported types and selection limits.
 The controlled recording-to-MCP tests use real Chromium and a separate STDIO
 server. They do not demonstrate general website reliability. Independent
 new-contributor timing is still pending; see [ONBOARDING_CHECK.md](ONBOARDING_CHECK.md).
+
+The verification path now includes thirty actual MCP calls against the controlled
+catalog, exact trace identity and output types, deliberate failures, retry
+refusals, and server cleanup. CI preserves measured JSON and test reports; see
+[JOURNEY_CHECKS.md](JOURNEY_CHECKS.md). Automated first-result timing is reported
+separately from the still-unmeasured newcomer completion target.

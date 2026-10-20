@@ -31,6 +31,10 @@ select the title and price, review permissions, and save a workflow. Then return
 to the MCP client configuration below, using `pilot-workflows` as its directory.
 The server must restart after a workflow is saved.
 
+For a fully local catalog and an exact command that calls the generated book
+tool through MCP, follow [ONBOARDING_CHECK.md](ONBOARDING_CHECK.md). Automated
+evidence and CI report instructions are in [JOURNEY_CHECKS.md](JOURNEY_CHECKS.md).
+
 The reference-workflow steps below are also useful for checking the engine
 without creating a new tool. Record independent onboarding timing with
 [ONBOARDING_CHECK.md](ONBOARDING_CHECK.md); it has not yet been measured.

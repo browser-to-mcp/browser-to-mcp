@@ -80,6 +80,10 @@ capture is implemented in #46; see [RECORDING.md](RECORDING.md). Guided workflow
 setup and real browser-to-MCP authoring tests are implemented; see
 [AUTHORING.md](AUTHORING.md). The independent timed newcomer walkthrough remains
 open in #48, and the parent milestone must stay open until that evidence exists.
+The [journey checks](JOURNEY_CHECKS.md) cover the full local catalog, typed
+CLI/MCP outputs, trace identity, startup refusals, resource cleanup, and thirty
+measured MCP calls. CI retains a report; automated timing does not substitute
+for newcomer timing.
 Recorded drafts do not expand the server's workflow list.
 
 ## Working Rules

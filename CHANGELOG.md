@@ -12,6 +12,11 @@
 
 ## Unreleased
 
+- Add a one-tab Chromium recorder for public read-only demonstrations (#46).
+  Save versioned local drafts with executable targets, coalesced typing,
+  ordered diagnostics, explicit partial saves, and exclusive private files.
+  Keep browser event listeners in the recorder's bundled assets directory;
+  honor saved selectors on replayed key presses.
 - Validate named output producers before browser startup and share strict
   primitive parsing across CLI, MCP, and typed JSON traces (#45). Preserve
   valid zero/false values and redact nested sensitive text; omit failure

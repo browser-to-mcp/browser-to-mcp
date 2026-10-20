@@ -22,6 +22,22 @@ uv run browser-to-mcp replay workflows/wikipedia_search.yaml --input query=pytho
 Each run returns structured JSON with the workflow result, actions, duration,
 manifest digest, and trace path.
 
+## Record a demonstration
+
+Capture a public, read-only task in a fresh visible browser:
+
+```bash
+mkdir -p recordings
+uv run browser-to-mcp record https://books.toscrape.com/ \
+  --allow-domain books.toscrape.com --allow-domain ajax.googleapis.com \
+  --draft recordings/book-lookup.recording.json
+```
+
+Type `stop` in the terminal to save, or `cancel` to discard. An incomplete
+capture requires an explicit `save-partial` choice. The result is an unreviewed
+draft, not an MCP tool. See [the recording guide](docs/RECORDING.md) for supported
+actions, privacy, and browser boundaries.
+
 ## Available workflows
 
 | Workflow | What it does |
@@ -89,6 +105,7 @@ The project is focused on reliable, permissioned browser workflows first.
 - [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — product behavior and boundaries
 - [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) — safety declarations, retry policy, and URL input rules
 - [`docs/OUTPUTS.md`](docs/OUTPUTS.md) — named fields, result types, parsing, and failure behavior
+- [`docs/RECORDING.md`](docs/RECORDING.md) — browser recording, draft format, and safe save/cancel flow
 - [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) — implementation roadmap
 - [`docs/PILOT.md`](docs/PILOT.md) — selected recorder task, examples, and test-page requirements
 - [`docs/READINESS.md`](docs/READINESS.md) — readiness checks and measurements

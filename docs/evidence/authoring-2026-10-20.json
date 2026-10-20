@@ -1,0 +1,304 @@
+{
+  "scope": "Live Books to Scrape observations, separate from controlled CI and newcomer timing. Both attempts retained.",
+  "runs": [
+    {
+      "date": "2026-10-20T06:20:54.975518+00:00",
+      "kind": "opt-in live observation",
+      "attempts": 3,
+      "correct_outcomes": 1,
+      "unexpected_outcomes": 2,
+      "duration_seconds": 13.115,
+      "manifest_digest": "sha256:8f99225876d0475d8b611d19d4f0d32cfd8e07ca3a59fc86e245e57a32f45c46",
+      "results": [
+        {
+          "input": {
+            "product_slug": "a-light-in-the-attic_1000"
+          },
+          "expected_outputs": {
+            "title": "A Light in the Attic",
+            "price": "£51.77"
+          },
+          "outputs": {
+            "title": "A Light in the Attic",
+            "price": "£51.77"
+          },
+          "correct": true,
+          "duration_seconds": 3.126,
+          "trace_status": "completed",
+          "trace_id": "4b61c65fae224d17bb01180bbfe917fe"
+        },
+        {
+          "input": {
+            "product_slug": "shakespeares-sonnets_989"
+          },
+          "expected_outputs": {
+            "title": "Shakespeare's Sonnets",
+            "price": "£20.66"
+          },
+          "category": "runtime",
+          "path": "steps.price",
+          "correct": false,
+          "duration_seconds": 3.414,
+          "trace_status": "failed",
+          "trace_id": "70b6f38c0c284b40b0fdb2f9dbbaf182",
+          "error": {
+            "category": "runtime",
+            "message": "Locator.inner_text: Error: strict mode violation: locator(\"p.price_color\") resolved to 7 elements:\n    1) <p class=\"price_color\">£20.66</p> aka get_by_role(\"paragraph\").filter(has_text=\"£20.66\")\n    2) <p class=\"price_color\">£13.99</p> aka get_by_text(\"£13.99\")\n    3) <p class=\"price_color\">£52.15</p> aka get_by_text(\"£52.15\")\n    4) <p class=\"price_color\">£22.60</p> aka get_by_text(\"£22.60\")\n    5) <p class=\"price_color\">£17.93</p> aka get_by_text(\"£17.93\")\n    6) <p class=\"price_color\">£33.34</p> aka get_by_text(\"£33.34\")\n    7) <p class=\"price_color\">£22.65</p> aka get_by_text(\"£22.65\")\n\nCall log:\n  - waiting for locator(\"p.price_color\")\n",
+            "path": "steps.price"
+          }
+        },
+        {
+          "input": {
+            "product_slug": "browser-to-mcp-missing_0"
+          },
+          "expected_outputs": null,
+          "category": "runtime",
+          "path": "steps.price",
+          "correct": false,
+          "duration_seconds": 6.574,
+          "trace_status": "failed",
+          "trace_id": "5f713b38261242fdaec36a8e5da8550d",
+          "error": {
+            "category": "runtime",
+            "message": "Action 'extract_text' timed out after 5 seconds.",
+            "path": "steps.price"
+          }
+        }
+      ],
+      "method": "Actual Chromium capture and guided authoring with scripted prompt answers and real browser output clicks; not a newcomer timing exercise.",
+      "workflow": {
+        "name": "catalog_product_lookup",
+        "description": "Look up a book",
+        "version": 1,
+        "risk": "read_only",
+        "manifest": {
+          "version": 1
+        },
+        "permissions": {
+          "allowed_domains": [
+            "books.toscrape.com",
+            "ajax.googleapis.com"
+          ],
+          "downloads": false,
+          "uploads": false,
+          "submit_forms": false,
+          "send_messages": false,
+          "spend_money": false,
+          "requires_authentication": false
+        },
+        "inputs": {
+          "product_slug": {
+            "type": "string",
+            "required": true,
+            "sensitive": false,
+            "description": "Book slug",
+            "min_length": 1
+          }
+        },
+        "steps": [
+          {
+            "id": "recorded_0",
+            "action": "goto",
+            "url": "https://books.toscrape.com/catalogue/{{product_slug}}/index.html",
+            "timeout_seconds": 30,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never"
+          },
+          {
+            "id": "title",
+            "action": "extract_text",
+            "selector": "h1",
+            "timeout_seconds": 5,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never"
+          },
+          {
+            "id": "price",
+            "action": "extract_text",
+            "selector": "p.price_color",
+            "timeout_seconds": 5,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never"
+          }
+        ],
+        "outputs": {
+          "title": {
+            "type": "string",
+            "description": "Book title"
+          },
+          "price": {
+            "type": "string",
+            "description": "Displayed price"
+          }
+        },
+        "success": [
+          {
+            "id": "check_title",
+            "assertion": "output_not_empty",
+            "field": "title"
+          },
+          {
+            "id": "check_price",
+            "assertion": "output_not_empty",
+            "field": "price"
+          }
+        ]
+      },
+      "stage": "initial selector discovery"
+    },
+    {
+      "date": "2026-10-20T06:23:18.034394+00:00",
+      "kind": "opt-in live observation",
+      "attempts": 3,
+      "correct_outcomes": 3,
+      "unexpected_outcomes": 0,
+      "duration_seconds": 12.295,
+      "manifest_digest": "sha256:783007e6643144d4d2e64c12150e242219b224c6edaa595e062a0412fdfc423c",
+      "results": [
+        {
+          "input": {
+            "product_slug": "a-light-in-the-attic_1000"
+          },
+          "expected_outputs": {
+            "title": "A Light in the Attic",
+            "price": "£51.77"
+          },
+          "outputs": {
+            "title": "A Light in the Attic",
+            "price": "£51.77"
+          },
+          "correct": true,
+          "duration_seconds": 2.912,
+          "trace_status": "completed",
+          "trace_id": "502d8169d00f4dd6b375e2ceda287c70"
+        },
+        {
+          "input": {
+            "product_slug": "shakespeares-sonnets_989"
+          },
+          "expected_outputs": {
+            "title": "Shakespeare's Sonnets",
+            "price": "£20.66"
+          },
+          "outputs": {
+            "title": "Shakespeare's Sonnets",
+            "price": "£20.66"
+          },
+          "correct": true,
+          "duration_seconds": 2.66,
+          "trace_status": "completed",
+          "trace_id": "f6434f811c3d4cabbb69cf444b726609"
+        },
+        {
+          "input": {
+            "product_slug": "browser-to-mcp-missing_0"
+          },
+          "expected_outputs": null,
+          "category": "runtime",
+          "path": "steps.title",
+          "correct": true,
+          "duration_seconds": 6.723,
+          "trace_status": "failed",
+          "trace_id": "abcee23b148c41539d6a40c9d8548fde",
+          "error": {
+            "category": "runtime",
+            "message": "Action 'extract_text' timed out after 5 seconds.",
+            "path": "steps.title"
+          }
+        }
+      ],
+      "method": "Actual Chromium capture and guided authoring with scripted prompt answers and real browser output clicks; not a newcomer timing exercise.",
+      "workflow": {
+        "name": "catalog_product_lookup",
+        "description": "Look up a book",
+        "version": 1,
+        "risk": "read_only",
+        "manifest": {
+          "version": 1
+        },
+        "permissions": {
+          "allowed_domains": [
+            "books.toscrape.com",
+            "ajax.googleapis.com"
+          ],
+          "downloads": false,
+          "uploads": false,
+          "submit_forms": false,
+          "send_messages": false,
+          "spend_money": false,
+          "requires_authentication": false
+        },
+        "inputs": {
+          "product_slug": {
+            "type": "string",
+            "required": true,
+            "sensitive": false,
+            "description": "Book slug",
+            "min_length": 1
+          }
+        },
+        "steps": [
+          {
+            "id": "recorded_0",
+            "action": "goto",
+            "url": "https://books.toscrape.com/catalogue/{{product_slug}}/index.html",
+            "timeout_seconds": 30,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never"
+          },
+          {
+            "id": "title",
+            "action": "extract_text",
+            "selector": "div.row > div.col-sm-6.product_main > h1",
+            "timeout_seconds": 5,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never"
+          },
+          {
+            "id": "price",
+            "action": "extract_text",
+            "selector": "div.row > div.col-sm-6.product_main > p.price_color",
+            "timeout_seconds": 5,
+            "risk": "read_only",
+            "idempotency": "safe",
+            "retry": "none",
+            "confirmation": "never"
+          }
+        ],
+        "outputs": {
+          "title": {
+            "type": "string",
+            "description": "Book title"
+          },
+          "price": {
+            "type": "string",
+            "description": "Displayed price"
+          }
+        },
+        "success": [
+          {
+            "id": "check_title",
+            "assertion": "output_not_empty",
+            "field": "title"
+          },
+          {
+            "id": "check_price",
+            "assertion": "output_not_empty",
+            "field": "price"
+          }
+        ]
+      },
+      "stage": "contextual selector follow-up"
+    }
+  ]
+}

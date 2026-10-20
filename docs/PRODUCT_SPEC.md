@@ -166,3 +166,17 @@ output and provenance, and diagnose a deliberate failure from its trace.
 
 The practical success metric is that a developer can turn a repeated,
 read-only browser task into a reviewed tool in under ten minutes.
+
+## Reviewed recording authoring
+
+The `author` command reads a complete local recording, asks the developer to
+review each action, binds inputs to specific fields, and lets them click visible
+text to choose named outputs. It previews typed values and shows the full plan
+before an explicit save. Export uses the normal loader, policy checks, and MCP
+schema compiler. Files are published atomically without overwriting existing
+workflows. Server restart is required; no hot reload or hosted editor is added.
+See [AUTHORING.md](AUTHORING.md) for supported types and selection limits.
+
+The controlled recording-to-MCP tests use real Chromium and a separate STDIO
+server. They do not demonstrate general website reliability. Independent
+new-contributor timing is still pending; see [ONBOARDING_CHECK.md](ONBOARDING_CHECK.md).

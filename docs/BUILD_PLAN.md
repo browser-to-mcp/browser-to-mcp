@@ -77,7 +77,9 @@ live browser checks and clearly marks the user needs that are still assumptions.
 The parent milestone is
 [#41](https://github.com/browser-to-mcp/browser-to-mcp/issues/41). Recorder
 capture is implemented in #46; see [RECORDING.md](RECORDING.md). Guided workflow
-setup and full browser-to-MCP authoring tests remain separate work in #47–#48.
+setup and real browser-to-MCP authoring tests are implemented; see
+[AUTHORING.md](AUTHORING.md). The independent timed newcomer walkthrough remains
+open in #48, and the parent milestone must stay open until that evidence exists.
 Recorded drafts do not expand the server's workflow list.
 
 ## Working Rules
@@ -91,7 +93,7 @@ Recorded drafts do not expand the server's workflow list.
 
 ## Deferred Work
 
-Guided workflow authoring, authenticated profiles, CDP attachment, native WebMCP
+Authenticated profiles, CDP attachment, native WebMCP
 execution, automatic repair, remote transports, hosted execution, registries,
 and enterprise controls remain post-V0 work. They require separate design and
 security review rather than being folded into the local replay core.

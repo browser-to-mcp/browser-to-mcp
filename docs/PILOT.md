@@ -1,5 +1,10 @@
 # First recorder demo: look up a book
 
+Current implementation status (2026-10-20): recording, guided authoring, and
+controlled browser-to-MCP tests are now available. Follow [AUTHORING.md](AUTHORING.md).
+The brief below preserves the original plan and its dated observations. The
+independent newcomer timing exercise remains pending in #48.
+
 This is the plan for [issue #42](https://github.com/browser-to-mcp/browser-to-mcp/issues/42),
 written on 2026-10-19. It gives the later recorder work one clear example to
 follow. The full milestone is

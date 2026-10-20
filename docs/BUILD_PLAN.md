@@ -11,7 +11,8 @@ release gates visible.
 - Playwright Python replay engine;
 - explicit read-only policy and domain allowlists;
 - redacted JSON traces and failure screenshots;
-- no hosted service, recorder, write workflow, or native WebMCP execution.
+- local recording drafts for public demonstrations;
+- no hosted service, write workflow, or native WebMCP execution.
 
 ## Milestones
 
@@ -75,9 +76,9 @@ live browser checks and clearly marks the user needs that are still assumptions.
 
 The parent milestone is
 [#41](https://github.com/browser-to-mcp/browser-to-mcp/issues/41). Recorder
-implementation, guided workflow setup, and full browser-to-MCP tests remain
-separate work in #46–#48. Selecting the pilot does not add a recorder or expand
-the current server's workflow list.
+capture is implemented in #46; see [RECORDING.md](RECORDING.md). Guided workflow
+setup and full browser-to-MCP authoring tests remain separate work in #47–#48.
+Recorded drafts do not expand the server's workflow list.
 
 ## Working Rules
 
@@ -90,7 +91,7 @@ the current server's workflow list.
 
 ## Deferred Work
 
-Recorder/editor, authenticated profiles, CDP attachment, native WebMCP
+Guided workflow authoring, authenticated profiles, CDP attachment, native WebMCP
 execution, automatic repair, remote transports, hosted execution, registries,
 and enterprise controls remain post-V0 work. They require separate design and
 security review rather than being folded into the local replay core.

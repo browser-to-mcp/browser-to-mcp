@@ -583,10 +583,15 @@ async def execute_steps(
                     timeout=step.timeout_seconds * 1000,
                 )
             elif step.action is StepAction.PRESS:
-                await asyncio.wait_for(
-                    page.keyboard.press(render_template(step.key or "", inputs)),
-                    timeout=step.timeout_seconds,
-                )
+                key = render_template(step.key or "", inputs)
+                if step.selector is not None:
+                    await page.locator(render_template(step.selector, inputs)).press(
+                        key, timeout=step.timeout_seconds * 1000,
+                    )
+                else:
+                    await asyncio.wait_for(
+                        page.keyboard.press(key), timeout=step.timeout_seconds,
+                    )
             elif step.action is StepAction.CLICK:
                 await page.locator(render_template(step.selector or "", inputs)).click(
                     timeout=step.timeout_seconds * 1000,

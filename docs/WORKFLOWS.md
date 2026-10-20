@@ -1,5 +1,10 @@
 # Writing workflows
 
+The [recorder](RECORDING.md) can capture public browser demonstrations into a
+separate draft. Drafts require review and are not workflow YAML or MCP tools.
+For `press` steps, an optional `selector` targets the key press at that element.
+Without a selector, replay uses the current keyboard focus.
+
 ## Step safety declarations and retries
 
 Every step must explicitly declare its timeout, risk, idempotency, retry, and

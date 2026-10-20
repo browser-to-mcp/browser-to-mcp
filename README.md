@@ -125,7 +125,3 @@ The project is focused on reliable, permissioned browser workflows first.
 - [`SECURITY.md`](SECURITY.md) — security reports
 
 The implementation follows the [browser-to-mcp specification](https://browser-to-mcp.github.io/spec/).
-
-PyPI browser search is currently unsupported because the observed search page
-presented a browser challenge. See [the support decision](docs/PYPI.md) for
-evidence, supported upstream API alternatives, and a safe re-check procedure.

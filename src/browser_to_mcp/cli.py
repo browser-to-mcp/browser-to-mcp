@@ -8,6 +8,7 @@ import json
 import sys
 from pathlib import Path
 
+from browser_to_mcp.authoring.command import run_author
 from browser_to_mcp.loader import load_workflow
 from browser_to_mcp.recorder.command import run_record
 from browser_to_mcp.replay import WorkflowExecutionError, replay_workflow
@@ -53,6 +54,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("workflows"),
         help="Directory scanned by your MCP server, where drafts must not be saved.",
     )
+    author_parser = subparsers.add_parser(
+        "author", help="Review a recording, bind inputs, select outputs, and export YAML."
+    )
+    author_parser.add_argument("draft", type=Path)
+    author_parser.add_argument("--output", type=Path, required=True)
     validate_parser = subparsers.add_parser("validate", help="Validate a workflow YAML contract.")
     validate_parser.add_argument("workflow_path", type=Path)
     dry_run_parser = subparsers.add_parser(
@@ -150,6 +156,8 @@ def run(arguments: list[str] | None = None) -> int:
     parser = build_parser()
     namespace = parser.parse_args(arguments)
 
+    if namespace.command == "author":
+        return run_author(namespace.draft, namespace.output)
     if namespace.command == "record":
         return run_record(
             namespace.url, namespace.allowed_domains, namespace.draft, namespace.workflow_dir

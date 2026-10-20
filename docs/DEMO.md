@@ -24,6 +24,17 @@ uv run playwright install chromium
 The project accepts Python 3.11 and later. `uv sync --locked` ensures the
 checked-in dependency versions are used.
 
+## Create a tool from a recording
+
+Follow [AUTHORING.md](AUTHORING.md) to record the book example, choose an input,
+select the title and price, review permissions, and save a workflow. Then return
+to the MCP client configuration below, using `pilot-workflows` as its directory.
+The server must restart after a workflow is saved.
+
+The reference-workflow steps below are also useful for checking the engine
+without creating a new tool. Record independent onboarding timing with
+[ONBOARDING_CHECK.md](ONBOARDING_CHECK.md); it has not yet been measured.
+
 ## Validate and inspect the reference workflow
 
 The reference workflow is [`workflows/hn_search.yaml`](../workflows/hn_search.yaml).

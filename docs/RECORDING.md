@@ -101,7 +101,7 @@ credentials. These checks cannot recognize every secret pasted into an
 ordinary text field or every secret encoded in a URL path. Demonstrate only
 public data and inspect the draft before sharing it.
 
-## Draft format and the next issue
+## Draft format and review
 
 The typed format is `browser-to-mcp-recording`, version `1`, with
 `status: captured|partial`, `requires_review: true`, `allowed_domains`, and an
@@ -137,7 +137,8 @@ navigation from a destination reached by a preceding action. For example:
 
 The MCP server scans only YAML files, and this structure also fails normal
 workflow validation even if renamed to YAML. Naming inputs, choosing outputs,
-reviewing the task, and exporting workflow YAML belong to issue #47. The
+reviewing the task, and exporting workflow YAML use the `author` command; see
+[AUTHORING.md](AUTHORING.md). The
 recorder does not automatically select title/price outputs or register a tool.
 
 ## Code organization and tests

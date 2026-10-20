@@ -19,4 +19,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --all-groups
       - run: uv run playwright install --with-deps chromium
-      - run: uv run pytest
+      - name: Unit and existing browser checks
+        run: uv run pytest --ignore=tests/authoring/test_journey.py
+      - name: Real recording-to-MCP journey and 30 controlled runs
+        run: uv run pytest tests/authoring/test_journey.py -q

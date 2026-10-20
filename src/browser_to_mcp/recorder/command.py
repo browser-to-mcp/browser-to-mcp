@@ -28,7 +28,7 @@ NOTICE = (
 )
 
 
-async def read_command() -> str:
+async def read_command(*, preserve_case: bool = False) -> str:
     """A daemon reader allows browser-close/cancellation to finish without waiting for stdin."""
     loop = asyncio.get_running_loop()
     result = loop.create_future()
@@ -39,7 +39,7 @@ async def read_command() -> str:
 
     def deliver(value: str) -> None:
         if not result.done():
-            result.set_result(value.strip().lower())
+            result.set_result(value.strip() if preserve_case else value.strip().lower())
 
     def read() -> None:
         try:

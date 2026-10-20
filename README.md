@@ -2,7 +2,8 @@
 
 Turn reviewed browser workflows into typed, read-only MCP tools.
 
-You describe a browser task in YAML. The project validates the permissions,
+Record a public browser task, review it with `author`, or write a workflow in YAML.
+The project validates the permissions,
 runs the workflow in Chromium, and exposes each valid workflow as an MCP tool.
 
 ## Quick start
@@ -37,6 +38,16 @@ Type `stop` in the terminal to save, or `cancel` to discard. An incomplete
 capture requires an explicit `save-partial` choice. The result is an unreviewed
 draft, not an MCP tool. See [the recording guide](docs/RECORDING.md) for supported
 actions, privacy, and browser boundaries.
+
+## Turn the recording into a tool
+
+```bash
+uv run browser-to-mcp author recordings/book-lookup.recording.json --output workflows/book.yaml
+```
+
+Choose reusable inputs, click page text to select outputs, and review the full
+plan before saving. Follow the [book walkthrough](docs/AUTHORING.md) for exact
+steps. Restart the MCP server after export so it can load the new tool.
 
 ## Available workflows
 

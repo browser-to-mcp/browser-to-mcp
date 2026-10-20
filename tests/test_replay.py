@@ -77,6 +77,10 @@ class FakeLocator:
         assert self.page is not None
         self.page.click_calls.append({"selector": self.value, "timeout": timeout})
 
+    async def press(self, key: str, timeout: int) -> None:
+        assert self.page is not None
+        self.page.press_calls.append(key)
+
     async def wait_for(self, state: str, timeout: int) -> None:
         assert self.page is not None
         self.page.wait_calls.append({"text": self.value, "state": state, "timeout": timeout})
@@ -918,7 +922,7 @@ def test_failed_actions_are_attempted_once_and_stop_the_run(
     target, method = {
         StepAction.GOTO: (page, "goto"),
         StepAction.FILL: (locator, "fill"),
-        StepAction.PRESS: (page.keyboard, "press"),
+        StepAction.PRESS: (locator, "press"),
         StepAction.CLICK: (locator, "click"),
         StepAction.WAIT_FOR_TEXT: (locator, "wait_for"),
         StepAction.EXTRACT_TEXT: (locator, "inner_text"),

@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from browser_to_mcp.loader import load_workflow
+from browser_to_mcp.recorder.command import run_record
 from browser_to_mcp.replay import WorkflowExecutionError, replay_workflow
 from browser_to_mcp.server import ServerConfigurationError, serve_workflows
 from browser_to_mcp.validation import WorkflowValidationError
@@ -20,6 +21,38 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(prog="browser-to-mcp")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    record_parser = subparsers.add_parser(
+        "record",
+        help="Record a public read-only demonstration into a local draft.",
+        description=(
+            "Open fresh visible Chromium and capture one tab's navigation, text fills, clicks, "
+            "and key presses. Demonstrate only public, non-sensitive, read-only tasks: actions "
+            "affect the live site, and capture cannot detect every side effect. "
+            "Use stop, cancel, or save-partial in the terminal. Drafts require review and "
+            "are not runnable MCP tools."
+        ),
+    )
+    record_parser.add_argument("url", help="Starting public HTTP(S) URL.")
+    record_parser.add_argument(
+        "--allow-domain",
+        action="append",
+        required=True,
+        dest="allowed_domains",
+        metavar="HOST",
+        help="Explicit allowed hostname, including subdomains. Repeat as needed.",
+    )
+    record_parser.add_argument(
+        "--draft",
+        type=Path,
+        required=True,
+        help="New .recording.json file outside the server workflow directory; never overwritten.",
+    )
+    record_parser.add_argument(
+        "--workflow-dir",
+        type=Path,
+        default=Path("workflows"),
+        help="Directory scanned by your MCP server, where drafts must not be saved.",
+    )
     validate_parser = subparsers.add_parser("validate", help="Validate a workflow YAML contract.")
     validate_parser.add_argument("workflow_path", type=Path)
     dry_run_parser = subparsers.add_parser(
@@ -117,6 +150,10 @@ def run(arguments: list[str] | None = None) -> int:
     parser = build_parser()
     namespace = parser.parse_args(arguments)
 
+    if namespace.command == "record":
+        return run_record(
+            namespace.url, namespace.allowed_domains, namespace.draft, namespace.workflow_dir
+        )
     if namespace.command == "validate":
         return _validate(namespace.workflow_path)
     if namespace.command == "dry-run":
@@ -206,9 +243,7 @@ def _replay(
 ) -> int:
     try:
         loaded = load_workflow(path)
-        result = asyncio.run(
-            replay_workflow(loaded, input_pairs, trace_dir, timeout_seconds)
-        )
+        result = asyncio.run(replay_workflow(loaded, input_pairs, trace_dir, timeout_seconds))
     except WorkflowValidationError as error:
         _print_error("invalid", error.category, error.path, error.message)
         return 2

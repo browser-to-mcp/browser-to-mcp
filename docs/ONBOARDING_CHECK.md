@@ -22,7 +22,7 @@ changes the acceptance criteria. No successful human walkthrough is claimed.
 
 Use a clean checkout. Installation commands are in [DEMO.md](DEMO.md). Measure
 installation time separately. With dependencies and Chromium installed, start
-this local catalog in a terminal and keep it running:
+the task timer, then start this local catalog in a terminal and keep it running:
 
 ```bash
 uv run python tests/authoring/catalog.py --port 8765
@@ -32,7 +32,7 @@ It binds only to `127.0.0.1` and serves original example pages. It requires no
 account and makes no third-party requests. Stop it with Ctrl+C when finished.
 If the port is busy, choose another port and use that same port in the URL below.
 
-In a second terminal, start the task timer and run:
+In a second terminal, run:
 
 ```bash
 mkdir -p recordings pilot-workflows

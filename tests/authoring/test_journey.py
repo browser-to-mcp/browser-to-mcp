@@ -85,6 +85,7 @@ def test_three_cases_ten_consecutive_runs(catalog, tmp_path, journey_report):
     from time import monotonic
 
     async def exercise():
+        journey_started = monotonic()
         path = await create_workflow(catalog, tmp_path)
         loaded = load_workflow(path)
         journey_report["manifest_digest"] = loaded.manifest_digest
@@ -133,6 +134,10 @@ def test_three_cases_ten_consecutive_runs(catalog, tmp_path, journey_report):
                                 data["trace_path"], loaded, trace_dir, outputs=expected
                             )
                             observation["outputs"] = data["outputs"]
+                            journey_report.setdefault(
+                                "first_correct_mcp_result_seconds",
+                                round(monotonic() - journey_started, 3),
+                            )
                         observation.update(
                             matched=True,
                             trace_id=trace["metadata"]["run_id"],
@@ -149,6 +154,7 @@ def test_three_cases_ten_consecutive_runs(catalog, tmp_path, journey_report):
                         }
                     finally:
                         observation["duration_seconds"] = round(monotonic() - started, 3)
+        assert journey_report["first_correct_mcp_result_seconds"] > 0
         journey_report["completed"] = True
 
     asyncio.run(exercise())

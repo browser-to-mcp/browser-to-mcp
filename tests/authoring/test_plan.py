@@ -200,3 +200,32 @@ def test_author_refuses_draft_in_workflow_directory_before_browser(tmp_path):
     with pytest.raises(AuthoringError, match="outside"):
         asyncio.run(author(tmp_path / "draft.recording.json", tmp_path / "tool.yaml"))
     assert not (tmp_path / "tool.yaml").exists()
+
+
+@pytest.mark.parametrize(
+    "kind,fields",
+    [
+        ("click", {}),
+        ("fill", {"value": "public book"}),
+        ("press", {"key": "Enter"}),
+    ],
+)
+def test_nested_recorded_targets_are_not_mistaken_for_templates(tmp_path, kind, fields):
+    data = {
+        "format": "browser-to-mcp-recording",
+        "version": 1,
+        "status": "captured",
+        "requires_review": True,
+        "allowed_domains": ["example.com"],
+        "events": [
+            {"kind": "navigation", "url": "https://example.com"},
+            {"kind": kind, "target": {"selector": "#book", "strategy": "id"}, **fields},
+        ],
+    }
+    path = tmp_path / "book.recording.json"
+    path.write_text(json.dumps(data))
+    assert read_draft(path).events[1].kind == kind
+    data["events"][1]["target"]["selector"] = "#book}}"
+    path.write_text(json.dumps(data))
+    with pytest.raises(AuthoringError, match="templates"):
+        read_draft(path)

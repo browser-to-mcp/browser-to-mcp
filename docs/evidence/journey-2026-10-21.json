@@ -1,0 +1,579 @@
+{
+  "kind": "controlled Chromium recording-to-MCP test",
+  "observer": "automated software using real Chromium and a real MCP server",
+  "prerequisites": "already installed; installation time not measured",
+  "interaction": "scripted terminal answers and actual browser clicks",
+  "newcomer_timing": "not measured",
+  "working_tree_dirty": false,
+  "started_at": "2026-10-20T20:09:25.651647+00:00",
+  "commit": "933493354d488eadcb0ea020644fbc01e3ad5c53",
+  "runs": [
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 1,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "b8aedb0afe1c4742afc534418b4ce97c",
+      "status": "completed",
+      "duration_seconds": 0.329
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 2,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "f635089f775b407090ac02209d6cd9ce",
+      "status": "completed",
+      "duration_seconds": 0.317
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 3,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "1c0cd4a4cbd6423ab1f1281f930fec98",
+      "status": "completed",
+      "duration_seconds": 0.312
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 4,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "23a945c0ab1c47b0a99ff9bdfe84c183",
+      "status": "completed",
+      "duration_seconds": 0.316
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 5,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "dc05477c0d7149e69ee706557943baa3",
+      "status": "completed",
+      "duration_seconds": 0.313
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 6,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "dd87757fec24456cadc86534bb2fa7e6",
+      "status": "completed",
+      "duration_seconds": 0.324
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 7,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "1e913305857c4befb18f977f0882909a",
+      "status": "completed",
+      "duration_seconds": 0.319
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 8,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "6cd4990d2f0a4cbea513960a9157a8a0",
+      "status": "completed",
+      "duration_seconds": 0.333
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 9,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "4a8ab333d71c48088b6cfe535af5a293",
+      "status": "completed",
+      "duration_seconds": 0.315
+    },
+    {
+      "input": "a-light-in-the-attic_1000",
+      "attempt": 10,
+      "matched": true,
+      "expected_outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "outputs": {
+        "title": "A Light in the Attic",
+        "price": "£51.77"
+      },
+      "trace_id": "0dc017fe27214ac7b37ad8a4639ebe69",
+      "status": "completed",
+      "duration_seconds": 0.346
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 1,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "cf1f40e023ee42c2bda051532d0588ed",
+      "status": "completed",
+      "duration_seconds": 0.366
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 2,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "83bf88bf4eef4f6996572c9ce2a96e4f",
+      "status": "completed",
+      "duration_seconds": 0.327
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 3,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "d6b06979712842238e12cd703cabdb1e",
+      "status": "completed",
+      "duration_seconds": 0.305
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 4,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "7a740c09530f46a3a44239cefea40119",
+      "status": "completed",
+      "duration_seconds": 0.311
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 5,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "f4f2ad847d2147c0b04ac895e9523fd1",
+      "status": "completed",
+      "duration_seconds": 0.314
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 6,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "6fe22928caa249b79a52b07061eb5b0d",
+      "status": "completed",
+      "duration_seconds": 0.306
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 7,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "137da155f0bd4cbbb494b05aa3d8f3a3",
+      "status": "completed",
+      "duration_seconds": 0.312
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 8,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "ebdbeb2776a945178bc6c1f165c4c390",
+      "status": "completed",
+      "duration_seconds": 0.316
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 9,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "42eeabc12b1e4564856848b57e88f097",
+      "status": "completed",
+      "duration_seconds": 0.307
+    },
+    {
+      "input": "shakespeares-sonnets_989",
+      "attempt": 10,
+      "matched": true,
+      "expected_outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "outputs": {
+        "title": "Shakespeare's Sonnets",
+        "price": "£20.66"
+      },
+      "trace_id": "5ce7245437834b3990347b349ec4dc94",
+      "status": "completed",
+      "duration_seconds": 0.338
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 1,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "0d6bf9a66b80430bb29e14dbccdc0cf1",
+      "status": "failed",
+      "duration_seconds": 5.338
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 2,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "31721168398a42ad89e88e171503c6a0",
+      "status": "failed",
+      "duration_seconds": 5.355
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 3,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "678235466b664aada5685e9cc501e0e3",
+      "status": "failed",
+      "duration_seconds": 5.331
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 4,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "8040e5b2c09c4b029ffdfe3839efff7d",
+      "status": "failed",
+      "duration_seconds": 5.351
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 5,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "79f4bbdc187f41ec9ece5e4654299830",
+      "status": "failed",
+      "duration_seconds": 5.328
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 6,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "5c5b027837f04053aed04b7150ded32b",
+      "status": "failed",
+      "duration_seconds": 5.347
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 7,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "46025c2e2a174f0186fc1029d1622bbc",
+      "status": "failed",
+      "duration_seconds": 5.326
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 8,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "a0d4a9c8592644a5a66d6a70c64c796b",
+      "status": "failed",
+      "duration_seconds": 5.351
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 9,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "94ac51a1b8fa408bbc60a07ca3c53d9e",
+      "status": "failed",
+      "duration_seconds": 5.371
+    },
+    {
+      "input": "browser-to-mcp-missing_0",
+      "attempt": 10,
+      "matched": true,
+      "expected_outputs": null,
+      "error": {
+        "category": "runtime",
+        "path": "steps.title",
+        "message": "Action 'extract_text' timed out after 5 seconds."
+      },
+      "trace_id": "3eae324120144ccfab9d671bfb0a55f3",
+      "status": "failed",
+      "duration_seconds": 5.391
+    }
+  ],
+  "completed": true,
+  "manifest_digest": "sha256:b5a6a69818190d0d7b214d4c9ef1b251d4934e0778cbdef3422488fab7808c0b",
+  "workflow": {
+    "name": "catalog_product_lookup",
+    "description": "Look up a book",
+    "version": 1,
+    "risk": "read_only",
+    "manifest": {
+      "version": 1
+    },
+    "permissions": {
+      "allowed_domains": [
+        "127.0.0.1"
+      ],
+      "downloads": false,
+      "uploads": false,
+      "submit_forms": false,
+      "send_messages": false,
+      "spend_money": false,
+      "requires_authentication": false
+    },
+    "inputs": {
+      "product_slug": {
+        "type": "string",
+        "required": true,
+        "sensitive": false,
+        "description": "Book slug",
+        "min_length": 1
+      }
+    },
+    "steps": [
+      {
+        "id": "recorded_0",
+        "action": "goto",
+        "url": "http://127.0.0.1:53112/catalogue/{{product_slug}}/index.html",
+        "selector": null,
+        "value": null,
+        "key": null,
+        "text": null,
+        "timeout_seconds": 30,
+        "risk": "read_only",
+        "idempotency": "safe",
+        "retry": "none",
+        "confirmation": "never"
+      },
+      {
+        "id": "title",
+        "action": "extract_text",
+        "url": null,
+        "selector": "main.product_main > h1",
+        "value": null,
+        "key": null,
+        "text": null,
+        "timeout_seconds": 5,
+        "risk": "read_only",
+        "idempotency": "safe",
+        "retry": "none",
+        "confirmation": "never"
+      },
+      {
+        "id": "price",
+        "action": "extract_text",
+        "url": null,
+        "selector": "main.product_main > p.price_color",
+        "value": null,
+        "key": null,
+        "text": null,
+        "timeout_seconds": 5,
+        "risk": "read_only",
+        "idempotency": "safe",
+        "retry": "none",
+        "confirmation": "never"
+      }
+    ],
+    "outputs": {
+      "title": {
+        "type": "string",
+        "description": "title"
+      },
+      "price": {
+        "type": "string",
+        "description": "price"
+      }
+    },
+    "success": [
+      {
+        "id": "check_title",
+        "assertion": "output_not_empty",
+        "field": "title"
+      },
+      {
+        "id": "check_price",
+        "assertion": "output_not_empty",
+        "field": "price"
+      }
+    ]
+  },
+  "first_correct_mcp_result_seconds": 1.687,
+  "runtime": {
+    "python_version": "3.12.12",
+    "playwright_version": "1.61.0",
+    "browser_version": "149.0.7827.55",
+    "platform": "macOS-27.0.1-arm64-arm-64bit"
+  },
+  "finished_at": "2026-10-20T20:10:27.010260+00:00",
+  "attempts": 30,
+  "matching_outcomes": 30
+}

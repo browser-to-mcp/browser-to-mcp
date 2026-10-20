@@ -68,7 +68,9 @@ installed. It is **not** a newcomer usability score. Installation was not timed 
 this test.
 
 The saved [2026-10-21 controlled report](evidence/journey-2026-10-21.json) records
-one actual run. Use the CI artifact for each later PR's own results.
+one actual run: 30/30 expected outcomes and 1.687 seconds from automated capture
+to the first correct MCP result. The report date uses Asia/Kolkata; its raw
+timestamps use UTC. Use the CI artifact for each later PR's own results.
 
 ## Live websites and the remaining human check
 

@@ -42,6 +42,7 @@ class Target(DraftModel):
         "name",
         "placeholder",
         "text",
+        "css",
     ]
 
 

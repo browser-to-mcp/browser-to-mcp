@@ -313,6 +313,9 @@ def _workflow(
     steps: list[WorkflowStep],
     inputs: dict[str, WorkflowInput] | None = None,
 ) -> Workflow:
+    # Keep failure fixtures structurally valid even if their earlier step fails.
+    if not any(step.id == "results" for step in steps):
+        steps = [*steps, _step("results", StepAction.EXTRACT_TEXT, selector="main")]
     return Workflow(
         name="readiness_fixture",
         description="Deterministic M3 readiness fixture.",

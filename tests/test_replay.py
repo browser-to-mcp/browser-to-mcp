@@ -517,6 +517,7 @@ def test_all_url_inputs_are_preflighted_before_browser_start(
     workflow.steps = [
         read_only_step(id="first", action=StepAction.GOTO, url="https://hn.algolia.com/"),
         read_only_step(id="later", action=StepAction.GOTO, url=template),
+        read_only_step(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
     ]
 
     def forbidden_browser_start():
@@ -908,6 +909,7 @@ def test_failed_actions_are_attempted_once_and_stop_the_run(
             text="results",
         ),
         read_only_step(id="never_reached", action=StepAction.GOTO, url="https://hn.algolia.com/"),
+        read_only_step(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
     ]
     page = FakePage()
     locator = FakeLocator(page, "#target")
@@ -1045,7 +1047,7 @@ def test_replay_writes_redacted_success_trace(
     assert trace["metadata"]["playwright_version"] != ""
 
 
-def test_replay_writes_failure_trace_and_screenshot(
+def test_replay_redacts_failure_and_omits_sensitive_screenshot(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     context = FakeContext(SensitiveErrorPage())
@@ -1065,7 +1067,22 @@ def test_replay_writes_failure_trace_and_screenshot(
     assert trace["inputs"] == {"query": "[REDACTED]"}
     assert trace["error"]["category"] == "runtime"
     assert trace["error"]["path"] == "steps.search"
-    assert trace["error"]["screenshot_path"] in trace["screenshots"]
-    assert Path(trace["error"]["screenshot_path"]).read_bytes() == b"png-test-data"
+    assert trace["error"]["screenshot_path"] is None
+    assert trace["screenshots"] == []
+    assert list(tmp_path.glob("*.png")) == []
     assert trace["actions"][-1]["status"] == "failed"
     assert "secret" not in Path(error.value.trace_path).read_text(encoding="utf-8")
+    assert "secret" not in error.value.message
+
+
+def test_replay_preserves_non_sensitive_failure_screenshots(monkeypatch, tmp_path: Path) -> None:
+    context = FakeContext(ScreenshotPage())
+    patch_playwright(monkeypatch, FakeChromium(browser=FakeBrowser(context)))
+    loaded = load_workflow(WORKFLOW_PATH)
+
+    with pytest.raises(WorkflowExecutionError) as error:
+        asyncio.run(replay_module.replay_workflow(loaded, ["query=public"], tmp_path))
+
+    trace = json.loads(Path(error.value.trace_path).read_text(encoding="utf-8"))
+    assert trace["error"]["screenshot_path"] in trace["screenshots"]
+    assert Path(trace["error"]["screenshot_path"]).read_bytes() == b"png-test-data"

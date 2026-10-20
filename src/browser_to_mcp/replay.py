@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import math
 import platform
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from decimal import Decimal, DecimalException
 from enum import StrEnum
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
@@ -21,7 +24,7 @@ from playwright.async_api import Page, async_playwright
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from browser_to_mcp.loader import LoadedWorkflow
-from browser_to_mcp.models import StepAction, SuccessAssertion, Workflow, WorkflowInput
+from browser_to_mcp.models import OutputValue, StepAction, SuccessAssertion, Workflow, WorkflowInput
 from browser_to_mcp.tracing import (
     TraceAction,
     TraceAssertion,
@@ -31,10 +34,18 @@ from browser_to_mcp.tracing import (
     WorkflowTrace,
     redact_inputs,
     redact_text,
+    redact_value,
     write_trace,
 )
 from browser_to_mcp.url_templates import TEMPLATE_PATTERN, validate_url_template
 from browser_to_mcp.validation import validate_workflow_policy
+
+_OUTPUT_EXPECTATIONS = {
+    "string": "non-blank text",
+    "integer": "a JSON integer",
+    "number": "a finite JSON number representable without precision loss",
+    "boolean": "an exact JSON boolean (true or false)",
+}
 
 
 class ExecutionFailureCategory(StrEnum):
@@ -83,7 +94,7 @@ class ReplayResult:
 
     workflow: str
     manifest_digest: str
-    outputs: dict[str, str]
+    outputs: dict[str, OutputValue]
     actions: tuple[ActionResult, ...]
     duration_seconds: float
     trace_path: str | None = None
@@ -114,7 +125,7 @@ class AssertionResult:
 class StepExecution:
     """Collected outputs and action outcomes from one workflow run."""
 
-    outputs: dict[str, str]
+    outputs: dict[str, OutputValue]
     actions: tuple[ActionResult, ...]
 
 
@@ -220,16 +231,26 @@ class PlaywrightReplayEngine:
                                 blocked_requests[0] if blocked_requests else None
                             ),
                         )
+                        execution = StepExecution(
+                            process_outputs(workflow, execution.outputs), execution.actions
+                        )
                         assertions = evaluate_success_assertions(
                             workflow.success, execution.outputs
                         )
                     except WorkflowExecutionError as error:
+                        error.message = redact_text(error.message, workflow, inputs)
                         error.browser_version = browser_version
                         if not error.actions and "execution" in locals():
                             error.actions = execution.actions
-                        error.screenshot_path = await _capture_failure_screenshot(
-                            page, failure_screenshot_path
+                        # Screenshots cannot use structured-text redaction safely.
+                        has_sensitive_input = any(
+                            definition.sensitive and name in inputs
+                            for name, definition in workflow.inputs.items()
                         )
+                        if not has_sensitive_input:
+                            error.screenshot_path = await _capture_failure_screenshot(
+                                page, failure_screenshot_path
+                            )
                         raise
                     return EngineResult(execution, assertions, browser_version)
                 finally:
@@ -332,7 +353,7 @@ async def replay_workflow(
     started_at = monotonic()
     started_at_utc = datetime.now(UTC)
     inputs: dict[str, object] = {}
-    outputs: dict[str, str] = {}
+    outputs: dict[str, OutputValue] = {}
     actions: tuple[ActionResult, ...] = ()
     assertions: tuple[AssertionResult, ...] = ()
     browser_version = "unknown"
@@ -350,6 +371,7 @@ async def replay_workflow(
         actions = engine_result.execution.actions
         assertions = engine_result.assertions
     except WorkflowExecutionError as error:
+        error.message = redact_text(error.message, loaded.workflow, inputs)
         error.trace_path = _persist_trace(
             trace_dir,
             run_id,
@@ -390,7 +412,7 @@ async def replay_workflow(
         execution_error = WorkflowExecutionError(
             ExecutionFailureCategory.RUNTIME,
             "replay",
-            _runtime_message(error),
+            redact_text(_runtime_message(error), loaded.workflow, inputs),
         )
         execution_error.trace_path = _persist_trace(
             trace_dir,
@@ -438,7 +460,7 @@ def _persist_trace(
     inputs: dict[str, object],
     *,
     actions: tuple[ActionResult, ...],
-    outputs: dict[str, str],
+    outputs: dict[str, OutputValue],
     assertions: tuple[AssertionResult, ...],
     browser_version: str,
     error: WorkflowExecutionError | None = None,
@@ -476,9 +498,7 @@ def _persist_trace(
             )
             for action in actions
         ],
-        outputs={
-            key: redact_text(value, loaded.workflow, inputs) for key, value in outputs.items()
-        },
+        outputs=redact_value(outputs, loaded.workflow, inputs),
         assertions=[
             TraceAssertion(
                 assertion_id=assertion.assertion_id,
@@ -732,15 +752,71 @@ def _template_value(name: str, inputs: dict[str, object]) -> str:
     return str(value).lower() if isinstance(value, bool) else str(value)
 
 
+def process_outputs(workflow: Workflow, raw_outputs: dict[str, object]) -> dict[str, OutputValue]:
+    """Convert browser text once and validate the complete, closed output contract.
+
+    Errors describe the expected type without echoing page values. Numbers use
+    finite floats that retain the JSON decimal value when serialized. Overflow,
+    underflow and precision loss are refused instead of silently changing data.
+    """
+
+    for name in raw_outputs:
+        if name not in workflow.outputs:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.ASSERTION,
+                f"outputs.{name}",
+                "Output is not declared by the workflow.",
+            )
+    outputs: dict[str, OutputValue] = {}
+    for name, definition in workflow.outputs.items():
+        raw = raw_outputs.get(name)
+        expected = _OUTPUT_EXPECTATIONS[definition.type]
+        if name not in raw_outputs:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.ASSERTION,
+                f"outputs.{name}",
+                "Required output was not extracted.",
+            )
+        try:
+            if not isinstance(raw, str):
+                raise ValueError
+            if definition.type == "string":
+                if not raw.strip():
+                    raise ValueError
+                value: OutputValue = raw
+            else:
+                parsed = json.loads(raw, parse_float=Decimal, parse_constant=lambda _value: None)
+                if definition.type == "integer" and type(parsed) is int:
+                    value = parsed
+                elif definition.type == "boolean" and type(parsed) is bool:
+                    value = parsed
+                elif definition.type == "number" and type(parsed) in {int, Decimal}:
+                    value = float(parsed)
+                    if not math.isfinite(value) or Decimal(str(value)) != parsed:
+                        raise ValueError
+                else:
+                    raise ValueError
+        except (ValueError, OverflowError, RecursionError, DecimalException) as error:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.ASSERTION,
+                f"outputs.{name}",
+                f"Output must contain {expected}.",
+            ) from error
+        outputs[name] = value
+    return outputs
+
+
 def evaluate_success_assertions(
-    assertions: list[SuccessAssertion], outputs: dict[str, str]
+    assertions: list[SuccessAssertion], outputs: dict[str, OutputValue]
 ) -> tuple[AssertionResult, ...]:
     """Verify V0 post-run output assertions before reporting replay success."""
 
     results: list[AssertionResult] = []
     for assertion in assertions:
         value = outputs.get(assertion.field)
-        if assertion.assertion == "output_not_empty" and (value is None or not value.strip()):
+        if assertion.assertion == "output_not_empty" and (
+            value is None or isinstance(value, str) and not value.strip()
+        ):
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.ASSERTION,
                 f"success.{assertion.id}",

@@ -12,6 +12,10 @@
 
 ## Unreleased
 
+- Validate named output producers before browser startup and share strict
+  primitive parsing across CLI, MCP, and typed JSON traces (#45). Preserve
+  valid zero/false values and redact nested sensitive text; omit failure
+  screenshots for runs with provided sensitive inputs.
 - Reject unsupported `retry: one` and `retry: bounded` settings consistently
   across validation, dry-run, replay, and MCP startup (#44). Preserve the
   existing non-retryable contradiction error and single-attempt execution.

@@ -72,7 +72,8 @@ A successful trace contains:
 - `metadata`: workflow name/version, manifest digest, runtime versions, and
   duration;
 - `actions`: each declared step and its outcome;
-- `outputs`: extracted values;
+- `outputs`: named values converted to their declared primitive types; see
+  [OUTPUTS.md](OUTPUTS.md) for parsing rules and a multiple-field example;
 - `assertions`: post-run success checks;
 - `status: "completed"`.
 
@@ -97,8 +98,10 @@ python -m json.tool traces/<run-id>.json
 ```
 
 A failed trace records `status: "failed"` plus `error.category`, `error.path`,
-and `error.message`. Browser failures also attempt to save a screenshot and
-record its path. Inputs marked `sensitive: true` in a workflow are replaced by
+and `error.message`. Browser failures attempt to save a screenshot and record
+its path unless a provided input is marked sensitive. Such runs omit screenshots
+because text redaction cannot hide data inside an image. Inputs marked
+`sensitive: true` in a workflow are replaced by
 `[REDACTED]` in trace inputs, outputs, and error messages; the reference
 `query` input is intentionally not sensitive.
 

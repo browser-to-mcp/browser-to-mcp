@@ -6,7 +6,7 @@ import keyword
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from mcp.server.fastmcp.utilities.func_metadata import ArgModelBase
 from pydantic import (
@@ -21,7 +21,7 @@ from pydantic import (
 )
 
 from browser_to_mcp.loader import LoadedWorkflow
-from browser_to_mcp.models import Workflow, WorkflowInput, WorkflowOutput
+from browser_to_mcp.models import Workflow, WorkflowInput, WorkflowOutput, schema_field_name_error
 
 _TYPE_MAP: dict[str, type[Any]] = {
     "string": StrictStr,
@@ -134,8 +134,10 @@ def _output_model(loaded: LoadedWorkflow) -> type[BaseModel]:
     workflow = loaded.workflow
     output_fields: dict[str, tuple[Any, Any]] = {}
     for name, definition in workflow.outputs.items():
-        _validate_field_name(name, f"outputs.{name}")
+        _validate_field_name(name, f"outputs.{name}", model=StrictSchemaModel)
         annotation = _type_for(definition.type, f"outputs.{name}.type")
+        if definition.type == "number":
+            annotation = Annotated[StrictFloat, Field(allow_inf_nan=False)]
         output_fields[name] = (annotation, _field(..., definition))
 
     outputs_model = create_model(
@@ -173,17 +175,10 @@ def _field(default: Any, definition: WorkflowInput | WorkflowOutput) -> Any:
     return Field(default=default, **kwargs)
 
 
-def _validate_field_name(name: str, path: str) -> None:
-    if not name or not name.isidentifier() or keyword.iskeyword(name) or name.startswith("_"):
-        raise SchemaCompilationError(
-            path,
-            "Field names must be Python identifiers that are not keywords or private names.",
-        )
-    if hasattr(StrictArguments, name) or hasattr(StrictSchemaModel, name):
-        raise SchemaCompilationError(
-            path,
-            f"Field name '{name}' conflicts with the schema model API.",
-        )
+def _validate_field_name(name: str, path: str, *, model: type[BaseModel] = StrictArguments) -> None:
+    error = schema_field_name_error(name, model)
+    if error:
+        raise SchemaCompilationError(path, error)
 
 
 def _class_name(name: str) -> str:

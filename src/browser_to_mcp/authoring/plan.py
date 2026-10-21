@@ -61,7 +61,11 @@ def validate_draft(draft: RecordingDraft) -> None:
                     f"events.{index}.url: Unsafe or undeclared URL. "
                     "Record again with explicit domains."
                 ) from None
-        if "{{" in event.model_dump_json() or "}}" in event.model_dump_json():
+        # Inspect values, not serialized JSON: nested objects naturally end with }}.
+        texts = [getattr(event, field, "") for field in ("url", "value", "key")]
+        if hasattr(event, "target"):
+            texts.append(event.target.selector)
+        if any("{{" in text or "}}" in text for text in texts):
             raise AuthoringError(
                 f"events.{index}: Recorded templates are unsupported. Record again."
             )

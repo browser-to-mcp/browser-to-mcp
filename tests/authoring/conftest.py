@@ -1,63 +1,64 @@
-"""A deterministic local catalog. No third-party requests or accounts."""
+"""Local browser fixtures and optional machine-readable journey evidence."""
 
-import threading
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import unquote, urlsplit
+import json
+import os
+import subprocess
+from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
-
-BOOKS = {
-    "a-light-in-the-attic_1000": ("A Light in the Attic", "£51.77"),
-    "shakespeares-sonnets_989": ("Shakespeare's Sonnets", "£20.66"),
-    "space & hash# café": ("Special characters", "£12.34"),
-}
+from catalog import serve_catalog
 
 
-@pytest.fixture(scope="module")
-def catalog():
-    class Handler(BaseHTTPRequestHandler):
-        def do_GET(self):
-            slug = unquote(urlsplit(self.path).path.split("/")[2])
-            book = BOOKS.get(slug)
-            if slug == "delayed":
-                book = BOOKS["a-light-in-the-attic_1000"]
-            body = (
-                "<!doctype html><meta charset=utf-8><aside><h1>Wrong book</h1>"
-                "<p class=price_color>£99.99</p></aside>"
+@pytest.fixture
+def catalog_server():
+    with serve_catalog() as server:
+        yield server
+
+
+@pytest.fixture
+def catalog(catalog_server):
+    return catalog_server.base_url
+
+
+@pytest.fixture
+def journey_report():
+    revision = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=Path(__file__).parents[2],
+    ).stdout.strip()
+    dirty = subprocess.run(
+        ["git", "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=Path(__file__).parents[2],
+    ).stdout.strip()
+    report = {
+        "kind": "controlled Chromium recording-to-MCP test",
+        "observer": "automated software using real Chromium and a real MCP server",
+        "prerequisites": "already installed; installation time not measured",
+        "interaction": "scripted terminal answers and actual browser clicks",
+        "newcomer_timing": "not measured",
+        "working_tree_dirty": bool(dirty),
+        "started_at": datetime.now(UTC).isoformat(),
+        "commit": os.environ.get("GITHUB_SHA") or revision,
+        "runs": [],
+        "completed": False,
+    }
+    try:
+        yield report
+    finally:
+        report["finished_at"] = datetime.now(UTC).isoformat()
+        report["attempts"] = len(report["runs"])
+        report["matching_outcomes"] = sum(run["matched"] for run in report["runs"])
+        destination = os.environ.get("BROWSER_TO_MCP_JOURNEY_REPORT")
+        if destination:
+            path = Path(destination)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
             )
-            if book:
-                content = (
-                    f'<main class="product_main"><h1>{book[0]}</h1>'
-                    f'<p class="price_color">{book[1]}</p>'
-                    '<span id="count">0</span><span id="available">false</span></main>'
-                )
-                if slug == "delayed":
-                    import json
-
-                    body += (
-                        "<script>setTimeout(()=>document.body.insertAdjacentHTML("
-                        f"'beforeend', {json.dumps(content)}),250)</script>"
-                    )
-                else:
-                    body += content
-            elif slug == "broken":
-                body += "<h2>Changed page</h2>"
-            else:
-                body += "<p>No book found</p>"
-            data = body.encode()
-            self.send_response(200 if book or slug == "broken" else 404)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-
-        def log_message(self, *_args):
-            pass
-
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield f"http://127.0.0.1:{server.server_port}"
-    server.shutdown()
-    server.server_close()
-    thread.join(timeout=5)

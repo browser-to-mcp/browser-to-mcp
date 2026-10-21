@@ -20,6 +20,15 @@ jobs:
       - run: uv sync --locked --all-groups
       - run: uv run playwright install --with-deps chromium
       - name: Unit and existing browser checks
-        run: uv run pytest --ignore=tests/authoring/test_journey.py
+        run: uv run pytest --ignore=tests/authoring/test_journey.py --junitxml=reports/unit.xml
       - name: Real recording-to-MCP journey and 30 controlled runs
-        run: uv run pytest tests/authoring/test_journey.py -q
+        env:
+          BROWSER_TO_MCP_JOURNEY_REPORT: reports/journey.json
+        run: uv run pytest tests/authoring/test_journey.py -q --junitxml=reports/journey.xml
+      - name: Save test results and measured journey outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-to-mcp-test-evidence
+          path: reports/
+          retention-days: 14

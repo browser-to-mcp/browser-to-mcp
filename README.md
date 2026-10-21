@@ -49,6 +49,13 @@ Choose reusable inputs, click page text to select outputs, and review the full
 plan before saving. Follow the [book walkthrough](docs/AUTHORING.md) for exact
 steps. Restart the MCP server after export so it can load the new tool.
 
+## Check the complete journey
+
+Follow the [local walkthrough](docs/ONBOARDING_CHECK.md) to record a book lookup
+and call it through MCP without relying on a public website. The
+[verification guide](docs/JOURNEY_CHECKS.md) explains the real-browser tests,
+thirty measured MCP runs, saved evidence, and remaining newcomer timing check.
+
 ## Available workflows
 
 | Workflow | What it does |

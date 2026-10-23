@@ -126,6 +126,7 @@ The project is focused on reliable, permissioned browser workflows first.
 - [`docs/RECORDING.md`](docs/RECORDING.md) — browser recording, draft format, and safe save/cancel flow
 - [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) — implementation roadmap
 - [`docs/PILOT.md`](docs/PILOT.md) — selected recorder task, examples, and test-page requirements
+- [`docs/THREE_SITE_PILOT.md`](docs/THREE_SITE_PILOT.md) — proposed catalog trial, fixed test cases, and open user research
 - [`docs/READINESS.md`](docs/READINESS.md) — readiness checks and measurements
 - [`docs/RELEASE.md`](docs/RELEASE.md) — release preparation
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — development workflow

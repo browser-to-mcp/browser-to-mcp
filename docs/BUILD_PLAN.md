@@ -86,6 +86,15 @@ measured MCP calls. CI retains a report; automated timing does not substitute
 for newcomer timing.
 Recorded drafts do not expand the server's workflow list.
 
+## Next local release: task to reviewed tool
+
+[#56](https://github.com/browser-to-mcp/browser-to-mcp/issues/56) tracks the next
+local release. The [three-site pilot](THREE_SITE_PILOT.md) defines a provisional
+catalog task, fixed local cases, and measurement targets for #57. Real-user
+validation is still pending; this is not a completed customer pilot. Start with
+#58 (consistent restrictions), then #59 (lists) and #60 (paging), following the
+dependencies in the tracking issue. No new catalog tool is published by the brief.
+
 ## Working Rules
 
 - Keep the workflow contract reviewable and versioned.

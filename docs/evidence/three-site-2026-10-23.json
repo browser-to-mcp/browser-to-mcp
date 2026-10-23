@@ -1,0 +1,166 @@
+{
+  "observed_at": "2026-10-23T17:55:19.763415+00:00",
+  "method": "Fresh Chromium context per site; one listing page each; GET/HEAD only; other hosts blocked; no normal replay or MCP call.",
+  "python": "3.12.12",
+  "sites": [
+    {
+      "site": "books",
+      "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+      "status": 200,
+      "final_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+      "page_title": "Travel | Books to Scrape - Sandbox",
+      "row_count": 11,
+      "samples": [
+        {
+          "title": "It's Only the Himalayas",
+          "price": "£45.17",
+          "url": "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html"
+        },
+        {
+          "title": "Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond",
+          "price": "£49.43",
+          "url": "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html"
+        }
+      ],
+      "blocked_requests": []
+    },
+    {
+      "site": "laptops",
+      "url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+      "status": 200,
+      "final_url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+      "page_title": "Static | Web Scraper Test Sites",
+      "row_count": 6,
+      "samples": [
+        {
+          "title": "Packard 255 G2",
+          "price": "$416.99",
+          "url": "https://webscraper.io/test-sites/e-commerce/static/product/31"
+        },
+        {
+          "title": "Aspire E1-510",
+          "price": "$306.99",
+          "url": "https://webscraper.io/test-sites/e-commerce/static/product/32"
+        }
+      ],
+      "blocked_requests": [
+        {
+          "host": "app.termly.io",
+          "method": "GET"
+        },
+        {
+          "host": "beacon-v2.helpscout.net",
+          "method": "GET"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "method": "GET"
+        },
+        {
+          "host": "www.googletagmanager.com",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "site": "clothing",
+      "url": "https://www.scrapingcourse.com/ecommerce/",
+      "error": "Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://www.scrapingcourse.com/ecommerce/\", waiting until \"networkidle\"\n",
+      "blocked_requests": [
+        {
+          "host": "fonts.googleapis.com",
+          "method": "GET"
+        },
+        {
+          "host": "www.googletagmanager.com",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "browser": "149.0.7827.55",
+  "wait_condition": "networkidle, 30000 ms",
+  "followup": {
+    "observed_at": "2026-10-23T17:57:40.612770+00:00",
+    "method": "Fresh Chromium context per site; one listing page each; GET/HEAD only; other hosts blocked; no normal replay or MCP call.",
+    "python": "3.12.12",
+    "sites": [
+      {
+        "site": "clothing",
+        "url": "https://www.scrapingcourse.com/ecommerce/",
+        "status": 200,
+        "final_url": "https://www.scrapingcourse.com/ecommerce/",
+        "page_title": "Ecommerce Test Site to Learn Web Scraping – ScrapingCourse.com",
+        "row_count": 16,
+        "samples": [
+          {
+            "title": "Abominable Hoodie",
+            "price": "$69.00",
+            "url": "https://www.scrapingcourse.com/ecommerce/product/abominable-hoodie/"
+          },
+          {
+            "title": "Adrienne Trek Jacket",
+            "price": "$57.00",
+            "url": "https://www.scrapingcourse.com/ecommerce/product/adrienne-trek-jacket/"
+          }
+        ],
+        "blocked_requests": [
+          {
+            "host": "fonts.googleapis.com",
+            "method": "GET"
+          },
+          {
+            "host": "static.cloudflareinsights.com",
+            "method": "GET"
+          },
+          {
+            "host": "www.googletagmanager.com",
+            "method": "GET"
+          },
+          {
+            "host": "www.scrapingcourse.com",
+            "method": "POST"
+          }
+        ]
+      }
+    ],
+    "browser": "149.0.7827.55",
+    "wait_condition": "domcontentloaded, 30000 ms; first li.product visible, 10000 ms"
+  },
+  "limitations": [
+    "Exploratory browser observation, not policy-enforced replay or MCP.",
+    "No pagination or whole-catalog verification.",
+    "Blocked requests did not abort the observation; normal runtime can refuse them.",
+    "No user study or performance benchmark."
+  ],
+  "selectors": {
+    "books": {
+      "row": "article.product_pod",
+      "title_link": "h3 a",
+      "price": ".price_color"
+    },
+    "laptops": {
+      "row": ".thumbnail",
+      "title_link": "a.title",
+      "price": ".price"
+    },
+    "clothing": {
+      "row": "li.product",
+      "title": "h2",
+      "product_link": "a.woocommerce-LoopProduct-link",
+      "price": ".price"
+    }
+  },
+  "reproduction": {
+    "browser": "Playwright Chromium, fresh context for each site",
+    "routing": "Allow only GET/HEAD to the exact entry host; abort all other requests. Do not use a saved login.",
+    "steps": [
+      "Navigate to each listed URL with the recorded wait condition.",
+      "Count the listed row selector and read only its first two rows.",
+      "Use title attribute when present; otherwise heading/link text. Read price inner text and resolved product link href.",
+      "Record blocked host/method pairs without query strings, headers, or response bodies.",
+      "Close each context and the browser. Retain failures and any separate follow-up."
+    ],
+    "scope": "Opt-in, low-volume observation only; never a CI dependency or replacement for normal policy checks."
+  }
+}

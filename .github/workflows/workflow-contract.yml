@@ -19,3 +19,5 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --all-groups
       - run: uv run browser-to-mcp validate workflows/hn_search.yaml
+      - run: uv run browser-to-mcp validate workflows/wikipedia_search.yaml
+      - run: uv run browser-to-mcp validate examples/records/catalog.yaml

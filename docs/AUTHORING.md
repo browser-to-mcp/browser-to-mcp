@@ -1,5 +1,9 @@
 # Turn a recording into a tool
 
+For an `array` or `object` output, follow the [record-output guide](RECORD_OUTPUTS.md).
+It adds guided results-area, row, and field selection with typed previews.
+
+
 Recording, preview, and replay share the [browser restrictions](BROWSER_POLICY.md).
 Only GET, HEAD, and OPTIONS are allowed; HTTP redirects and unsupported browser
 capabilities fail the session. A method or `read_only` label cannot guarantee

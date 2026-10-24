@@ -74,17 +74,18 @@ the model does not imply execution support. Idempotency records safety intent
 and does not enable retries. See [WORKFLOWS.md](WORKFLOWS.md) for the error
 messages and contradiction-check precedence.
 
-Every output is required and must map by step ID to an `extract_text` step or
-a string-producing `download` step. Missing or unsupported producers are
+Every output is required and must map by step ID to an `extract_text`,
+`extract_records`, or string-producing `download` step. Missing or unsupported producers are
 rejected before browser startup. The engine parses integer, finite number,
 and boolean outputs using explicit JSON rules while preserving string text.
 It validates the complete result before declaring success, so CLI, MCP, and
 traces agree on output types. Conversion failures use `assertion` errors at
 `outputs.<name>`; `0` and `false` pass presence assertions. See
-[OUTPUTS.md](OUTPUTS.md) for conversion, multiple-field examples, and redaction.
+[OUTPUTS.md](OUTPUTS.md) for primitive conversion and redaction, and
+[RECORD_OUTPUTS.md](RECORD_OUTPUTS.md) for bounded objects, lists, nulls, and empty results.
 
 V0 supports `goto`, `fill`, `press`, `click`, `wait_for_text`,
-`extract_text`, and permission-gated `download` actions. The workflow must be
+`extract_text`, `extract_records`, and permission-gated `download` actions. The workflow must be
 `read_only`. Domains are explicit, and every navigation and page request is
 checked against the allowlist.
 
@@ -171,7 +172,8 @@ read-only browser task into a reviewed tool in under ten minutes.
 
 The `author` command reads a complete local recording, asks the developer to
 review each action, binds inputs to specific fields, and lets them click visible
-text to choose named outputs. It previews typed values and shows the full plan
+text to choose named outputs. It can also select a results area, repeated rows,
+and relative fields for bounded records. It previews typed values and shows the full plan
 before an explicit save. Export uses the normal loader, policy checks, and MCP
 schema compiler. Files are published atomically without overwriting existing
 workflows. Server restart is required; no hot reload or hosted editor is added.

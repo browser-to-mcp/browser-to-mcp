@@ -1,5 +1,11 @@
 # Writing workflows
 
+Recording, preview, and replay share the [browser restrictions](BROWSER_POLICY.md).
+Only GET, HEAD, and OPTIONS are allowed; HTTP redirects and unsupported browser
+capabilities fail the session. A method or `read_only` label cannot guarantee
+that a website action has no side effects. Review the linked migration steps.
+
+
 The [recorder](RECORDING.md) can capture public browser demonstrations into a
 separate draft. Drafts require review and are not workflow YAML or MCP tools.
 For `press` steps, an optional `selector` targets the key press at that element.
@@ -147,8 +153,9 @@ browser startup, including those used only in later steps.
 
 An input resembling `https://another.example/path` is still data within its
 declared value or segment. The runtime checks the final rendered URL against
-the existing scheme and domain policy, and checks browser requests and
-redirects against the allowlist as before. No dynamic domains are supported.
+the shared scheme, domain, URL, and method policy. HTTP redirects are refused
+before following them; use the reviewed final URL directly. No dynamic domains
+are supported.
 
 ## Compatibility
 

@@ -1,5 +1,11 @@
 # Record a public browser task
 
+Recording, preview, and replay share the [browser restrictions](BROWSER_POLICY.md).
+Only GET, HEAD, and OPTIONS are allowed; HTTP redirects and unsupported browser
+capabilities fail the session. A method or `read_only` label cannot guarantee
+that a website action has no side effects. Review the linked migration steps.
+
+
 The recorder lets you demonstrate a small task in a fresh, visible Chromium
 window. It saves a local draft containing supported actions and navigation
 observations. It never replays the captured actions during recording.
@@ -96,8 +102,8 @@ response bodies, full DOM trees, browser exception details, or screenshots.
 
 Password fields and recognizable credential fields stop capture before their
 values are sent to Python. Common token values and credential-bearing URLs
-are refused. Fragment URLs are also refused rather than retaining possible
-credentials. These checks cannot recognize every secret pasted into an
+are refused. Ordinary public fragments are allowed; fragments with common
+secret-like names are refused. These checks cannot recognize every secret pasted into an
 ordinary text field or every secret encoded in a URL path. Demonstrate only
 public data and inspect the draft before sharing it.
 

@@ -1,0 +1,59 @@
+// Internal fixed extractor. Workflows supply CSS and declared fields, never page code.
+({area, rows, fields, empty, limit, cellLimit, byteLimit, readyOnly}) => {
+  const visible = el => !!el.getClientRects().length &&
+    getComputedStyle(el).visibility !== 'hidden';
+  const failure = (error, row, field) => ({error, row, field});
+  try {
+    const roots = document.querySelectorAll(area);
+    if (roots.length !== 1) return readyOnly ? roots.length > 1 : failure('results_area');
+    const root = roots[0];
+    if (!visible(root)) return readyOnly ? false : failure('hidden_area');
+    const foundRows = rows === ':scope' ? [root] : root.querySelectorAll(rows);
+    const markers = [];
+    if (empty) for (const marker of root.querySelectorAll(empty)) {
+      if (visible(marker)) markers.push(marker);
+      if (markers.length > 1) break;
+    }
+    if (readyOnly) return foundRows.length > 0 || markers.length > 0;
+    if (!foundRows.length)
+      return markers.length === 1 ? {records: []} : failure('unconfirmed_empty');
+    if (markers.length) return failure('mixed_empty_state');
+    if (foundRows.length > limit) return failure('row_limit');
+    const matches = [...foundRows];
+    const selected = new Set(matches);
+    for (const row of matches) {
+      for (let parent = row.parentElement; parent && parent !== root; parent = parent.parentElement)
+        if (selected.has(parent)) return failure('overlapping_rows');
+    }
+    let bytes = 0;
+    const records = [];
+    for (let i = 0; i < matches.length; i++) {
+      const row = matches[i];
+      if (!visible(row)) return failure('hidden_row', i);
+      const record = {};
+      for (const [name, spec] of Object.entries(fields)) {
+        const cells = spec.selector === ':scope' ? [row] : row.querySelectorAll(spec.selector);
+        if (cells.length > 1) return failure('ambiguous_cell', i, name);
+        if (!cells.length) { record[name] = null; continue; }
+        const cell = cells[0];
+        if (!row.contains(cell) || !visible(cell) ||
+            cell.closest('input,textarea,select,[contenteditable],iframe'))
+          return failure('unsupported_cell', i, name);
+        let value = spec.source === 'text' ? cell.innerText : cell.getAttribute(spec.source);
+        if (value === null || value === undefined || value === '') { record[name] = null; continue; }
+        if (value.length > cellLimit * 2 || [...value].length > cellLimit) return failure('cell_limit', i, name);
+        if (spec.source !== 'href' && spec.normalize_whitespace) value = value.replace(/\s+/g, ' ').trim();
+        if (spec.source === 'href') {
+          const url = new URL(value, document.baseURI);
+          url.hash = '';
+          value = url.href;
+        }
+        bytes += new TextEncoder().encode(value).length;
+        if (bytes > byteLimit) return failure('byte_limit');
+        record[name] = value;
+      }
+      records.push(record);
+    }
+    return {records};
+  } catch (_) { return readyOnly ? true : failure('invalid_selector_or_link'); }
+}

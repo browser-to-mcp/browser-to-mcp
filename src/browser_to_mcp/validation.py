@@ -12,6 +12,7 @@ from browser_to_mcp.models import (
     Retry,
     Risk,
     StepAction,
+    StructuredOutput,
     Workflow,
     schema_field_name_error,
 )
@@ -112,12 +113,63 @@ def validate_workflow_policy(workflow: Workflow) -> None:
         producer = producers.get(name)
         if producer is None or producer.action not in {
             StepAction.EXTRACT_TEXT,
+            StepAction.EXTRACT_RECORDS,
             StepAction.DOWNLOAD,
         }:
             raise WorkflowValidationError(
                 FailureCategory.SCHEMA,
                 f"outputs.{name}",
-                "Every output requires an extract_text or download step with the same ID.",
+                "Every output requires an extraction or download step with the same ID.",
+            )
+        if isinstance(definition, StructuredOutput):
+            if producer.action is not StepAction.EXTRACT_RECORDS or producer.record is None:
+                raise WorkflowValidationError(
+                    FailureCategory.SCHEMA,
+                    f"outputs.{name}",
+                    "Structured outputs require an extract_records step with the same ID.",
+                )
+            if set(producer.record.fields) != set(definition.record_fields):
+                raise WorkflowValidationError(
+                    FailureCategory.SCHEMA,
+                    f"steps.{name}.record.fields",
+                    "Extracted fields must exactly match the record schema.",
+                )
+            for field, extraction in producer.record.fields.items():
+                if extraction.source != "text" and definition.record_fields[field].type != "string":
+                    raise WorkflowValidationError(
+                        FailureCategory.SCHEMA,
+                        f"steps.{name}.record.fields.{field}",
+                        "Title attributes and links require string fields.",
+                    )
+            if producer.record.unique_by is not None and (
+                definition.record_fields[producer.record.unique_by].nullable
+            ):
+                raise WorkflowValidationError(
+                    FailureCategory.SCHEMA,
+                    f"steps.{name}.record.unique_by",
+                    "A record's unique key cannot be nullable.",
+                )
+            if definition.allow_empty:
+                if not producer.record.empty_selector or not any(
+                    a.field == name and a.assertion == "output_matches_schema"
+                    for a in workflow.success
+                ):
+                    raise WorkflowValidationError(
+                        FailureCategory.SCHEMA,
+                        f"outputs.{name}.allow_empty",
+                        "Empty lists need an empty_selector and an explicit schema success check.",
+                    )
+            elif producer.record.empty_selector:
+                raise WorkflowValidationError(
+                    FailureCategory.SCHEMA,
+                    f"steps.{name}.record.empty_selector",
+                    "An empty marker requires allow_empty on an array output.",
+                )
+        elif producer.action is StepAction.EXTRACT_RECORDS:
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                f"outputs.{name}",
+                "An extract_records step requires an object or array output.",
             )
         if producer.action is StepAction.DOWNLOAD and definition.type != "string":
             raise WorkflowValidationError(
@@ -126,7 +178,24 @@ def validate_workflow_policy(workflow: Workflow) -> None:
                 "A download step can produce only a string filename output.",
             )
 
+    for step in workflow.steps:
+        if step.action is StepAction.EXTRACT_RECORDS and step.id not in workflow.outputs:
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                f"steps.{step.id}",
+                "Record extraction requires a declared output with the same ID.",
+            )
+
     for assertion in workflow.success:
+        if assertion.assertion == "output_matches_schema" and (
+            assertion.field in workflow.outputs
+            and not isinstance(workflow.outputs[assertion.field], StructuredOutput)
+        ):
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                f"success.{assertion.id}",
+                "output_matches_schema is for structured outputs only.",
+            )
         if assertion.field not in workflow.outputs:
             raise WorkflowValidationError(
                 FailureCategory.SCHEMA,

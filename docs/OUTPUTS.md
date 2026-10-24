@@ -3,7 +3,9 @@
 All fields in `outputs` are required. Each field must have a producing step
 with the same ID. An `extract_text` step can produce any supported primitive;
 a permission-gated `download` step can produce a string filename only.
-Extraction steps whose IDs are not declared outputs do not add result fields.
+An `extract_records` step can produce a bounded object or array; see
+[record outputs](RECORD_OUTPUTS.md). Every record extraction requires a declared
+output. Scalar extraction steps whose IDs are not declared outputs do not add result fields.
 There is no separate mapping expression or transformation language.
 
 Missing producers, unsupported producer actions, invalid output names, and
@@ -13,7 +15,7 @@ identifiers and must not conflict with the generated schema model API.
 
 ## Conversion rules
 
-Browser extraction returns text. The shared replay engine converts and
+Primitive browser extraction returns text. The shared replay engine converts and
 validates all declared outputs before checking success or reporting completion.
 CLI and MCP use this same path.
 
@@ -39,8 +41,9 @@ integer `9007199254740993` rather than a `number`. Standard values such as
 There is no currency, locale, or availability guessing: `$19.99`, `1,234`,
 `available`, `True`, quoted JSON strings such as `"12"` for an integer,
 `NaN`, and `Infinity` do not become numeric or boolean values. Declare such
-page text as strings or report a conversion failure. Arrays, nested records,
-dates, and general transformations are outside this milestone.
+page text as strings or report a conversion failure. Bounded flat records and
+arrays of records use the separate `extract_records` action. Nested records,
+dates, and general transformations remain unsupported.
 
 ## Multiple fields in one workflow
 
@@ -152,8 +155,9 @@ inputs and outputs, including encoded URL text. Numeric and boolean output
 values keep their types. A redacted string is replaced with `[REDACTED]` in
 the trace; the authorized caller still receives the original successful output.
 Errors are redacted before CLI or MCP presentation. Failure screenshots are
-omitted when a provided input is marked sensitive, because structured-text
-redaction cannot hide data inside an image. Other failed runs retain screenshots.
+omitted when a provided input or structured output field is marked sensitive,
+because structured-text redaction cannot hide data inside an image. Browser-boundary
+failures also omit screenshots. Other failed runs keep the existing screenshot behavior.
 
 The HN and Wikipedia workflows continue to return text without conversion or
 trimming. Workflows that declared a field without a producer, or mapped an

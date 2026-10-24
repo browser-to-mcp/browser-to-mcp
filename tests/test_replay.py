@@ -21,6 +21,7 @@ from browser_to_mcp.models import (
     Retry,
     Risk,
     StepAction,
+    StructuredOutput,
     WorkflowInput,
     WorkflowOutput,
     WorkflowStep,
@@ -141,6 +142,9 @@ class FakePage:
         self.press_calls: list[str] = []
         self.wait_calls: list[dict[str, object]] = []
         self.keyboard = FakeKeyboard(self)
+
+    async def wait_for_function(self, *args, **kwargs):
+        return None
 
     async def goto(self, url: str, **kwargs: object) -> None:
         self.goto_calls.append({"url": url, **kwargs})
@@ -931,10 +935,19 @@ def test_failed_actions_are_attempted_once_and_stop_the_run(
             value="mcp",
             key="Enter",
             text="results",
+            **(
+                {"record": {"rows": ".row", "fields": {"title": {"selector": ".title"}}}}
+                if action is StepAction.EXTRACT_RECORDS
+                else {}
+            ),
         ),
         read_only_step(id="never_reached", action=StepAction.GOTO, url="https://hn.algolia.com/"),
         read_only_step(id="results", action=StepAction.EXTRACT_TEXT, selector="main"),
     ]
+    if action is StepAction.EXTRACT_RECORDS:
+        workflow.outputs["failing"] = StructuredOutput(
+            type="array", items={"properties": {"title": {"type": "string"}}}
+        )
     page = FakePage()
     locator = FakeLocator(page, "#target")
     monkeypatch.setattr(page, "locator", lambda _selector: locator)
@@ -946,6 +959,7 @@ def test_failed_actions_are_attempted_once_and_stop_the_run(
         StepAction.CLICK: (locator, "click"),
         StepAction.WAIT_FOR_TEXT: (locator, "wait_for"),
         StepAction.EXTRACT_TEXT: (locator, "inner_text"),
+        StepAction.EXTRACT_RECORDS: (page, "wait_for_function"),
         StepAction.DOWNLOAD: (locator, "click"),
     }[action]
     attempt = AsyncMock(side_effect=failure_type("Controlled action failure."))

@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import math
 import platform
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from decimal import Decimal, DecimalException
 from enum import StrEnum
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
@@ -29,7 +26,16 @@ from browser_to_mcp.browser_policy import (
     request_violation,
 )
 from browser_to_mcp.loader import LoadedWorkflow
-from browser_to_mcp.models import OutputValue, StepAction, SuccessAssertion, Workflow, WorkflowInput
+from browser_to_mcp.models import (
+    OutputValue,
+    StepAction,
+    StructuredOutput,
+    SuccessAssertion,
+    Workflow,
+    WorkflowInput,
+)
+from browser_to_mcp.records import extract_records
+from browser_to_mcp.structured_outputs import OutputValidationError, validate_outputs
 from browser_to_mcp.tracing import (
     TraceAction,
     TraceAssertion,
@@ -37,20 +43,14 @@ from browser_to_mcp.tracing import (
     TraceMetadata,
     TraceStatus,
     WorkflowTrace,
+    has_sensitive_outputs,
     redact_inputs,
+    redact_outputs,
     redact_text,
-    redact_value,
     write_trace,
 )
 from browser_to_mcp.url_templates import TEMPLATE_PATTERN, validate_url_template
 from browser_to_mcp.validation import validate_workflow_policy
-
-_OUTPUT_EXPECTATIONS = {
-    "string": "non-blank text",
-    "integer": "a JSON integer",
-    "number": "a finite JSON number representable without precision loss",
-    "boolean": "an exact JSON boolean (true or false)",
-}
 
 
 class ExecutionFailureCategory(StrEnum):
@@ -248,7 +248,11 @@ class PlaywrightReplayEngine:
                             definition.sensitive and name in inputs
                             for name, definition in workflow.inputs.items()
                         )
-                        if not has_sensitive_input and boundary.failure is None:
+                        if (
+                            not has_sensitive_input
+                            and not has_sensitive_outputs(workflow)
+                            and boundary.failure is None
+                        ):
                             error.screenshot_path = await _capture_failure_screenshot(
                                 page, failure_screenshot_path
                             )
@@ -474,6 +478,9 @@ def _persist_trace(
 
     finished_at = datetime.now(UTC)
     trace = WorkflowTrace(
+        schema_version=2
+        if any(isinstance(d, StructuredOutput) for d in loaded.workflow.outputs.values())
+        else 1,
         status=TraceStatus.FAILED if error else TraceStatus.COMPLETED,
         metadata=TraceMetadata(
             run_id=run_id,
@@ -500,7 +507,7 @@ def _persist_trace(
             )
             for action in actions
         ],
-        outputs=redact_value(outputs, loaded.workflow, inputs),
+        outputs=redact_outputs(outputs, loaded.workflow, inputs),
         assertions=[
             TraceAssertion(
                 assertion_id=assertion.assertion_id,
@@ -560,7 +567,7 @@ async def execute_steps(
 ) -> StepExecution:
     """Execute the declared read-only steps in their authored order."""
 
-    outputs: dict[str, str] = {}
+    outputs: dict[str, OutputValue] = {}
     actions: list[ActionResult] = []
     for step in workflow.steps:
         output_key: str | None = step.id if step.id in workflow.outputs else None
@@ -621,6 +628,8 @@ async def execute_steps(
                 ).inner_text(timeout=step.timeout_seconds * 1000)
                 if output_key is not None:
                     outputs[output_key] = extracted
+            elif step.action is StepAction.EXTRACT_RECORDS:
+                outputs[step.id] = await extract_records(page, step, workflow.outputs[step.id])
             elif step.action is StepAction.DOWNLOAD:
                 async with page.expect_download(
                     timeout=step.timeout_seconds * 1000
@@ -638,6 +647,22 @@ async def execute_steps(
                     f"Replay does not support action '{step.action}'.",
                 )
             _check_boundary(boundary, step.id)
+        except OutputValidationError as error:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.ASSERTION,
+                error.path,
+                error.message,
+                actions=tuple(actions)
+                + (
+                    ActionResult(
+                        step_id=step.id,
+                        action=step.action,
+                        status=ActionStatus.FAILED,
+                        output_key=output_key,
+                        duration_seconds=monotonic() - step_started_at,
+                    ),
+                ),
+            ) from None
         except WorkflowExecutionError as error:
             if not error.actions:
                 error.actions = tuple(actions) + (
@@ -757,50 +782,12 @@ def process_outputs(workflow: Workflow, raw_outputs: dict[str, object]) -> dict[
     underflow and precision loss are refused instead of silently changing data.
     """
 
-    for name in raw_outputs:
-        if name not in workflow.outputs:
-            raise WorkflowExecutionError(
-                ExecutionFailureCategory.ASSERTION,
-                f"outputs.{name}",
-                "Output is not declared by the workflow.",
-            )
-    outputs: dict[str, OutputValue] = {}
-    for name, definition in workflow.outputs.items():
-        raw = raw_outputs.get(name)
-        expected = _OUTPUT_EXPECTATIONS[definition.type]
-        if name not in raw_outputs:
-            raise WorkflowExecutionError(
-                ExecutionFailureCategory.ASSERTION,
-                f"outputs.{name}",
-                "Required output was not extracted.",
-            )
-        try:
-            if not isinstance(raw, str):
-                raise ValueError
-            if definition.type == "string":
-                if not raw.strip():
-                    raise ValueError
-                value: OutputValue = raw
-            else:
-                parsed = json.loads(raw, parse_float=Decimal, parse_constant=lambda _value: None)
-                if definition.type == "integer" and type(parsed) is int:
-                    value = parsed
-                elif definition.type == "boolean" and type(parsed) is bool:
-                    value = parsed
-                elif definition.type == "number" and type(parsed) in {int, Decimal}:
-                    value = float(parsed)
-                    if not math.isfinite(value) or Decimal(str(value)) != parsed:
-                        raise ValueError
-                else:
-                    raise ValueError
-        except (ValueError, OverflowError, RecursionError, DecimalException) as error:
-            raise WorkflowExecutionError(
-                ExecutionFailureCategory.ASSERTION,
-                f"outputs.{name}",
-                f"Output must contain {expected}.",
-            ) from error
-        outputs[name] = value
-    return outputs
+    try:
+        return validate_outputs(workflow, raw_outputs)
+    except OutputValidationError as error:
+        raise WorkflowExecutionError(
+            ExecutionFailureCategory.ASSERTION, error.path, error.message
+        ) from None
 
 
 def evaluate_success_assertions(
@@ -812,7 +799,11 @@ def evaluate_success_assertions(
     for assertion in assertions:
         value = outputs.get(assertion.field)
         if assertion.assertion == "output_not_empty" and (
-            value is None or isinstance(value, str) and not value.strip()
+            value is None
+            or isinstance(value, str)
+            and not value.strip()
+            or isinstance(value, (list, dict))
+            and not value
         ):
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.ASSERTION,
@@ -827,6 +818,12 @@ def evaluate_success_assertions(
                         status=AssertionStatus.FAILED,
                     ),
                 ),
+            )
+        if assertion.assertion == "output_matches_schema" and value is None:
+            raise WorkflowExecutionError(
+                ExecutionFailureCategory.ASSERTION,
+                f"success.{assertion.id}",
+                "The required structured output was not extracted.",
             )
         results.append(
             AssertionResult(

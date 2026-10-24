@@ -12,6 +12,7 @@ from pathlib import Path
 
 import yaml
 from playwright.async_api import Error as PlaywrightError
+from pydantic import ValidationError
 
 from browser_to_mcp.authoring.browser import SelectionSession
 from browser_to_mcp.authoring.export import export_workflow
@@ -25,10 +26,14 @@ from browser_to_mcp.authoring.plan import (
     recorded_steps,
     step_fields,
 )
+from browser_to_mcp.authoring.records import check_record_preview, configure_records
 from browser_to_mcp.compiler import SchemaCompilationError
 from browser_to_mcp.recorder.command import read_command
 from browser_to_mcp.recorder.draft import Navigation
+from browser_to_mcp.records import extract_records
 from browser_to_mcp.replay import WorkflowExecutionError, process_outputs
+from browser_to_mcp.structured_outputs import OutputValidationError
+from browser_to_mcp.tracing import redact_outputs
 from browser_to_mcp.validation import WorkflowValidationError
 
 
@@ -179,24 +184,31 @@ async def author(
             await session.reset_selection()
             await prompt("Click visible text to return in the browser, then press Enter here:")
             try:
-                target, preview = await session.selected()
-                print(f"Selected {target.selector}\nPreview: {preview}", file=sys.stderr)
                 output_name = await prompt("Output name:")
                 if output_name in outputs or output_name in {step["id"] for step in steps}:
                     raise AuthoringError("outputs: This name is already used. Choose another.")
                 kind = await choice(
                     prompt,
-                    "Output type: string / integer / number / boolean",
-                    {"string", "integer", "number", "boolean"},
+                    "Output type: string / integer / number / boolean / array / object",
+                    {"string", "integer", "number", "boolean", "array", "object"},
                 )
                 output_description = await prompt("Output description:")
-                candidate_steps = steps + [
-                    step_fields("extract_text", output_name, selector=target.selector)
-                ]
-                candidate_outputs = {
-                    **outputs,
-                    output_name: dict(type=kind, description=output_description),
-                }
+                if kind in {"array", "object"}:
+                    extraction, definition = await configure_records(
+                        session, prompt, kind, output_name, output_description
+                    )
+                    candidate_steps = steps + [extraction]
+                    candidate_outputs = {**outputs, output_name: definition}
+                else:
+                    target, preview = await session.selected()
+                    print(f"Selected {target.selector}\nPreview: {preview}", file=sys.stderr)
+                    candidate_steps = steps + [
+                        step_fields("extract_text", output_name, selector=target.selector)
+                    ]
+                    candidate_outputs = {
+                        **outputs,
+                        output_name: dict(type=kind, description=output_description),
+                    }
                 loaded = build_workflow(
                     name,
                     description,
@@ -205,14 +217,44 @@ async def author(
                     inputs,
                     candidate_outputs,
                 )
-                process_outputs(loaded.workflow, {**previews, output_name: preview})
+                if kind in {"array", "object"}:
+                    preview = await extract_records(
+                        session.page,
+                        loaded.workflow.steps[-1],
+                        loaded.workflow.outputs[output_name],
+                    )
+                    session.check_boundary()
+                    check_record_preview(preview)
+                validated = process_outputs(loaded.workflow, {**previews, output_name: preview})
+                if kind in {"array", "object"}:
+                    print(
+                        "Record preview: "
+                        + json.dumps(
+                            redact_outputs(validated, loaded.workflow, {}), ensure_ascii=False
+                        ),
+                        file=sys.stderr,
+                    )
+                    if (
+                        await choice(
+                            prompt, "Are all rows and fields correct? yes / no", {"yes", "no"}
+                        )
+                        != "yes"
+                    ):
+                        raise AuthoringError("records: The preview was not approved. Select again.")
                 steps, outputs = candidate_steps, candidate_outputs
                 previews[output_name] = preview
+            except ValidationError as error:
+                # Validation metadata may contain a private URL the user mistyped.
+                # Surface only our safe explanation, not Pydantic's input-value repr.
+                print("output: " + error.errors()[0]["msg"], file=sys.stderr)
+                continue
             except (
                 AuthoringError,
                 SchemaCompilationError,
                 WorkflowValidationError,
                 WorkflowExecutionError,
+                OutputValidationError,
+                ValueError,
             ) as error:
                 print(str(error), file=sys.stderr)
                 continue

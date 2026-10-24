@@ -5,11 +5,27 @@ from __future__ import annotations
 import keyword
 import re
 from enum import StrEnum
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, PositiveInt, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PositiveInt,
+    StrictBool,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
-OutputValue = str | int | float | bool
+ScalarValue = str | int | float | bool
+RecordValue = dict[str, ScalarValue | None]
+OutputValue = ScalarValue | RecordValue | list[RecordValue]
+ScalarType = Literal["string", "integer", "number", "boolean"]
+MAX_RECORD_FIELDS = 16
+MAX_RECORD_ROWS = 100
+MAX_CELL_CHARS = 4096
+MAX_RECORD_BYTES = 262144
 
 
 def schema_field_name_error(name: str, model: type[BaseModel] = BaseModel) -> str | None:
@@ -42,6 +58,7 @@ class StepAction(StrEnum):
     CLICK = "click"
     WAIT_FOR_TEXT = "wait_for_text"
     EXTRACT_TEXT = "extract_text"
+    EXTRACT_RECORDS = "extract_records"
     DOWNLOAD = "download"
 
 
@@ -124,6 +141,110 @@ class WorkflowOutput(StrictModel):
     description: str | None = None
 
 
+class RecordField(StrictModel):
+    """Every key is required; nullable explicitly permits missing/blank page values."""
+
+    type: ScalarType
+    description: str | None = None
+    nullable: StrictBool = False
+    sensitive: StrictBool = False
+
+
+def validate_record_properties(properties: dict[str, RecordField]) -> dict[str, RecordField]:
+    if not 1 <= len(properties) <= MAX_RECORD_FIELDS:
+        raise ValueError(f"A record requires 1 to {MAX_RECORD_FIELDS} scalar fields.")
+    for name in properties:
+        if len(name) > 64 or schema_field_name_error(name):
+            raise ValueError("Record fields need public identifiers of at most 64 characters.")
+    return properties
+
+
+class RecordShape(StrictModel):
+    type: Literal["object"] = "object"
+    properties: dict[str, RecordField]
+
+    _properties = field_validator("properties")(validate_record_properties)
+
+
+class StructuredOutput(StrictModel):
+    """One record or a bounded list of records; nesting stops at scalar fields."""
+
+    type: Literal["object", "array"]
+    description: str | None = None
+    properties: dict[str, RecordField] | None = None
+    items: RecordShape | None = None
+    max_items: Annotated[int, Field(strict=True, ge=1, le=MAX_RECORD_ROWS)] | None = None
+    allow_empty: StrictBool = False
+    sensitive: StrictBool = False
+
+    @model_validator(mode="after")
+    def validate_shape(self):
+        if self.type == "object":
+            if self.properties is None or self.items is not None or self.max_items is not None:
+                raise ValueError("An object requires properties, without items or max_items.")
+            if self.allow_empty:
+                raise ValueError("A single record cannot allow an empty result.")
+            validate_record_properties(self.properties)
+        else:
+            if self.items is None or self.properties is not None:
+                raise ValueError("An array requires object items, without top-level properties.")
+            if self.max_items is None:
+                self.max_items = 50
+        return self
+
+    @property
+    def record_fields(self) -> dict[str, RecordField]:
+        return self.items.properties if self.items is not None else self.properties
+
+
+OutputDefinition = Annotated[WorkflowOutput | StructuredOutput, Field(discriminator="type")]
+
+
+class RecordExtractionField(StrictModel):
+    selector: str = Field(min_length=1, max_length=512)
+    source: Literal["text", "title", "href"] = "text"
+    normalize_whitespace: StrictBool = True
+    path_prefix: str | None = Field(default=None, max_length=512)
+
+    @model_validator(mode="after")
+    def validate_source(self):
+        if self.source == "href":
+            if "normalize_whitespace" in self.model_fields_set and self.normalize_whitespace:
+                raise ValueError(
+                    "Link values cannot normalize whitespace; preserve the browser URL."
+                )
+            self.normalize_whitespace = False
+            if not self.path_prefix or not self.path_prefix.startswith("/"):
+                raise ValueError("An href field requires a reviewed absolute path_prefix.")
+            if any(c in self.path_prefix for c in ("?", "#", "\\")):
+                raise ValueError("A link path_prefix cannot contain query, fragment, or backslash.")
+        elif self.path_prefix is not None:
+            raise ValueError("Only href fields can declare a path_prefix.")
+        if "{{" in self.selector or "}}" in self.selector:
+            raise ValueError("Record selectors must be fixed CSS, without templates.")
+        return self
+
+
+class RecordExtraction(StrictModel):
+    rows: str = Field(min_length=1, max_length=512)
+    fields: dict[str, RecordExtractionField] = Field(min_length=1, max_length=MAX_RECORD_FIELDS)
+    empty_selector: str | None = Field(default=None, min_length=1, max_length=512)
+    duplicates: Literal["reject", "keep", "deduplicate"] = "reject"
+    unique_by: str | None = None
+
+    @model_validator(mode="after")
+    def validate_extraction(self):
+        if any("{{" in text or "}}" in text for text in (self.rows, self.empty_selector or "")):
+            raise ValueError("Record selectors must be fixed CSS, without templates.")
+        if self.unique_by is not None and self.unique_by not in self.fields:
+            raise ValueError("unique_by must name an extracted field.")
+        if self.duplicates == "deduplicate" and self.unique_by is None:
+            raise ValueError("Deduplication requires an explicit unique_by field.")
+        if self.duplicates == "keep" and self.unique_by is not None:
+            raise ValueError("Keeping duplicates cannot also declare a unique key.")
+        return self
+
+
 class WorkflowStep(StrictModel):
     """One declared browser operation supported by the V0 contract."""
 
@@ -134,6 +255,7 @@ class WorkflowStep(StrictModel):
     value: str | None = None
     key: str | None = None
     text: str | None = None
+    record: RecordExtraction | None = None
     timeout_seconds: PositiveInt
     risk: Risk
     idempotency: Idempotency
@@ -151,20 +273,39 @@ class WorkflowStep(StrictModel):
             StepAction.CLICK: ("selector",),
             StepAction.WAIT_FOR_TEXT: ("text",),
             StepAction.EXTRACT_TEXT: ("selector",),
+            StepAction.EXTRACT_RECORDS: ("selector", "record"),
             StepAction.DOWNLOAD: ("selector",),
         }
         missing = [field for field in requirements[self.action] if not getattr(self, field)]
         if missing:
             fields = ", ".join(missing)
             raise ValueError(f"Action '{self.action}' requires: {fields}.")
+        if self.action is not StepAction.EXTRACT_RECORDS and self.record is not None:
+            raise ValueError("Only extract_records can declare record extraction settings.")
+        if self.action is StepAction.EXTRACT_RECORDS and (
+            not self.selector
+            or len(self.selector) > 512
+            or "{{" in self.selector
+            or "}}" in self.selector
+        ):
+            raise ValueError(
+                "A records area requires a fixed CSS selector of at most 512 characters."
+            )
         return self
+
+    @model_serializer(mode="wrap")
+    def serialize_step(self, handler):
+        result = handler(self)
+        if self.record is None:
+            result.pop("record", None)  # Existing scalar manifests retain their identity.
+        return result
 
 
 class SuccessAssertion(StrictModel):
     """A post-run assertion that must pass before reporting success."""
 
     id: str = Field(min_length=1)
-    assertion: Literal["output_not_empty"]
+    assertion: Literal["output_not_empty", "output_matches_schema"]
     field: str = Field(min_length=1)
 
 
@@ -179,7 +320,7 @@ class Workflow(StrictModel):
     permissions: Permissions
     inputs: dict[str, WorkflowInput]
     steps: list[WorkflowStep] = Field(min_length=1)
-    outputs: dict[str, WorkflowOutput] = Field(min_length=1)
+    outputs: dict[str, OutputDefinition] = Field(min_length=1)
     success: list[SuccessAssertion] = Field(min_length=1)
 
     @model_validator(mode="after")

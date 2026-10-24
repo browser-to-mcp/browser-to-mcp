@@ -21,7 +21,15 @@ from pydantic import (
 )
 
 from browser_to_mcp.loader import LoadedWorkflow
-from browser_to_mcp.models import Workflow, WorkflowInput, WorkflowOutput, schema_field_name_error
+from browser_to_mcp.models import (
+    MAX_CELL_CHARS,
+    RecordField,
+    StructuredOutput,
+    Workflow,
+    WorkflowInput,
+    WorkflowOutput,
+    schema_field_name_error,
+)
 
 _TYPE_MAP: dict[str, type[Any]] = {
     "string": StrictStr,
@@ -135,9 +143,7 @@ def _output_model(loaded: LoadedWorkflow) -> type[BaseModel]:
     output_fields: dict[str, tuple[Any, Any]] = {}
     for name, definition in workflow.outputs.items():
         _validate_field_name(name, f"outputs.{name}", model=StrictSchemaModel)
-        annotation = _type_for(definition.type, f"outputs.{name}.type")
-        if definition.type == "number":
-            annotation = Annotated[StrictFloat, Field(allow_inf_nan=False)]
+        annotation = _output_type(definition, f"outputs.{name}", _class_name(workflow.name) + name)
         output_fields[name] = (annotation, _field(..., definition))
 
     outputs_model = create_model(
@@ -156,6 +162,33 @@ def _output_model(loaded: LoadedWorkflow) -> type[BaseModel]:
     )
 
 
+def _output_type(definition, path, name):
+    if not isinstance(definition, StructuredOutput):
+        if definition.type == "number":
+            return Annotated[StrictFloat, Field(allow_inf_nan=False)]
+        return _type_for(definition.type, path + ".type")
+    fields = {}
+    for field, schema in definition.record_fields.items():
+        _validate_field_name(field, f"{path}.{field}", model=StrictSchemaModel)
+        annotation = _type_for(schema.type, f"{path}.{field}.type")
+        if schema.type == "number":
+            annotation = Annotated[StrictFloat, Field(allow_inf_nan=False)]
+        elif schema.type == "string":
+            annotation = Annotated[
+                StrictStr, Field(min_length=1, max_length=MAX_CELL_CHARS, pattern=r"\S")
+            ]
+        if schema.nullable:
+            annotation = annotation | None
+        fields[field] = (annotation, _field(..., schema))
+    record = create_model(name + "Record", __base__=StrictSchemaModel, **fields)
+    if definition.type == "object":
+        return record
+    return Annotated[
+        list[record],
+        Field(min_length=0 if definition.allow_empty else 1, max_length=definition.max_items),
+    ]
+
+
 def _type_for(type_name: str, path: str) -> type[Any]:
     try:
         return _TYPE_MAP[type_name]
@@ -166,7 +199,9 @@ def _type_for(type_name: str, path: str) -> type[Any]:
         ) from error
 
 
-def _field(default: Any, definition: WorkflowInput | WorkflowOutput) -> Any:
+def _field(
+    default: Any, definition: WorkflowInput | WorkflowOutput | StructuredOutput | RecordField
+) -> Any:
     kwargs: dict[str, Any] = {}
     if definition.description is not None:
         kwargs["description"] = definition.description

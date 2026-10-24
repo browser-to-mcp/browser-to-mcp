@@ -1,0 +1,82 @@
+name: catalog_rows
+description: Read product rows from the original local practice catalog.
+version: 1
+risk: read_only
+manifest:
+  version: 1
+permissions:
+  allowed_domains:
+  - 127.0.0.1
+inputs:
+  case:
+    type: string
+    required: true
+    min_length: 1
+steps:
+- id: open
+  action: goto
+  url: http://127.0.0.1:8766/catalog?case={{case}}
+  timeout_seconds: 1
+  risk: read_only
+  retry: none
+  idempotency: safe
+  confirmation: never
+- id: products
+  action: extract_records
+  selector: '#results'
+  record:
+    rows: article.product
+    fields:
+      title:
+        selector: a.title
+        source: title
+      price_text:
+        selector: .price
+      product_url:
+        selector: a.title
+        source: href
+        path_prefix: /products/
+      count:
+        selector: .count
+      amount:
+        selector: .amount
+      available:
+        selector: .available
+      note:
+        selector: .note
+    duplicates: deduplicate
+    unique_by: product_url
+    empty_selector: .empty
+  timeout_seconds: 1
+  risk: read_only
+  retry: none
+  idempotency: safe
+  confirmation: never
+outputs:
+  products:
+    type: array
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+        price_text:
+          type: string
+        product_url:
+          type: string
+        count:
+          type: integer
+        amount:
+          type: number
+        available:
+          type: boolean
+        note:
+          type: string
+          nullable: true
+          sensitive: true
+    max_items: 10
+    allow_empty: true
+success:
+- id: checked
+  field: products
+  assertion: output_matches_schema

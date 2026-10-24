@@ -12,6 +12,7 @@
       window.__btmSelection = {error: 'Choose ordinary visible page text, outside a form.'};
       return;
     }
+    window.__btmPickedElement = el;
     const candidates = [];
     for (const attr of ['data-testid', 'data-test', 'data-qa', 'id', 'aria-label']) {
       const value = el.getAttribute(attr);

@@ -11,7 +11,7 @@ from urllib.parse import quote
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from browser_to_mcp.models import OutputValue, Workflow
+from browser_to_mcp.models import OutputValue, StructuredOutput, Workflow
 
 
 class TraceStatus(StrEnum):
@@ -143,6 +143,34 @@ def redact_value(value: Any, workflow: Workflow, inputs: dict[str, object]) -> A
         return item
 
     return redact(value)
+
+
+def has_sensitive_outputs(workflow: Workflow) -> bool:
+    return any(
+        isinstance(definition, StructuredOutput)
+        and (
+            definition.sensitive
+            or any(field.sensitive for field in definition.record_fields.values())
+        )
+        for definition in workflow.outputs.values()
+    )
+
+
+def redact_outputs(outputs, workflow: Workflow, inputs):
+    result = redact_value(outputs, workflow, inputs)
+    for name, definition in workflow.outputs.items():
+        if name not in result or not isinstance(definition, StructuredOutput):
+            continue
+        if definition.sensitive:
+            result[name] = "[REDACTED]"
+            continue
+        rows = result[name] if isinstance(result[name], list) else [result[name]]
+        for row in rows:
+            if isinstance(row, dict):
+                for field, schema in definition.record_fields.items():
+                    if schema.sensitive and field in row:
+                        row[field] = "[REDACTED]"
+    return result
 
 
 def write_trace(trace: WorkflowTrace, trace_dir: Path, run_id: str) -> Path:

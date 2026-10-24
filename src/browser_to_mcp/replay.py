@@ -17,12 +17,17 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 from time import monotonic
 from typing import Protocol
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 from uuid import uuid4
 
 from playwright.async_api import Page, async_playwright
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
+from browser_to_mcp.browser_policy import (
+    BrowserBoundary,
+    BrowserViolation,
+    request_violation,
+)
 from browser_to_mcp.loader import LoadedWorkflow
 from browser_to_mcp.models import OutputValue, StepAction, SuccessAssertion, Workflow, WorkflowInput
 from browser_to_mcp.tracing import (
@@ -183,7 +188,16 @@ class PlaywrightReplayEngine:
                             f"inputs.{name}",
                             "Input is not declared by the workflow.",
                         )
-                render_url_template(step.url or "", inputs)
+                url = render_url_template(step.url or "", inputs)
+                violation = request_violation(
+                    url, "GET", workflow.permissions.allowed_domains, navigation=True
+                )
+                if violation:
+                    raise WorkflowExecutionError(
+                        ExecutionFailureCategory.PERMISSION,
+                        f"steps.{step.id}.url",
+                        violation.message,
+                    )
         try:
             return await asyncio.wait_for(
                 self._run(workflow, inputs, failure_screenshot_path),
@@ -206,20 +220,9 @@ class PlaywrightReplayEngine:
             browser = await playwright.chromium.launch(headless=True)
             browser_version = getattr(browser, "version", "unknown")
             try:
-                context = await browser.new_context()
+                boundary = BrowserBoundary(workflow.permissions.allowed_domains)
+                context = await boundary.create_context(browser)
                 try:
-                    blocked_requests: list[str] = []
-
-                    async def enforce_request_policy(route: object) -> None:
-                        request = getattr(route, "request")
-                        url = getattr(request, "url")
-                        if _is_allowed_url(url, workflow.permissions.allowed_domains):
-                            await route.continue_()
-                            return
-                        blocked_requests.append(url)
-                        await route.abort()
-
-                    await context.route("**/*", enforce_request_policy)
                     page = await context.new_page()
                     try:
                         execution = await execute_steps(
@@ -227,9 +230,7 @@ class PlaywrightReplayEngine:
                             workflow,
                             inputs,
                             allowed_domains=workflow.permissions.allowed_domains,
-                            blocked_request_getter=lambda: (
-                                blocked_requests[0] if blocked_requests else None
-                            ),
+                            boundary=boundary,
                         )
                         execution = StepExecution(
                             process_outputs(workflow, execution.outputs), execution.actions
@@ -247,13 +248,14 @@ class PlaywrightReplayEngine:
                             definition.sensitive and name in inputs
                             for name, definition in workflow.inputs.items()
                         )
-                        if not has_sensitive_input:
+                        if not has_sensitive_input and boundary.failure is None:
                             error.screenshot_path = await _capture_failure_screenshot(
                                 page, failure_screenshot_path
                             )
                         raise
                     return EngineResult(execution, assertions, browser_version)
                 finally:
+                    boundary.closing = True
                     await context.close()
             finally:
                 await browser.close()
@@ -554,7 +556,7 @@ async def execute_steps(
     inputs: dict[str, object],
     *,
     allowed_domains: list[str] | None = None,
-    blocked_request_getter: Callable[[], str | None] | None = None,
+    boundary: BrowserBoundary | None = None,
 ) -> StepExecution:
     """Execute the declared read-only steps in their authored order."""
 
@@ -564,13 +566,23 @@ async def execute_steps(
         output_key: str | None = step.id if step.id in workflow.outputs else None
         step_started_at = monotonic()
         try:
+            _check_boundary(boundary, step.id)
+            if boundary is not None:
+                boundary.download_active = (
+                    step.action is StepAction.DOWNLOAD and workflow.permissions.downloads
+                )
             if step.action is StepAction.GOTO:
                 url = render_url_template(step.url or "", inputs)
-                if allowed_domains is not None and not _is_allowed_url(url, allowed_domains):
+                violation = (
+                    request_violation(url, "GET", allowed_domains, navigation=True)
+                    if allowed_domains is not None
+                    else None
+                )
+                if violation:
                     raise WorkflowExecutionError(
                         ExecutionFailureCategory.PERMISSION,
                         f"steps.{step.id}.url",
-                        f"URL '{url}' is outside permissions.allowed_domains.",
+                        violation.message,
                     )
                 await page.goto(
                     url,
@@ -586,11 +598,13 @@ async def execute_steps(
                 key = render_template(step.key or "", inputs)
                 if step.selector is not None:
                     await page.locator(render_template(step.selector, inputs)).press(
-                        key, timeout=step.timeout_seconds * 1000,
+                        key,
+                        timeout=step.timeout_seconds * 1000,
                     )
                 else:
                     await asyncio.wait_for(
-                        page.keyboard.press(key), timeout=step.timeout_seconds,
+                        page.keyboard.press(key),
+                        timeout=step.timeout_seconds,
                     )
             elif step.action is StepAction.CLICK:
                 await page.locator(render_template(step.selector or "", inputs)).click(
@@ -623,13 +637,7 @@ async def execute_steps(
                     f"steps.{step.id}",
                     f"Replay does not support action '{step.action}'.",
                 )
-            blocked_url = blocked_request_getter() if blocked_request_getter else None
-            if blocked_url is not None:
-                raise WorkflowExecutionError(
-                    ExecutionFailureCategory.PERMISSION,
-                    f"steps.{step.id}",
-                    f"Request URL '{blocked_url}' is outside permissions.allowed_domains.",
-                )
+            _check_boundary(boundary, step.id)
         except WorkflowExecutionError as error:
             if not error.actions:
                 error.actions = tuple(actions) + (
@@ -642,44 +650,25 @@ async def execute_steps(
                     ),
                 )
             raise
-        except (TimeoutError, PlaywrightTimeoutError) as error:
-            raise WorkflowExecutionError(
-                ExecutionFailureCategory.RUNTIME,
-                f"steps.{step.id}",
-                f"Action '{step.action}' timed out after {step.timeout_seconds} seconds.",
-                actions=tuple(actions)
-                + (
-                    ActionResult(
-                        step_id=step.id,
-                        action=step.action,
-                        status=ActionStatus.FAILED,
-                        output_key=output_key,
-                        duration_seconds=monotonic() - step_started_at,
-                    ),
-                ),
-            ) from error
         except Exception as error:
-            blocked_url = blocked_request_getter() if blocked_request_getter else None
-            if blocked_url is not None:
-                raise WorkflowExecutionError(
-                    ExecutionFailureCategory.PERMISSION,
-                    f"steps.{step.id}",
-                    f"Request URL '{blocked_url}' is outside permissions.allowed_domains.",
-                    actions=tuple(actions)
-                    + (
-                        ActionResult(
-                            step_id=step.id,
-                            action=step.action,
-                            status=ActionStatus.FAILED,
-                            output_key=output_key,
-                            duration_seconds=monotonic() - step_started_at,
-                        ),
-                    ),
-                ) from error
+            violation = boundary.failure if boundary is not None else None
+            if violation:
+                category = (
+                    ExecutionFailureCategory.RUNTIME
+                    if violation.code == "network_error"
+                    else ExecutionFailureCategory.PERMISSION
+                )
+                message = violation.message
+            elif isinstance(error, (TimeoutError, PlaywrightTimeoutError)):
+                category = ExecutionFailureCategory.RUNTIME
+                message = f"Action '{step.action}' timed out after {step.timeout_seconds} seconds."
+            else:
+                category = ExecutionFailureCategory.RUNTIME
+                message = _runtime_message(error)
             raise WorkflowExecutionError(
-                ExecutionFailureCategory.RUNTIME,
+                category,
                 f"steps.{step.id}",
-                _runtime_message(error),
+                message,
                 actions=tuple(actions)
                 + (
                     ActionResult(
@@ -691,6 +680,9 @@ async def execute_steps(
                     ),
                 ),
             ) from error
+        finally:
+            if boundary is not None:
+                boundary.download_active = False
 
         actions.append(
             ActionResult(
@@ -704,16 +696,16 @@ async def execute_steps(
     return StepExecution(outputs=outputs, actions=tuple(actions))
 
 
-def _is_allowed_url(url: str, allowed_domains: list[str]) -> bool:
-    """Allow declared hosts and browser-internal document URLs only."""
-
-    parsed = urlparse(url)
-    if parsed.scheme in {"about", "blob", "data"}:
-        return True
-    if parsed.scheme not in {"http", "https"} or parsed.hostname is None:
-        return False
-    host = parsed.hostname.lower().rstrip(".")
-    return any(host == domain or host.endswith(f".{domain}") for domain in allowed_domains)
+def _check_boundary(boundary: BrowserBoundary | None, step_id: str) -> None:
+    violation: BrowserViolation | None = boundary.failure if boundary is not None else None
+    if violation:
+        raise WorkflowExecutionError(
+            ExecutionFailureCategory.RUNTIME
+            if violation.code == "network_error"
+            else ExecutionFailureCategory.PERMISSION,
+            f"steps.{step_id}",
+            violation.message,
+        )
 
 
 def render_template(template: str, inputs: dict[str, object]) -> str:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import keyword
+import re
 from enum import StrEnum
 from typing import Literal
 
@@ -89,7 +90,8 @@ class Permissions(StrictModel):
         normalized_domains: list[str] = []
         for domain in domains:
             normalized = domain.lower().rstrip(".")
-            if "/" in normalized or ":" in normalized or "." not in normalized:
+            label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+            if not re.fullmatch(rf"{label}(?:\.{label})+", normalized):
                 raise ValueError(
                     "Allowed domains must be hostnames without a scheme, port, or path."
                 )

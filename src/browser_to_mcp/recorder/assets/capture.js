@@ -17,31 +17,6 @@
     return;
   }
   let keyboardActivation = false;
-  const denyCapability = () => {
-    diagnostic('permission_request');
-    return Promise.reject(new DOMException('Unavailable during recording', 'NotAllowedError'));
-  };
-  if (window.Notification) Notification.requestPermission = denyCapability;
-  if (navigator.mediaDevices) {
-    navigator.mediaDevices.getUserMedia = denyCapability;
-    navigator.mediaDevices.getDisplayMedia = denyCapability;
-  }
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition = (_ok, fail) => {
-      diagnostic('permission_request');
-      fail?.({code: 1, message: 'Unavailable during recording'});
-    };
-    navigator.geolocation.watchPosition = (_ok, fail) => {
-      navigator.geolocation.getCurrentPosition(_ok, fail);
-      return 0;
-    };
-  }
-  if (navigator.clipboard) {
-    navigator.clipboard.read = denyCapability;
-    navigator.clipboard.readText = denyCapability;
-    navigator.clipboard.write = denyCapability;
-    navigator.clipboard.writeText = denyCapability;
-  }
   const sensitive = el => el instanceof Element && (
     el.matches('input[type=password]') ||
     /password|token|secret|username|authorization|session|credit.?card|cc-|one-time-code/i.test(

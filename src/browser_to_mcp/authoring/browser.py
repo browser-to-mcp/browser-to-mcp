@@ -6,8 +6,9 @@ from playwright.async_api import Error as PlaywrightError
 from pydantic import ValidationError
 
 from browser_to_mcp.authoring.plan import AuthoringError
+from browser_to_mcp.browser_policy import SECRET_NAME, SECRET_VALUE
 from browser_to_mcp.models import Manifest, Permissions, Risk, Workflow, WorkflowStep
-from browser_to_mcp.recorder.draft import SECRET_NAME, SECRET_VALUE, Target
+from browser_to_mcp.recorder.draft import Target
 from browser_to_mcp.recorder.session import RecordingSession
 from browser_to_mcp.replay import execute_steps
 from browser_to_mcp.validation import validate_workflow_policy
@@ -38,6 +39,7 @@ class SelectionSession(RecordingSession):
             workflow.model_copy(update={"steps": workflow.steps[1:]}),
             {},
             allowed_domains=self.capture.domains,
+            boundary=self.boundary,
         )
         self.check_boundary()
         await self.page.evaluate("() => window.__btmPause?.()")
@@ -47,6 +49,8 @@ class SelectionSession(RecordingSession):
         )
 
     def check_boundary(self) -> None:
+        if self.boundary.failure:
+            raise AuthoringError("browser: " + self.boundary.failure.message)
         if self.capture.incomplete or self.ended.is_set():
             raise AuthoringError(
                 "browser: An unsupported action or blocked request occurred. "

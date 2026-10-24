@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from browser_to_mcp.browser_policy import request_violation
 from browser_to_mcp.models import (
     Confirmation,
     Idempotency,
@@ -14,7 +15,7 @@ from browser_to_mcp.models import (
     Workflow,
     schema_field_name_error,
 )
-from browser_to_mcp.url_templates import validate_url_template
+from browser_to_mcp.url_templates import TEMPLATE_PATTERN, validate_url_template
 
 
 class FailureCategory(StrEnum):
@@ -143,7 +144,7 @@ def _validate_navigation(step_id: str, url: str | None, allowed_domains: list[st
         )
 
     try:
-        parsed = validate_url_template(url)
+        validate_url_template(url)
     except ValueError as error:
         raise WorkflowValidationError(
             FailureCategory.SCHEMA,
@@ -151,10 +152,12 @@ def _validate_navigation(step_id: str, url: str | None, allowed_domains: list[st
             str(error),
         ) from error
 
-    host = parsed.hostname
-    if not any(host == domain or host.endswith(f".{domain}") for domain in allowed_domains):
+    violation = request_violation(
+        TEMPLATE_PATTERN.sub("input", url), "GET", allowed_domains, navigation=True
+    )
+    if violation:
         raise WorkflowValidationError(
             FailureCategory.PERMISSION,
             f"steps.{step_id}.url",
-            f"Domain '{host}' is not in permissions.allowed_domains.",
+            violation.message,
         )

@@ -12,6 +12,8 @@ from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 import browser_to_mcp.replay as replay_module
+from browser_to_mcp.browser_policy import BrowserBoundary
+from browser_to_mcp.browser_policy import is_allowed_url as _is_allowed_url
 from browser_to_mcp.loader import LoadedWorkflow, load_workflow, manifest_digest
 from browser_to_mcp.models import (
     Confirmation,
@@ -27,7 +29,6 @@ from browser_to_mcp.replay import (
     ExecutionFailureCategory,
     PlaywrightReplayEngine,
     WorkflowExecutionError,
-    _is_allowed_url,
     evaluate_success_assertions,
     execute_steps,
     parse_input_pairs,
@@ -228,6 +229,18 @@ class FakeContext:
     async def route(self, pattern: str, handler: object) -> None:
         self.route_patterns.append(pattern)
 
+    async def route_web_socket(self, pattern, handler):
+        assert pattern == "**/*"
+
+    async def expose_binding(self, name, callback):
+        assert name == "__btmPolicy"
+
+    async def add_init_script(self, *, script):
+        assert "__btmPolicy" in script
+
+    def on(self, event, callback):
+        assert event == "page"
+
     async def new_page(self) -> FakePage:
         return self.page
 
@@ -243,7 +256,8 @@ class FakeBrowser:
         self.context = context
         self.version = "149.0.0"
 
-    async def new_context(self) -> FakeContext:
+    async def new_context(self, **options) -> FakeContext:
+        assert options == {"accept_downloads": False, "service_workers": "block", "permissions": []}
         return self.context
 
     async def close(self) -> None:
@@ -616,8 +630,8 @@ def test_execute_steps_replays_reference_workflow() -> None:
         ("https://api.hn.algolia.com/results", ["hn.algolia.com"], True),
         ("https://not-hn.algolia.com/", ["hn.algolia.com"], False),
         ("https://hn.algolia.com.evil.example/", ["hn.algolia.com"], False),
-        ("about:blank", ["hn.algolia.com"], True),
-        ("data:text/plain,results", ["hn.algolia.com"], True),
+        ("about:blank", ["hn.algolia.com"], False),
+        ("data:text/plain,results", ["hn.algolia.com"], False),
         ("file:///tmp/results", ["hn.algolia.com"], False),
     ],
 )
@@ -656,6 +670,12 @@ def test_execute_steps_rejects_runtime_navigation_outside_allowlist() -> None:
     assert page.goto_calls == []
 
 
+def blocked_boundary():
+    boundary = BrowserBoundary(["hn.algolia.com"])
+    boundary.deny("blocked_request")
+    return boundary
+
+
 def test_execute_steps_reports_blocked_page_request() -> None:
     workflow = load_workflow(WORKFLOW_PATH).workflow
 
@@ -666,13 +686,13 @@ def test_execute_steps_reports_blocked_page_request() -> None:
                 workflow,
                 {"query": "mcp"},
                 allowed_domains=workflow.permissions.allowed_domains,
-                blocked_request_getter=lambda: "https://evil.example/script.js",
+                boundary=blocked_boundary(),
             )
         )
 
     assert error.value.category is ExecutionFailureCategory.PERMISSION
     assert error.value.path == "steps.search"
-    assert "evil.example" in error.value.message
+    assert error.value.message.startswith("blocked_request:")
 
 
 def test_execute_steps_runs_declared_read_only_actions_in_order() -> None:

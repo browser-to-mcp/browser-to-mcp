@@ -7,18 +7,16 @@ from urllib.parse import urlsplit
 
 from pydantic import TypeAdapter, ValidationError
 
+from browser_to_mcp.browser_policy import SECRET_NAME, SECRET_VALUE, safe_url
+from browser_to_mcp.browser_policy import is_allowed_url as _is_allowed_url
 from browser_to_mcp.recorder.draft import (
     DIAGNOSTICS,
-    SECRET_NAME,
-    SECRET_VALUE,
     Diagnostic,
     Event,
     Fill,
     Navigation,
     RecordingDraft,
-    safe_url,
 )
-from browser_to_mcp.replay import _is_allowed_url
 
 EVENT_ADAPTER = TypeAdapter(Event)
 MAX_EVENTS = 2000

@@ -10,9 +10,10 @@ from importlib.resources import files
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
 from playwright.async_api import Error as PlaywrightError
 
+from browser_to_mcp.browser_policy import MESSAGES, BrowserBoundary
+from browser_to_mcp.browser_policy import is_allowed_url as _is_allowed_url
 from browser_to_mcp.recorder.capture import Capture
-from browser_to_mcp.recorder.draft import RecordingDraft, safe_url, validate_start
-from browser_to_mcp.replay import _is_allowed_url
+from browser_to_mcp.recorder.draft import RecordingDraft, validate_start
 
 
 class RecordingSession:
@@ -28,6 +29,7 @@ class RecordingSession:
     ):
         self.url = url
         self.capture = Capture(validate_start(url, domains), notify)
+        self.boundary = BrowserBoundary(self.capture.domains, self.capture.diagnose)
         self.headless = headless
         self.ended = asyncio.Event()
         self.page: Page | None = None
@@ -42,26 +44,16 @@ class RecordingSession:
             self._playwright = await async_playwright().start()
             self.browser = await self._playwright.chromium.launch(headless=self.headless)
             self.browser.on("disconnected", self._closed)
-            self.context = await self.browser.new_context(
-                accept_downloads=False,
-                service_workers="block",
-                permissions=[],
-            )
-            await self.context.route("**/*", self._route)
-            await self.context.route_web_socket("**/*", self._socket)
+            self.context = await self.boundary.create_context(self.browser)
             await self.context.expose_binding("__btmCapture", self._event)
             script = (
                 files("browser_to_mcp.recorder").joinpath("assets/capture.js").read_text("utf-8")
             )
             await self.context.add_init_script(script=script)
             self.page = await self.context.new_page()
-            self.context.on("page", self._extra_page)
             self.page.on("close", self._closed)
             self.page.on("crash", self._closed)
             self.page.on("framenavigated", self._navigation)
-            self.page.on("frameattached", lambda _: self.capture.diagnose("frame"))
-            self.page.on("download", self._download)
-            self.page.on("dialog", self._dialog)
             await self.page.goto(self.url, wait_until="domcontentloaded", timeout=30000)
         except asyncio.CancelledError:
             await self.close()
@@ -92,60 +84,13 @@ class RecordingSession:
         if not _is_allowed_url(source["frame"].url, self.capture.domains):
             self.capture.diagnose("blocked_navigation")
             return
+        if isinstance(payload, dict) and payload.get("kind") == "diagnostic":
+            code = payload.get("code")
+            if isinstance(code, str) and code in MESSAGES:
+                self.boundary.deny(code)
         self.capture.accept(payload)
         if self.capture.halted:
             self.ended.set()
-
-    async def _route(self, route) -> None:
-        try:
-            await self._enforce_route(route)
-        except PlaywrightError:
-            if not self._closing:
-                self.capture.diagnose("capture_error")
-            with suppress(PlaywrightError):
-                await route.abort()
-
-    async def _enforce_route(self, route) -> None:
-        request = route.request
-        url = request.url
-        navigation = request.is_navigation_request()
-        if not _is_allowed_url(url, self.capture.domains):
-            self.capture.diagnose(
-                "blocked_navigation" if navigation else "blocked_request",
-                request_url=url,
-            )
-            await route.abort()
-        elif not safe_url(url):
-            self.capture.diagnose("unsafe_url")
-            await route.abort()
-        elif request.method not in {"GET", "HEAD", "OPTIONS"}:
-            self.capture.diagnose("write_request")
-            await route.abort()
-        else:
-            if navigation and self.page is not None:
-                try:
-                    frame = request.frame
-                except PlaywrightError:
-                    # Popup navigation can arrive before its frame or page exists.
-                    self.capture.diagnose("duplicate_tab")
-                    await route.abort()
-                    return
-                if frame != self.page.main_frame:
-                    code = "frame" if frame.page == self.page else "duplicate_tab"
-                    self.capture.diagnose(code)
-                    await route.abort()
-                    return
-            await route.continue_()
-
-    async def _socket(self, socket) -> None:
-        self.capture.diagnose("websocket")
-        with suppress(PlaywrightError):
-            await socket.close()
-
-    async def _extra_page(self, page: Page) -> None:
-        self.capture.diagnose("duplicate_tab")
-        with suppress(PlaywrightError):
-            await page.close()
 
     def _navigation(self, frame) -> None:
         if self._paused or self._closing or frame != self.page.main_frame:
@@ -156,16 +101,6 @@ class RecordingSession:
         self.capture.accept({"kind": "navigation", "url": frame.url})
         if self.capture.halted:
             self.ended.set()
-
-    async def _download(self, download) -> None:
-        self.capture.diagnose("file_transfer")
-        with suppress(PlaywrightError):
-            await download.cancel()
-
-    async def _dialog(self, dialog) -> None:
-        self.capture.diagnose("dialog")
-        with suppress(PlaywrightError):
-            await dialog.dismiss()
 
     async def finish(self, *, partial: bool = False) -> RecordingDraft:
         # Round trip through the page so previously dispatched input bindings drain first.
@@ -183,6 +118,7 @@ class RecordingSession:
 
     async def close(self) -> None:
         self._closing = True
+        self.boundary.closing = True
         try:
             if self.context is not None:
                 with suppress(PlaywrightError):

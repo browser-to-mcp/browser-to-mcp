@@ -3,23 +3,22 @@
 from __future__ import annotations
 
 import os
-import re
 import tempfile
 from pathlib import Path
 from typing import Annotated, Literal
-from urllib.parse import parse_qsl, urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from browser_to_mcp.browser_policy import (
+    MESSAGES,
+    safe_url,
+)
+from browser_to_mcp.browser_policy import (
+    is_allowed_url as _is_allowed_url,
+)
 from browser_to_mcp.models import Permissions
-from browser_to_mcp.replay import _is_allowed_url
 
 DRAFT_SUFFIX = ".recording.json"
-SECRET_NAME = re.compile(
-    r"password|passwd|token|secret|credential|authorization|session|api.?key|^code$|^key$",
-    re.IGNORECASE,
-)
-SECRET_VALUE = re.compile(r"(?:eyJ[\w-]{8,}\.[\w-]+\.[\w-]+|\bBearer\s+\S+)", re.IGNORECASE)
 
 
 class RecordingError(ValueError):
@@ -69,6 +68,7 @@ class Press(DraftModel):
 
 
 DIAGNOSTICS = {
+    **MESSAGES,
     "sensitive_field": "Sensitive field detected. Capture stopped; its value was refused.",
     "sensitive_value": "Potential secret detected. Capture stopped; the value was refused.",
     "unsafe_url": "A URL with credentials or sensitive parameters was refused.",
@@ -118,36 +118,11 @@ def validate_start(url: str, domains: list[str]) -> list[str]:
         normalized = Permissions(allowed_domains=domains).allowed_domains
     except ValueError:
         raise RecordingError("Provide explicit hostnames using --allow-domain.") from None
-    # Reject host patterns that the shared permission model does not otherwise constrain.
-    label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
-    if any(not re.fullmatch(rf"{label}(?:\.{label})+", host) for host in normalized):
-        raise RecordingError("Allowed domains must be literal hostnames, without wildcards.")
     if not safe_url(url) or not _is_allowed_url(url, normalized):
         raise RecordingError(
             "Starting URL must be public HTTP(S), without secrets, on an allowed host."
         )
     return list(dict.fromkeys(normalized))
-
-
-def safe_url(url: str) -> bool:
-    """Refuse credentials and common secret-bearing URLs without echoing their contents."""
-    try:
-        parsed = urlsplit(url)
-        _ = parsed.port
-        return (
-            parsed.scheme in {"http", "https"}
-            and parsed.hostname is not None
-            and not parsed.username
-            and not parsed.password
-            and not any(char.isspace() or ord(char) < 32 for char in url)
-            and "\\" not in url
-            and "{{" not in url
-            and not SECRET_VALUE.search(url)
-            and not any(SECRET_NAME.search(key) for key, _ in parse_qsl(parsed.query))
-            and not parsed.fragment
-        )
-    except ValueError:
-        return False
 
 
 def validate_destination(path: Path, workflow_dir: Path = Path("workflows")) -> Path:

@@ -1,5 +1,11 @@
 # Writing workflows
 
+Recording, preview, and replay share the [browser restrictions](BROWSER_POLICY.md).
+Only GET, HEAD, and OPTIONS are allowed; HTTP redirects and unsupported browser
+capabilities fail the session. A method or `read_only` label cannot guarantee
+that a website action has no side effects. Review the linked migration steps.
+
+
 The [recorder](RECORDING.md) can capture public browser demonstrations into a
 separate draft. Drafts require review and are not workflow YAML or MCP tools.
 For `press` steps, an optional `selector` targets the key press at that element.

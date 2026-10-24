@@ -1,5 +1,11 @@
 # Turn a recording into a tool
 
+Recording, preview, and replay share the [browser restrictions](BROWSER_POLICY.md).
+Only GET, HEAD, and OPTIONS are allowed; HTTP redirects and unsupported browser
+capabilities fail the session. A method or `read_only` label cannot guarantee
+that a website action has no side effects. Review the linked migration steps.
+
+
 The `author` command helps you choose inputs, select the text to return, and
 review the complete workflow. It saves YAML that the existing replay engine and
 MCP server can use. You do not need to write selectors for the book example.

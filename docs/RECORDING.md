@@ -1,5 +1,11 @@
 # Record a public browser task
 
+Recording, preview, and replay share the [browser restrictions](BROWSER_POLICY.md).
+Only GET, HEAD, and OPTIONS are allowed; HTTP redirects and unsupported browser
+capabilities fail the session. A method or `read_only` label cannot guarantee
+that a website action has no side effects. Review the linked migration steps.
+
+
 The recorder lets you demonstrate a small task in a fresh, visible Chromium
 window. It saves a local draft containing supported actions and navigation
 observations. It never replays the captured actions during recording.

@@ -42,6 +42,10 @@ class SelectionSession(RecordingSession):
             boundary=self.boundary,
         )
         self.check_boundary()
+        await self.install_selection()
+
+    async def install_selection(self):
+        self.check_boundary()
         await self.page.evaluate("() => window.__btmPause?.()")
         self._paused = True
         await self.page.evaluate(
@@ -90,4 +94,27 @@ class SelectionSession(RecordingSession):
             ) from None
 
     async def reset_selection(self) -> None:
-        await self.page.evaluate("() => { window.__btmSelection = null; }")
+        await self.page.evaluate(
+            "() => { window.__btmSelection = null; window.__btmPickedElement = null; }"
+        )
+
+    async def inspect_record(self, mode: str, **options):
+        self.check_boundary()
+        try:
+            result = await self.page.evaluate(
+                files("browser_to_mcp.authoring")
+                .joinpath("record_selection.js")
+                .read_text("utf-8"),
+                {"mode": mode, **options},
+            )
+            if isinstance(result, dict) and "error" in result:
+                raise AuthoringError("records: " + result["error"])
+            entries = result if isinstance(result, list) else [result]
+            for entry in entries:
+                selector = entry.get("selector", "")
+                if SECRET_NAME.search(selector) or SECRET_VALUE.search(selector):
+                    raise AuthoringError("records: Select an area without sensitive names.")
+            self.check_boundary()
+            return result
+        except PlaywrightError:
+            raise AuthoringError("records: The page changed. Select the output again.") from None

@@ -162,7 +162,14 @@ def build_workflow(
         steps=steps,
         outputs=outputs,
         success=[
-            dict(id=f"check_{key}", assertion="output_not_empty", field=key) for key in outputs
+            dict(
+                id=f"check_{key}",
+                field=key,
+                assertion="output_matches_schema"
+                if definition.get("allow_empty")
+                else "output_not_empty",
+            )
+            for key, definition in outputs.items()
         ],
     )
     try:

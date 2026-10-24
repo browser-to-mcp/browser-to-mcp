@@ -102,8 +102,8 @@ response bodies, full DOM trees, browser exception details, or screenshots.
 
 Password fields and recognizable credential fields stop capture before their
 values are sent to Python. Common token values and credential-bearing URLs
-are refused. Fragment URLs are also refused rather than retaining possible
-credentials. These checks cannot recognize every secret pasted into an
+are refused. Ordinary public fragments are allowed; fragments with common
+secret-like names are refused. These checks cannot recognize every secret pasted into an
 ordinary text field or every secret encoded in a URL path. Demonstrate only
 public data and inspect the draft before sharing it.
 

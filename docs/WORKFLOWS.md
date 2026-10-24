@@ -153,8 +153,9 @@ browser startup, including those used only in later steps.
 
 An input resembling `https://another.example/path` is still data within its
 declared value or segment. The runtime checks the final rendered URL against
-the existing scheme and domain policy, and checks browser requests and
-redirects against the allowlist as before. No dynamic domains are supported.
+the shared scheme, domain, URL, and method policy. HTTP redirects are refused
+before following them; use the reviewed final URL directly. No dynamic domains
+are supported.
 
 ## Compatibility
 

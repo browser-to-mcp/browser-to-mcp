@@ -155,6 +155,7 @@ class Handler(BaseHTTPRequestHandler):
                 "redirect_denied": "fetch('/redirect/denied')",
                 "redirect_chain": "fetch('/redirect/chain')",
                 "popup": "window.open('/destination')",
+                "popup_link": "document.querySelector('#popup-link').click()",
                 "frame": "document.body.insertAdjacentHTML('beforeend',"
                 + "'<iframe src=/destination></iframe>')",
                 "srcdoc": "document.body.insertAdjacentHTML('beforeend',"
@@ -163,7 +164,9 @@ class Handler(BaseHTTPRequestHandler):
                 "worker": "new Worker('/worker.js')",
                 "shared_worker": "new SharedWorker('/worker.js')",
                 "transport": "new WebTransport('https://127.0.0.1:9/PRIVATE-URL')",
-                "socket": "new WebSocket('ws://127.0.0.1:9/PRIVATE-URL')",
+                "socket": "new WebSocket('"
+                + self.server.base.replace("http:", "ws:")
+                + "/destination')",
                 "rtc": "new RTCPeerConnection()",
                 "eventsource": "new EventSource('/destination')",
                 "permission": "Notification.requestPermission()",
@@ -182,6 +185,7 @@ class Handler(BaseHTTPRequestHandler):
                 + '">Try</button>'
                 + "<output id=result></output>"
                 + "<a id=download href=/attachment download>Download</a>"
+                + '<a id=popup-link href=/destination target=_blank>Open new tab</a>'
             ).encode()
 
         else:
@@ -238,6 +242,7 @@ CASES = [
     ("redirect_denied", "redirect"),
     ("redirect_chain", "redirect"),
     ("popup", "duplicate_tab"),
+    ("popup_link", "duplicate_tab"),
     ("frame", "frame"),
     ("srcdoc", "frame"),
     ("service_worker", "service_worker"),

@@ -1,7 +1,7 @@
 """Extract one synchronous snapshot of row-aligned fields in a protected browser."""
 
 from importlib.resources import files
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit
 
 from browser_to_mcp.browser_policy import safe_url
 from browser_to_mcp.models import (
@@ -51,7 +51,6 @@ async def extract_records(page, step: WorkflowStep, output: StructuredOutput):
                     f"outputs.{step.id}.{index}.{name}",
                     "Product link is outside its reviewed host or path, or contains a secret.",
                 )
-            row[name] = urlunsplit(parsed._replace(fragment=""))
     if output.type == "object":
         if len(rows) != 1:
             raise OutputValidationError(f"outputs.{step.id}", "Expected exactly one record.")

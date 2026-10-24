@@ -374,3 +374,13 @@ def test_unmarked_null_and_primitive_types_survive_trace_serialization(records_s
         assert type(row["count"]) is int
         assert type(row["amount"]) is float
         assert type(row["available"]) is bool
+
+
+
+def test_product_link_keeps_empty_query_delimiter(records_site, tmp_path):
+    loaded = write_contract(tmp_path / "rows.yaml", contract(records_site.base))
+    result = asyncio.run(replay_workflow(loaded, ["case=empty_query"]))
+    rows = expected(records_site.base)
+    for row in rows:
+        row["product_url"] = row["product_url"].replace("?edition=paper", "?")
+    assert result.outputs == {"products": rows}

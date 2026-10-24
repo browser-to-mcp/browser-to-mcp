@@ -119,6 +119,8 @@ def page(case):
     cards = []
     for index, (slug, title, price, count, amount, available, note) in enumerate(rows):
         href = f"/products/{slug}?edition=paper#details"
+        if case == "empty_query":
+            href = f"/products/{slug}?#details"
         if case == "url_spaces":
             href = f"/products/{slug}?label=two  spaces&tag=C++#details"
         if case == "cart_link":

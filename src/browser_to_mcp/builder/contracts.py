@@ -137,8 +137,7 @@ def proposal_schema():
 def _url_step(task, bindings):
     if set(bindings) != set(task.inputs):
         raise ValueError("Every input needs exactly one binding.")
-    original = step_fields("goto", "open", url=task.start_url)
-    result = original
+    result = step_fields("goto", "open", url=task.start_url)
     used = set()
     for name, binding in bindings.items():
         if binding.location == "query":

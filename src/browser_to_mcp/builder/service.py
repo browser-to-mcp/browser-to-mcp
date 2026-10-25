@@ -123,31 +123,46 @@ async def generate_phase(context, job, *, provider: DraftProvider | None = None)
     )
     store.set_stage(job_id, "check_draft")
     loaded, data = make_candidate(task, content)
-    try:
-        await browser.preview(loaded.workflow)
-    except (PlaywrightError, OutputValidationError, AuthoringError):
-        raise JobError("preview_failed") from None
-    store.save_draft(job_id, data, loaded.manifest_digest)
+    checks = await _check_draft(context, task, loaded, data, browser=browser)
+    provider_name = getattr(provider, "name", "controlled")
+    api_provider = provider_name == "openai"
     store.record_report(
         job_id,
         BuildReport(
-            provider=getattr(provider, "name", "controlled"),
+            provider=provider_name,
             model=reply.model,
             prompt_tokens=reply.prompt_tokens,
             completion_tokens=reply.completion_tokens,
             model_seconds=reply.seconds,
             browser_seconds=monotonic() - browser_started,
-            api_cost_microusd=None if getattr(provider, "name", "") == "openai" else 0,
+            api_cost_microusd=None if api_provider else 0,
             estimated_cost_microusd=reply.estimated_cost_microusd,
             input_microusd_per_million=getattr(provider, "input_rate", None),
             output_microusd_per_million=getattr(provider, "output_rate", None),
-            cost_basis="configured_rates"
-            if getattr(provider, "name", "") == "openai"
-            else "local_no_api",
-            checks=["schema", "policy", "compiler", "first_page_preview"],
+            cost_basis="configured_rates" if api_provider else "local_no_api",
+            checks=checks,
         ),
     )
     return "review"
+
+
+async def _check_draft(context, task, loaded, data, *, browser=None):
+    if browser is None:
+        try:
+            browser = await context.browser()
+            await browser.goto(task.start_url)
+        except PlaywrightError:
+            raise JobError("page_unavailable") from None
+        except JobError as error:
+            if error.code == "worker_failed":
+                raise JobError("page_unavailable") from None
+            raise
+    try:
+        await browser.preview(loaded.workflow)
+    except (PlaywrightError, OutputValidationError, AuthoringError):
+        raise JobError("preview_failed") from None
+    context.store.save_draft(context.job_id, data, loaded.manifest_digest)
+    return ["schema", "policy", "compiler", "first_page_preview"]
 
 
 async def check_client_proposal(context, job):
@@ -158,13 +173,7 @@ async def check_client_proposal(context, job):
     loaded, data = make_candidate(task, store.read_artifact(job_id, "proposal").decode())
     store.set_stage(job_id, "check_draft")
     started = monotonic()
-    try:
-        browser = await context.browser()
-        await browser.goto(task.start_url)
-        await browser.preview(loaded.workflow)
-    except (PlaywrightError, OutputValidationError, AuthoringError):
-        raise JobError("preview_failed") from None
-    store.save_draft(job_id, data, loaded.manifest_digest)
+    checks = await _check_draft(context, task, loaded, data)
     store.record_report(
         job_id,
         BuildReport(
@@ -175,7 +184,7 @@ async def check_client_proposal(context, job):
             api_cost_microusd=None,
             cost_basis="external_client",
             browser_seconds=saved["browser_seconds"] + monotonic() - started,
-            checks=["schema", "policy", "compiler", "first_page_preview"],
+            checks=checks,
         ),
     )
     return "review"

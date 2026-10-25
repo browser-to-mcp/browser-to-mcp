@@ -338,3 +338,15 @@ def test_generation_choice_is_part_of_the_request_identity(store, catalog_site):
     for choice in ["unknown", [], None, True]:
         with pytest.raises(JobError):
             store.start_task(str(uuid4()), task(base), Budgets(), generation=choice)
+
+
+def test_page_access_failure_during_client_check_has_a_clear_error(store, catalog_site):
+    site, base = catalog_site
+    context = inspect(store, task(base))
+    submit(store, context, proposal())
+    site.mode = "blocked"
+    phase(store)
+    result = store.read(context["job_id"])
+    assert result["state"] == "failed"
+    assert result["error"]["code"] == "page_unavailable"
+    assert result["artifact"] is None

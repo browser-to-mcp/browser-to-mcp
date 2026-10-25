@@ -11,6 +11,15 @@ from .models import JobError
 from .store import JobStore
 
 
+def _annotations(*, read_only=False, idempotent=False):
+    return ToolAnnotations(
+        readOnlyHint=read_only,
+        destructiveHint=False,
+        idempotentHint=idempotent,
+        openWorldHint=False,
+    )
+
+
 def create_job_server(directory):
     store = JobStore(directory)
     server = FastMCP(
@@ -37,22 +46,14 @@ def create_job_server(directory):
             isError=failed,
         )
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False
-        )
-    )
+    @server.tool(annotations=_annotations(idempotent=True))
     def start_build_job(
         request_key: str, candidate: str, budgets: dict[str, object] | None = None
     ) -> CallToolResult:
         """Queue a public YAML candidate. Reuse the UUID request key only for the same attempt."""
         return invoke("start", dict(request_key=request_key, candidate=candidate, budgets=budgets))
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False
-        )
-    )
+    @server.tool(annotations=_annotations(idempotent=True))
     def start_task_build_job(
         request_key: str,
         task: dict[str, object],
@@ -83,14 +84,7 @@ def create_job_server(directory):
             ),
         )
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=True,
-            destructiveHint=False,
-            idempotentHint=True,
-            openWorldHint=False,
-        )
-    )
+    @server.tool(annotations=_annotations(read_only=True, idempotent=True))
     def read_task_context(job_id: str) -> CallToolResult:
         """Read a waiting job's bounded public page view, task and proposal schema.
 
@@ -99,14 +93,7 @@ def create_job_server(directory):
         """
         return invoke("context", dict(job_id=job_id))
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=False,
-            destructiveHint=False,
-            idempotentHint=False,
-            openWorldHint=False,
-        )
-    )
+    @server.tool(annotations=_annotations())
     def submit_task_proposal(
         job_id: str,
         question_id: str,
@@ -129,20 +116,12 @@ def create_job_server(directory):
             ),
         )
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False
-        )
-    )
+    @server.tool(annotations=_annotations(read_only=True, idempotent=True))
     def read_build_job(job_id: str) -> CallToolResult:
         """Read the saved status and current question without starting or repeating any work."""
         return invoke("read", dict(job_id=job_id))
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False
-        )
-    )
+    @server.tool(annotations=_annotations())
     def answer_build_job(
         job_id: str, question_id: str, revision: int, value: str
     ) -> CallToolResult:
@@ -151,11 +130,7 @@ def create_job_server(directory):
             "answer", dict(job_id=job_id, question_id=question_id, revision=revision, value=value)
         )
 
-    @server.tool(
-        annotations=ToolAnnotations(
-            readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False
-        )
-    )
+    @server.tool(annotations=_annotations(idempotent=True))
     def cancel_build_job(job_id: str) -> CallToolResult:
         """Request cancellation; poll until work stops. Terminal jobs remain unchanged."""
         return invoke("cancel", dict(job_id=job_id))

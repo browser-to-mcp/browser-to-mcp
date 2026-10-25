@@ -149,21 +149,7 @@ class JobStore:
                 job["artifact"] = None
 
     def _public(self, job):
-        public = {
-            key: value
-            for key, value in job.items()
-            if key
-            not in {
-                "phase",
-                "resume_phase",
-                "answer",
-                "source_sha256",
-                "progress",
-                "context_sha256",
-                "proposal_sha256",
-                "output_shape",
-            }
-        }
+        public = {key: job[key] for key in JobSnapshot.model_fields if key in job}
         public["stage"] = job.get("progress", job["phase"])
         if job["kind"] == "generate_workflow":
             public["generation"] = job.get("generation", "provider")
@@ -196,8 +182,10 @@ class JobStore:
             temporary.unlink(missing_ok=True)
 
     def read_artifact(self, job_id, kind):
-        job = self.internal(job_id)
-        path = self.artifact_path(job_id, kind)
+        return self._read_artifact(self.internal(job_id), kind)
+
+    def _read_artifact(self, job, kind):
+        path = self.artifact_path(job["id"], kind)
         if path.is_symlink() or not path.is_file():
             raise JobError("invalid_candidate")
         limit = job["budgets"]["output_bytes"] if kind == "draft" else MAX_SOURCE_BYTES
@@ -307,8 +295,7 @@ class JobStore:
             job["context_sha256"] = _digest(data)
             self._save(db, job)
 
-    def read_context(self, job_id):
-        job = self.internal(job_id)
+    def _proposal_context(self, job):
         if (
             job.get("generation") != "client"
             or job["state"] != State.WAITING
@@ -318,11 +305,16 @@ class JobStore:
             raise JobError("invalid_transition")
         if self.clock() >= job["deadline"]:
             raise JobError("budget_wall_seconds")
+        return json.loads(self._read_artifact(job, "context"))
+
+    def read_context(self, job_id):
+        job = self.internal(job_id)
+        context = self._proposal_context(job)
         return dict(
             job_id=job_id,
             question_id=job["question"]["id"],
             revision=job["revision"],
-            context=json.loads(self.read_artifact(job_id, "context")),
+            context=context,
         )
 
     def submit_proposal(self, job_id, question_id, revision, proposal):
@@ -331,9 +323,7 @@ class JobStore:
         # Validate before storing; recheck the question under the write lock below.
         job = self.internal(job_id)
         self._question(job, question_id, revision)
-        if job.get("generation") != "client" or job["question"]["kind"] != "draft_proposal":
-            raise JobError("invalid_transition")
-        context = self.read_context(job_id)["context"]
+        context = self._proposal_context(job)
         try:
             if not isinstance(proposal, dict):
                 raise ValueError

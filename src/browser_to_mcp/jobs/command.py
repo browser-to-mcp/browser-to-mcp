@@ -9,6 +9,12 @@ from .candidate import MAX_SOURCE_BYTES
 from .models import Budgets, JobError
 from .store import JobStore
 
+_FILE_INPUTS = {
+    "start": ("candidate_path", "candidate", "invalid_candidate"),
+    "start-task": ("task_path", "task", "invalid_task"),
+    "submit-proposal": ("proposal_path", "proposal", "invalid_proposal"),
+}
+
 
 def add_jobs_parser(subparsers):
     parser = subparsers.add_parser("jobs", help="Track local workflow draft-preparation jobs.")
@@ -21,25 +27,20 @@ def add_jobs_parser(subparsers):
     commands = parser.add_subparsers(dest="jobs_command", required=True)
     start = commands.add_parser("start", help="Queue an existing public YAML candidate for review.")
     start.add_argument("candidate_path", type=Path)
-    start.add_argument(
-        "--request-key", required=True, help="UUID v4, reused only for this attempt."
-    )
-    for name, field in Budgets.model_fields.items():
-        start.add_argument("--" + name.replace("_", "-"), type=int, default=field.default)
     task = commands.add_parser(
         "start-task", help="Build a draft from a public URL and a JSON task description."
     )
     task.add_argument("task_path", type=Path)
-    task.add_argument("--request-key", required=True, help="UUID v4 for this build attempt.")
     task.add_argument(
         "--generation",
         choices=["client", "provider"],
         default="client",
         help="Client supplies the proposal (default), or a configured provider creates it.",
     )
-    for name, field in Budgets.model_fields.items():
-        # Resource use must be explicitly permitted; existing job defaults remain zero.
-        task.add_argument("--" + name.replace("_", "-"), type=int, default=field.default)
+    for command in (start, task):
+        command.add_argument("--request-key", required=True, help="UUID v4 for this attempt.")
+        for name, field in Budgets.model_fields.items():
+            command.add_argument("--" + name.replace("_", "-"), type=int, default=field.default)
     read = commands.add_parser("read", help="Read status without starting or changing work.")
     read.add_argument("job_id")
     context = commands.add_parser("context", help="Read a waiting task's page view and schema.")
@@ -86,15 +87,9 @@ def run_jobs(namespace):
             result = {"status": "cleaned"}
         else:
             arguments = vars(namespace).copy()
-            if operation in {"start", "start-task", "submit-proposal"}:
-                path = getattr(
-                    namespace,
-                    {
-                        "start": "candidate_path",
-                        "start-task": "task_path",
-                        "submit-proposal": "proposal_path",
-                    }[operation],
-                )
+            if operation in _FILE_INPUTS:
+                path_argument, field, error_code = _FILE_INPUTS[operation]
+                path = getattr(namespace, path_argument)
                 try:
                     if not path.is_file():
                         raise OSError
@@ -102,20 +97,9 @@ def run_jobs(namespace):
                         source = stream.read(MAX_SOURCE_BYTES + 1).decode("utf-8")
                     if len(source.encode()) > MAX_SOURCE_BYTES:
                         raise ValueError
-                    field = {
-                        "start": "candidate",
-                        "start-task": "task",
-                        "submit-proposal": "proposal",
-                    }[operation]
                     arguments[field] = source if operation == "start" else json.loads(source)
                 except (OSError, ValueError, RecursionError):
-                    raise JobError(
-                        {
-                            "start": "invalid_candidate",
-                            "start-task": "invalid_task",
-                            "submit-proposal": "invalid_proposal",
-                        }[operation]
-                    ) from None
+                    raise JobError(error_code) from None
                 if operation != "submit-proposal":
                     arguments["budgets"] = {name: arguments[name] for name in Budgets.model_fields}
             result = dispatch(store, operation, arguments)

@@ -9,17 +9,15 @@ from .store import JobStore
 def dispatch(store: JobStore, operation: str, arguments: dict):
     try:
         if operation in {"start", "start-task"}:
-            limits = arguments.get("budgets")
-            start = store.start if operation == "start" else store.start_task
-            return start(
+            raw_limits = arguments.get("budgets")
+            limits = Budgets.model_validate({} if raw_limits is None else raw_limits)
+            if operation == "start":
+                return store.start(arguments["request_key"], arguments["candidate"], limits)
+            return store.start_task(
                 arguments["request_key"],
-                arguments["candidate" if operation == "start" else "task"],
-                Budgets.model_validate({} if limits is None else limits),
-                **(
-                    {"generation": arguments.get("generation", "client")}
-                    if operation == "start-task"
-                    else {}
-                ),
+                arguments["task"],
+                limits,
+                generation=arguments.get("generation", "client"),
             )
         if operation == "context":
             return store.read_context(arguments["job_id"])

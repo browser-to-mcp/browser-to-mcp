@@ -1,0 +1,79 @@
+name: collect_catalog
+description: Collect the original local practice catalog.
+version: 1
+risk: read_only
+manifest:
+  version: 1
+permissions:
+  allowed_domains:
+  - 127.0.0.1
+inputs:
+  case:
+    type: string
+    min_length: 1
+steps:
+- id: open
+  action: goto
+  url: http://127.0.0.1:8767/catalog?case={{case}}&layout=cards&style=query
+  timeout_seconds: 2
+  risk: read_only
+  retry: none
+  idempotency: safe
+  confirmation: never
+- id: products
+  action: extract_records
+  selector: '#results'
+  timeout_seconds: 2
+  risk: read_only
+  retry: none
+  idempotency: safe
+  confirmation: never
+  record:
+    rows: .product
+    fields:
+      title:
+        selector: a.title
+        source: title
+      price_text:
+        selector: .price
+      product_url:
+        selector: a.title
+        source: href
+        path_prefix: /products/
+    empty_selector: .empty
+    duplicates: deduplicate
+    unique_by: product_url
+  paging:
+    next_selector: a.next
+    end_selector: .end
+    max_pages: 20
+    timeout_seconds: 20
+    status_output: collection
+    page_parameter: page
+outputs:
+  products:
+    type: array
+    max_items: 100
+    allow_empty: true
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+        price_text:
+          type: string
+        product_url:
+          type: string
+  collection:
+    type: object
+    properties:
+      pages_read:
+        type: integer
+      complete:
+        type: boolean
+      stop_reason:
+        type: string
+success:
+- id: checked
+  field: products
+  assertion: output_matches_schema

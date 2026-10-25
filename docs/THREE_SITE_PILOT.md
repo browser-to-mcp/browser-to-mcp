@@ -16,9 +16,10 @@ measured. No customer outreach has taken place. #57 must stay open until its
 real-user work is finished and the decision is reviewed.
 
 The existing [book pilot](PILOT.md) and [journey evidence](JOURNEY_CHECKS.md)
-remain separate. This document does not change their results. Lists and paging
-are planned work in #59 and #60; the current tool does not implement this new
-contract. The newcomer timing requirement in #48 is still pending.
+remain separate. This document does not change their results. The building blocks for lists and numbered Next-link paging are described in
+[record outputs](RECORD_OUTPUTS.md) and [paging](PAGING.md). The full three-site
+tool and caller-supplied `max_pages` contract below still need implementation
+and validation. The newcomer timing requirement in #48 is still pending.
 
 ## Who might use it, and why
 

@@ -124,6 +124,7 @@ The project is focused on reliable, permissioned browser workflows first.
 - [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) — safety declarations, retry policy, and URL input rules
 - [`docs/BROWSER_POLICY.md`](docs/BROWSER_POLICY.md) — shared browser restrictions and migration steps
 - [`docs/OUTPUTS.md`](docs/OUTPUTS.md) — named fields, result types, parsing, and failure behavior
+- [`docs/PAGING.md`](docs/PAGING.md) — follow Next links, remove duplicates, and report completion or limits
 - [`docs/RECORD_OUTPUTS.md`](docs/RECORD_OUTPUTS.md) — product rows, typed records, empty results, and a local example
 - [`docs/RECORDING.md`](docs/RECORDING.md) — browser recording, draft format, and safe save/cancel flow
 - [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) — implementation roadmap

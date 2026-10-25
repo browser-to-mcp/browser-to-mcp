@@ -45,6 +45,8 @@ def test_real_cli_worker_and_mcp_share_task_job(store, catalog_site, tmp_path, m
             + [
                 "start-task",
                 str(path),
+                "--generation",
+                "provider",
                 "--request-key",
                 key,
                 "--browser-actions",
@@ -94,6 +96,7 @@ def test_real_cli_worker_and_mcp_share_task_job(store, catalog_site, tmp_path, m
                         dict(
                             request_key=key,
                             task=request,
+                            generation="provider",
                             budgets=dict(browser_actions=4, model_requests=1, tokens=10000),
                         ),
                     )
@@ -164,6 +167,7 @@ def test_real_worker_cancels_inflight_model_and_does_not_replay(
         str(uuid4()),
         task(base),
         Budgets(browser_actions=4, model_requests=1, tokens=10000),
+        generation="provider",
     )
     with model_server(proposal(), gate=threading.Event()) as (model, endpoint):
         monkeypatch.setenv("BROWSER_TO_MCP_MODEL_URL", endpoint)

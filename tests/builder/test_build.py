@@ -41,7 +41,7 @@ class ControlledProvider:
 
 
 def build(store, request, provider, limits=LIMITS):
-    initial = store.start_task(str(uuid4()), request, limits)
+    initial = store.start_task(str(uuid4()), request, limits, generation="provider")
     store.claim()
     asyncio.run(execute_phase(store, initial["id"], partial(generate_phase, provider=provider)))
     return store.read(initial["id"])
@@ -170,7 +170,7 @@ def test_cancellation_during_model_request_cannot_save_a_draft(store, catalog_si
 
     async def run():
         provider = ControlledProvider(proposal(), gate=asyncio.Event())
-        initial = store.start_task(str(uuid4()), task(base), LIMITS)
+        initial = store.start_task(str(uuid4()), task(base), LIMITS, generation="provider")
         store.claim()
         phase = asyncio.create_task(
             execute_phase(
@@ -197,7 +197,7 @@ def test_cancellation_during_model_request_cannot_save_a_draft(store, catalog_si
 def test_missing_model_configuration_fails_before_browser(store, catalog_site, monkeypatch):
     site, base = catalog_site
     monkeypatch.delenv("BROWSER_TO_MCP_MODEL_URL", raising=False)
-    initial = store.start_task(str(uuid4()), task(base), LIMITS)
+    initial = store.start_task(str(uuid4()), task(base), LIMITS, generation="provider")
     store.claim()
     asyncio.run(execute_phase(store, initial["id"]))
     assert store.read(initial["id"])["error"]["code"] == "provider_configuration"
@@ -224,7 +224,7 @@ def test_running_stage_and_status_reads_do_not_repeat_inference(store, catalog_s
 
     async def run():
         provider = ControlledProvider(proposal(), gate=asyncio.Event())
-        initial = store.start_task(str(uuid4()), task(base), LIMITS)
+        initial = store.start_task(str(uuid4()), task(base), LIMITS, generation="provider")
         store.claim()
         phase = asyncio.create_task(
             execute_phase(

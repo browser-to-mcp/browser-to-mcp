@@ -9,7 +9,8 @@ The first supported job takes an **existing public workflow YAML file**, checks
 its schema and permissions, builds its MCP schema, and prepares a local draft
 for review. That job does not open the website or call a model.
 The [task builder](TASK_BUILDER.md) adds a second job type that reads a public
-page and asks a configured local model to propose a draft. It uses the same
+page and lets Codex/Claude submit a proposal, or calls a configured provider.
+It uses the same
 status, questions, cancellation, and resource limits described here.
 Independent browser testing and publication belong to #63 and #64.
 
@@ -152,11 +153,12 @@ uv run browser-to-mcp jobs start workflows/hn_search.yaml --request-key PASTE_RE
 
 The existing-YAML preparation job uses no browser actions, model requests,
 tokens, or provider cost. Raising those limits does not change its job type.
-The separate [task builder](TASK_BUILDER.md) uses metered browser operations and
-a configured local model. Its adapter reserves the exact input-token count plus
-the allowed output tokens before inference. It makes no billable API request;
-hardware and electricity costs are not measured. There is no cloud provider or
-cloud pricing estimate in this release.
+The separate [task builder](TASK_BUILDER.md) uses metered browser operations.
+Client mode makes no worker-side model request: tokens and charges inside the
+assistant are unknown, not free. Provider mode uses the [configured API or local
+adapter](MODEL_PROVIDERS.md), reserving input plus allowed output tokens before
+inference. API costs use operator-configured upper-bound rates and remain
+estimates; local hardware and electricity costs are unmeasured.
 
 The source candidate and its normalized form are each limited to 256 KiB.
 YAML aliases and anchors are refused. Browser text and model responses are
@@ -205,12 +207,16 @@ the local owner. This release is for one local owner, not hosted users or a
 shared network drive.
 
 The SQLite record contains state, times, limits, counts, fixed public questions,
-error codes, and artifact identities. It does not contain page contents, raw
+error codes, generation mode, optional measured usage reports, and artifact identities.
+It does not contain page contents, raw
 source paths, provider prompts, credentials, raw exceptions, or arbitrary user
 messages. The candidate itself is a separate private artifact needed to prepare
 and review the draft. Only public workflow data belongs there. Known credential
 patterns and unsafe workflow URLs are refused; this is not a detector for every
-possible secret string.
+possible secret string. Client generation also temporarily keeps a redacted page
+context and validated proposal as private, checksum-protected files. Explicit
+context reads expose them only while that job waits for a proposal. Worker
+cleanup removes both at review or after a terminal outcome.
 
 The worker removes input artifacts once they are no longer needed, and removes
 discarded or failed drafts. Completed drafts and terminal job records are kept
@@ -257,6 +263,9 @@ candidate YAML as `candidate`, a UUID `request_key`, and optional `budgets`
 using the underscore versions of the CLI option names.
 It also offers `start_task_build_job` for the task-description format in the
 [task builder guide](TASK_BUILDER.md).
+Client generation uses `read_task_context` and `submit_task_proposal` before
+the normal review question. CLI equivalents are `jobs context` and
+`jobs submit-proposal`. Client model usage is not measured by the job service.
 
 CLI and MCP call the same service and return the same job fields and error
 codes. CLI operation errors use exit code 2 and JSON on stderr; MCP operation

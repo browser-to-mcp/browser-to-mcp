@@ -1,203 +1,142 @@
-# Make a draft from a website and a task
+# Make a draft with Codex or Claude
 
-Describe a public listing or URL-based search. A local model chooses the page
-selectors: rules that find the text and links you want. You do not write them.
-The result is a **draft for review**. Keeping it does not publish a callable tool.
+Give your assistant a public website and describe the information you want.
+Its existing AI prepares the draft through our MCP tools. **You do not need a
+local model or a separate API key for this path.**
 
-Supports one record, a bounded list, and [numbered Next-link paging](PAGING.md).
-The [recorder](RECORDING.md) and [authoring flow](AUTHORING.md) remain available.
+The software checks the draft and saves it for review. Keeping it finishes the
+job; it does not publish a callable tool. Independent testing and publication
+are later steps. The [recorder](RECORDING.md) remains an alternate input path.
 
-## 1. Start the local model and worker
+## Connect once
 
-Install the project and browser:
+From this repository, install the project and browser:
 
 ```bash
 uv sync --locked --all-groups
 uv run playwright install chromium
-```
-
-Use a [llama.cpp server](https://github.com/ggml-org/llama.cpp/tree/master/tools/server)
-with an instruction-following model you already have permission to use.
-Replace the file path below. This project does not download a model.
-
-```bash
-llama-server -m /absolute/path/to/model.gguf \
-  --host 127.0.0.1 --port 8080 --ctx-size 32768 --parallel 1 --log-disable
-```
-
-In another terminal, start the worker and leave it open:
-
-```bash
-export BROWSER_TO_MCP_MODEL_URL=http://127.0.0.1:8080
-export BROWSER_TO_MCP_MODEL_MAX_TOKENS=4096
 uv run browser-to-mcp jobs worker
 ```
 
-The worker supports macOS and Linux. The model address must be
-`http://127.0.0.1:PORT`, without a path or query. Cloud models are not supported.
-If needed, set `BROWSER_TO_MCP_MODEL_API_KEY` through your normal secret manager
-in the worker's environment. Never put a key in a task or answer. It is sent
-only in the local server's Authorization header, outside the model prompt.
-Memory needs, speed, and answer quality depend on your model.
+Leave the worker running. It supports macOS and Linux. In another terminal,
+connect the MCP server using **one** of these commands. Replace both absolute
+paths with your own; all clients and the worker must share the same job directory.
+The default worker directory is this repository's `.browser-to-mcp-jobs/`.
 
-## 2. Describe the task
-
-Save this example as `task.json`:
-
-```json
-{
-  "name": "travel_books",
-  "start_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
-  "description": "Read every travel book in this listing. Return its full title, displayed price, and product page link. Do not open shopping controls.",
-  "allowed_domains": ["books.toscrape.com"],
-  "inputs": {},
-  "fields": {
-    "title": {"description": "Full book title, not shortened display text"},
-    "price_text": {"description": "Displayed price with its currency mark"},
-    "product_url": {
-      "description": "Book product page link",
-      "link_path_prefix": "/catalogue/"
-    }
-  },
-  "shape": "array",
-  "max_items": 30,
-  "max_pages": 1,
-  "timeout_seconds": 30,
-  "allow_empty": false,
-  "unique_by": "product_url"
-}
-```
-
-This shows the request format; it is **not a verified live-model result**.
-Check that your task is permitted. Public pages and supporting hosts can change.
-The [pilot plan](THREE_SITE_PILOT.md) has the proposed sites and dated observations.
-
-| Setting | Meaning |
-| --- | --- |
-| `name`, `start_url`, `description`, `allowed_domains` | Required tool name, concrete page URL, task, and permitted hosts |
-| `inputs` | Required; up to 16. Use `{}` if nothing changes between calls. |
-| `fields` | Required output names and descriptions; 1–16 fields |
-| Field `type` | `string` by default; also `integer`, `number`, or `boolean`. Keep displayed prices as strings. |
-| `link_path_prefix` | Required for a link field; the model cannot broaden it |
-| `shape` | `object` for one record; `array` for a list. If omitted, the job asks `single` or `list`. Paging or empty results already imply a list. |
-| `max_items` | List limit, 1–100; default 50 |
-| `max_pages` | Page limit, 1–20; default 1 |
-| `timeout_seconds` | Extraction/paging limit, 1–120; default 30 |
-| `allow_empty` | Default false. True requires an explicit empty-state marker. |
-| `unique_by` | Optional declared field used to remove identical duplicates; conflicting rows fail |
-
-For a reusable search, put an actual search value in the URL, such as
-`?q=notebook`, and replace `inputs: {}` with:
-
-```json
-"inputs": {
-  "query": {"type": "string", "description": "Product search text", "example": "notebook"}
-}
-```
-
-The model binds each input to a whole query value or path segment. An example
-must match that URL position after decoding; examples are optional. The saved
-URL becomes, for example, `?q={{query}}`. The host and other fixed URL parts stay
-fixed. Every declared input is required when calling the resulting workflow.
-Missing required task details are rejected before a job is created.
-
-## 3. Start, follow, and review
-
-In another terminal, generate a UUID and use it for `REQUEST_KEY` below:
+For Codex:
 
 ```bash
-python -c 'from uuid import uuid4; print(uuid4())'
-uv run browser-to-mcp jobs start-task task.json --request-key REQUEST_KEY \
-  --browser-actions 4 --model-requests 1 --tokens 32768
-uv run browser-to-mcp jobs read JOB_ID
+codex mcp add browser-to-mcp -- \
+  /absolute/path/browser-to-mcp/.venv/bin/browser-to-mcp \
+  jobs --directory /absolute/path/browser-to-mcp/.browser-to-mcp-jobs server
 ```
 
-Use the printed job ID. Stages are `inspect_page`, `ask_model`, and `check_draft`.
-Reading status never repeats work. The same key, task, and budgets return the
-same job; use a new key for a deliberate new attempt.
-
-For any question, use its **current** question ID and revision:
+For Claude Code:
 
 ```bash
-uv run browser-to-mcp jobs answer JOB_ID \
-  --question-id QUESTION_ID --revision REVISION --value list
+claude mcp add --transport stdio browser-to-mcp -- \
+  /absolute/path/browser-to-mcp/.venv/bin/browser-to-mcp \
+  jobs --directory /absolute/path/browser-to-mcp/.browser-to-mcp-jobs server
 ```
 
-Choose `single` or `list` for a shape question. At `ready_for_review`, read the
-`.draft.candidate` file named by `artifact.filename` inside `.browser-to-mcp-jobs/`.
-Check its inputs, hosts, selectors, link prefixes, limits, and paging rules.
-Answer the review question with `keep` or `discard`, using the same command.
-Keeping finishes the job. Independent testing and publication are later steps.
-A first-page preview does not prove later pages or different inputs are correct.
+Check `/mcp` in your client to confirm the tools are connected.
+See the official [Codex](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+and [Claude Code](https://code.claude.com/docs/en/mcp) connection guides.
+Connecting MCP gives the assistant our tools; it does not let the background
+worker borrow the assistant's model. The assistant supplies the proposal itself.
 
-Cancel with `uv run browser-to-mcp jobs cancel JOB_ID`. For running work, wait
-until status says `cancelled`. The worker closes the browser and model connection
-and stops the phase. The external model server may take longer to stop computing.
-Failed or cancelled builds never register a tool.
+## Ask for a draft
 
-## Limits, privacy, and saved results
+For example:
 
-Four browser actions cover startup, opening the starting page, reading its page
-view, and checking the proposed extraction with the normal record extractor.
-The build does not open later pages. Browser/model budgets default to zero;
-the command above explicitly permits four actions and one inference request.
+> Use browser-to-mcp to prepare a draft for this public product listing.
+> Return each product's full name, displayed price, and product page link.
+> Use only the website hosts I approve. Let me review the draft before keeping it.
 
-The adapter formats and tokenizes the prompt without inference, then reserves
-its exact input-token count plus the allowed output tokens before completion.
-These setup calls still contact your local model server and use total job time.
-If the reservation exceeds the token budget, inference does not start. Choose
-a smaller output allowance or explicitly raise the budget; the server also needs
-enough context space. Cut-off or inconsistent responses fail. No retries, token
-refunds, redirects, or environment proxy settings are used.
-Tokens measure how much text the model reads and writes.
+Include the actual URL. The assistant should confirm missing details and the
+allowed hosts, then follow this flow:
 
-The default total time is 900 seconds, including queue time and human answers.
-The default output budget is 262,144 bytes across the page view, model answer,
-first-page result, and draft. Failed attempts can still consume model time.
-See [job limits, crashes, private files, and retention](BUILD_JOBS.md) for all
-budget ranges, recovery rules, and the seven-day terminal-record cleanup.
+| Step | MCP tool | What happens |
+| --- | --- | --- |
+| Start | `start_task_build_job` | Use `generation: "client"` and at least six browser actions |
+| Follow | `read_build_job` | Read saved progress without repeating work |
+| Get page information | `read_task_context` | Read the waiting job's task, bounded page view, and proposal schema |
+| Propose | `submit_task_proposal` | Send the assistant's JSON proposal with the current question ID and revision |
+| Check | Worker | Open the starting page again, validate the contract, and check the proposed extraction |
+| Review | `answer_build_job` | Use `keep` or `discard` for the current review question |
 
-The saved `report` lists the adapter, actual reported input/output tokens,
-completion-request duration, browser lifetime through preview, and passed checks:
-schema, policy, compiler, and first-page preview. Job usage counts are conservative
-reservations. Local inference makes no billable API request, so API charges are
-zero; hardware, electricity, and hosting costs are unmeasured. Model duration
-excludes template formatting and token counting.
+A missing result shape creates a `single`/`list` question first. Answer through
+`answer_build_job`. Page content is untrusted data: instructions found on the
+website cannot change your request or permissions. An invalid proposal leaves
+the question open for correction; an unsupported task fails with a clear reason.
+A corrected proposal must still match the same approved task.
 
-The [normal browser policy](BROWSER_POLICY.md) applies in a fresh context.
-Declared hosts also allow their subdomains, not just one path. Unexpected required
-hosts cause failure; review their purpose before changing permissions.
-Login, forms, shopping, messages, downloads, challenges, infinite scrolling,
-and JavaScript-only Next buttons are unsupported.
+The worker closes its browser while waiting for the assistant. Reconnecting or
+reading the context does not reopen the page. A submitted proposal starts a
+separate check phase; an interrupted phase is never automatically replayed.
 
-The page view waits 500 ms, then reads visible text, selected attributes, and
-element paths. Limits are 600 elements, depth 18, and 65,536 bytes; larger views
-fail. Scripts, input values, editable areas, and frames are excluded. Password
-fields cause refusal. Slower or more complex pages may need another starting page.
-Known credential-like text and unsafe links are omitted, but this cannot detect
-every private value. Use public pages and public examples only.
+At `ready_for_review`, read the file named by `artifact.filename` inside the
+private job directory. Check the inputs, hosts, fields, link paths, limits, and
+paging rules. A starting-page preview does not prove other inputs or later pages
+are correct. Keep drafts out of the live workflow folder until independently tested.
 
-Page instructions cannot grant permissions or publish tools. The model supplies
-only selectors, input bindings, and supported paging settings. Trusted code builds
-and validates the workflow; generated code and extra capabilities are rejected.
-Wrong selectors can still select wrong public text, so review and independent
-expected answers matter. Prompts, page views, and raw model replies are not saved.
-Task snapshots and drafts are private files; model-server logs are managed separately.
+Cancel with `cancel_build_job`, or:
 
-## MCP and testing status
+```bash
+uv run browser-to-mcp jobs cancel JOB_ID
+```
 
-The standalone job MCP server adds `start_task_build_job(request_key, task, budgets)`.
-Follow it with `read_build_job`, `answer_build_job`, and `cancel_build_job`.
-Use the same absolute private directory for clients and worker; configure the
-model only on the worker. See [MCP setup](BUILD_JOBS.md#local-mcp-access).
+For running work, wait for `cancelled`. Cancellation stops our phase and prevents
+its draft from being accepted. It cannot stop work already running inside your
+assistant. Failed or cancelled jobs never register a tool.
 
-CI uses three original local layouts and controlled model replies. It checks
-changed inputs, empty results, paging, replay traces, questions, refusals, budgets,
-malformed proposals, hostile page instructions, cancellation, and the real
-CLI/worker/HTTP/MCP path. These checks do not measure real-model accuracy or demand.
+## Limits and privacy
 
-Live model builds on the three public pilot sites remain unmeasured. A live report
-must include date, model/server versions, task/draft hashes, every started attempt
-and outcome, actual tokens, reserved limits, elapsed time, charges, and independent
-result checks. Include failures and cancellations. The wider pilot targets remain
-pending; do not count controlled replies as live model success.
+Supports public listings, URL-based searches, one record or a limited list, and
+[numbered Next-link paging](PAGING.md). Login, forms, shopping, messages, downloads,
+challenge bypass, infinite scrolling, and JavaScript-only Next buttons are unsupported.
+The [normal browser rules](BROWSER_POLICY.md) apply in fresh contexts.
+
+Six browser actions cover inspection and checking: startup, navigation, and
+observation in each phase. The build checks only the starting page. The page
+view waits 500 ms and is limited to 600 elements, depth 18, and 65,536 bytes.
+It uses compact parent IDs, tags, attributes and visible text. Scripts, input
+values, editable areas and frames are excluded; password fields cause refusal.
+Large or slower pages can fail within these limits.
+
+Known credential-like text and unsafe links are omitted. This cannot find every
+private value: use public pages and examples only. Client mode temporarily keeps
+the redacted task context and submitted proposal in private files so reconnects
+work. The worker removes them at review or after failure/cancellation. Status
+replies contain no page view. Your assistant manages its own chat history.
+
+Browser and output limits are enforced by our server. **Your client controls its
+own model usage and charges.** In client reports, model tokens, duration and cost
+are `null` (unknown), not zero. Server-side model counters stay zero because our
+worker makes no inference call; this does not mean the assistant was free.
+See [job limits and cleanup](BUILD_JOBS.md) for deadlines, budgets and retention.
+
+## API or optional local model
+
+For standalone use, choose `--generation provider`. The worker can use the
+OpenAI API, or an optional local llama.cpp server. Neither is required for the
+Codex/Claude path. See [provider setup and the task format](MODEL_PROVIDERS.md).
+All modes use the same contract checks, preview, job service, and review gate.
+
+## What is verified
+
+CI uses three original local layouts, controlled model replies, real browser
+checks, and MCP reconnects. It checks changing inputs, empty results, paging,
+traces, malformed proposals, hostile page instructions, budgets and cancellation.
+These tests verify the integration, not model quality on changing websites.
+
+An exploratory [live MCP check](evidence/client-creation-2026-10-26.json) produced
+a book draft whose replay matched all 11 rows. Laptop and clothing reads failed;
+the earlier book size-limit failure is retained too. This is partial evidence,
+not a three-site benchmark. Native client UI and paid API runs were not tested.
+
+Record real-client and live-site trials separately: date, model/client versions,
+task/draft hashes, every started attempt, outcome, timings and independent result
+checks. Record model usage and charges only when available. Include failures;
+unknown cost cannot pass a cost target. The [three-site pilot](THREE_SITE_PILOT.md)
+and its wider user-evidence targets remain separate requirements.

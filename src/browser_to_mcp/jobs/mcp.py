@@ -62,7 +62,13 @@ def create_job_server(directory):
         """Queue a public URL/task description for a draft. Explicitly grant resource budgets.
 
         The task declares name, start_url, description, allowed_domains, inputs, and fields.
-        Client mode: grant six browser actions, read_task_context, then submit_task_proposal.
+        Minimal task: {"name":"catalog","start_url":"https://example.org/products/",
+        "description":"Read product names","allowed_domains":["example.org"],"inputs":{},
+        "fields":{"title":{"description":"Full product name"}},"shape":"array"}.
+        A link field also needs link_path_prefix, such as /products/. Input definitions
+        need a description and optional type/example; each must bind to a URL value.
+        Ask the user about missing task details or permissions rather than inventing them.
+        Client mode: budgets={"browser_actions":6}, read_task_context, then submit_task_proposal.
         Provider mode uses a worker-configured API or local model and may send public page data
         to the configured provider. Explicitly permit model requests, tokens and API cost there.
         Never supply credentials. This operation cannot publish or register tools.

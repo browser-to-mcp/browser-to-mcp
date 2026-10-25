@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "kind": "exploratory_public_client_creation",
+  "date_local": "2026-10-26",
+  "timezone": "Asia/Kolkata",
+  "observer": "MCP STDIO calls, managed browser jobs, and a normal replay trace",
+  "proposal_origin": "Client-side model reasoning in the development session using returned page data",
+  "client_model_label": "gpt-6.1-sol (session configuration)",
+  "client_model_usage": null,
+  "client_model_cost": null,
+  "native_codex_cli_session_tested": false,
+  "native_claude_code_session_tested": false,
+  "real_hosted_api_call_tested": false,
+  "public_three_site_gate_passed": false,
+  "runtime": {
+    "python": "3.12.12",
+    "platform": "Darwin",
+    "architecture": "arm64",
+    "playwright": "1.61.0"
+  },
+  "permission_sources": [
+    "https://toscrape.com/",
+    "https://webscraper.io/test-sites",
+    "https://www.scrapingcourse.com/"
+  ],
+  "attempts": [
+    {
+      "attempt": "books-attempt1",
+      "site": "books",
+      "started_at": "2026-10-25T19:14:02.254028+00:00",
+      "observed_at": "2026-10-25T19:14:08.741601+00:00",
+      "start_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+      "allowed_domains": [
+        "books.toscrape.com",
+        "ajax.googleapis.com"
+      ],
+      "generation": "client",
+      "job_id": "e0f87282-ea5d-4bcb-b699-b428528bd3e1",
+      "state": "failed",
+      "error": {
+        "code": "page_too_large",
+        "message": "This page is too large to inspect within the supported limits. Choose a smaller listing."
+      },
+      "worker_usage": {
+        "browser_actions": 3,
+        "model_requests": 0,
+        "tokens": 0,
+        "cost_microusd": 0,
+        "output_bytes": 0
+      },
+      "client_tokens": null,
+      "client_cost_usd": null,
+      "model_requests_from_worker": 0,
+      "automatic_retries": 0
+    },
+    {
+      "attempt": "books",
+      "site": "books",
+      "started_at": "2026-10-25T19:15:09.415917+00:00",
+      "observed_at": "2026-10-25T19:17:00.766853+00:00",
+      "start_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+      "allowed_domains": [
+        "books.toscrape.com",
+        "ajax.googleapis.com"
+      ],
+      "generation": "client",
+      "job_id": "fa4d5d23-5e6a-4d07-8647-b36aa9a57a29",
+      "state": "ready_for_review",
+      "error": null,
+      "worker_usage": {
+        "browser_actions": 6,
+        "model_requests": 0,
+        "tokens": 0,
+        "cost_microusd": 0,
+        "output_bytes": 82379
+      },
+      "client_tokens": null,
+      "client_cost_usd": null,
+      "model_requests_from_worker": 0,
+      "automatic_retries": 0,
+      "artifact": {
+        "filename": "fa4d5d23-5e6a-4d07-8647-b36aa9a57a29.draft.candidate",
+        "sha256": "5c3612049d288df66c50d0f2fa9f23aa64c86eaa6e7477f2bb4bce0451d8f7da",
+        "manifest_digest": "sha256:b09a835733b7e390ed2e9422754babf72ce2ef4809cd8b7e5ae76c08860fc78c"
+      },
+      "report": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 11.701647791080177,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "independent_replay": {
+        "observed_at": "2026-10-25T19:20:22.818375+00:00",
+        "matched": true,
+        "rows": 11,
+        "expected_source": "Initial public MCP DOM tree grouped by parent IDs, without generated CSS",
+        "output_sha256": "16bb35af5f289cbde25d7a61826d5f3b364790dccd0acccd902b7ce67eacbdb4",
+        "manifest_digest": "sha256:b09a835733b7e390ed2e9422754babf72ce2ef4809cd8b7e5ae76c08860fc78c",
+        "duration_seconds": 3.736605582991615,
+        "source_commit": "a2d7860431bc19186e9f8959df098272068705bb",
+        "trace_id": "552594c23e3341bda71400a7f1152f28",
+        "browser_version": "149.0.7827.55",
+        "source_worktree_dirty": true
+      },
+      "candidate_path": "client-creation-2026-10-26/books.draft.candidate",
+      "expected_rows_path": "client-creation-2026-10-26/books-expected.json"
+    },
+    {
+      "attempt": "laptops",
+      "site": "laptops",
+      "started_at": "2026-10-25T19:16:55.690668+00:00",
+      "observed_at": "2026-10-25T19:17:31.231632+00:00",
+      "start_url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+      "allowed_domains": [
+        "webscraper.io"
+      ],
+      "generation": "client",
+      "job_id": "2e40e0c3-bac1-4b6c-aa45-05f699d179e1",
+      "state": "failed",
+      "error": {
+        "code": "page_unavailable",
+        "message": "The page could not be read under the browser policy. Check the URL, access, and required hosts. No redirects, login, challenge bypass, or automatic retry is supported."
+      },
+      "worker_usage": {
+        "browser_actions": 2,
+        "model_requests": 0,
+        "tokens": 0,
+        "cost_microusd": 0,
+        "output_bytes": 0
+      },
+      "client_tokens": null,
+      "client_cost_usd": null,
+      "model_requests_from_worker": 0,
+      "automatic_retries": 0
+    },
+    {
+      "attempt": "clothing",
+      "site": "clothing",
+      "started_at": "2026-10-25T19:18:46.090706+00:00",
+      "observed_at": "2026-10-25T19:18:51.538754+00:00",
+      "start_url": "https://www.scrapingcourse.com/ecommerce/",
+      "allowed_domains": [
+        "www.scrapingcourse.com"
+      ],
+      "generation": "client",
+      "job_id": "c9d46828-a686-471d-af34-ea2cb6d6cc7a",
+      "state": "failed",
+      "error": {
+        "code": "page_unavailable",
+        "message": "The page could not be read under the browser policy. Check the URL, access, and required hosts. No redirects, login, challenge bypass, or automatic retry is supported."
+      },
+      "worker_usage": {
+        "browser_actions": 2,
+        "model_requests": 0,
+        "tokens": 0,
+        "cost_microusd": 0,
+        "output_bytes": 0
+      },
+      "client_tokens": null,
+      "client_cost_usd": null,
+      "model_requests_from_worker": 0,
+      "automatic_retries": 0
+    }
+  ],
+  "notes": [
+    "Four build jobs were started; all appear here. The book page was tried again only after the page-view representation was corrected. This is not a fixed-version success-rate benchmark.",
+    "Builds ran from a development worktree before the implementation commit; their exact build-source identity was not captured at start. Candidate hashes are retained. The book replay records its source commit and compared all 11 rows with the initial DOM tree without reusing the generated CSS.",
+    "The book host list includes its jQuery library host already used in the book pilot. Tracking hosts were not added to make refused sites pass.",
+    "One overlapping helper launch exited before it processed the queued laptop job. Its detailed error was not captured; a later serialized worker processed the same job once.",
+    "page_unavailable does not distinguish every network, HTTP access or policy cause. No specific access-challenge diagnosis is claimed.",
+    "No paid API inference was made by the worker. Client-side tokens, duration and charges are unknown, not zero.",
+    "A successful draft and one replay do not satisfy the independent publication gate or the wider pilot repetitions, cost and real-user requirements."
+  ]
+}

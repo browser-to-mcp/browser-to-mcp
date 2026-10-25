@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from browser_to_mcp.authoring.command import run_author
+from browser_to_mcp.jobs.command import add_jobs_parser, run_jobs
 from browser_to_mcp.loader import load_workflow
 from browser_to_mcp.recorder.command import run_record
 from browser_to_mcp.replay import WorkflowExecutionError, replay_workflow
@@ -22,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(prog="browser-to-mcp")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    add_jobs_parser(subparsers)
     record_parser = subparsers.add_parser(
         "record",
         help="Record a public read-only demonstration into a local draft.",
@@ -156,6 +158,8 @@ def run(arguments: list[str] | None = None) -> int:
     parser = build_parser()
     namespace = parser.parse_args(arguments)
 
+    if namespace.command == "jobs":
+        return run_jobs(namespace)
     if namespace.command == "author":
         return run_author(namespace.draft, namespace.output)
     if namespace.command == "record":

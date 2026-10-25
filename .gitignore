@@ -7,3 +7,4 @@ __pycache__/
 traces/
 recordings/
 reports/
+.browser-to-mcp-jobs/

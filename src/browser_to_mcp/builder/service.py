@@ -37,6 +37,12 @@ shopping actions, downloads, infinite scrolling, or arbitrary navigation are sup
 def safe_observation(snapshot, base_url):
     """Drop credential-like cells/links; input values and scripts are never collected."""
 
+    def safe_link(value):
+        try:
+            return safe_url(urljoin(base_url, value))
+        except ValueError:
+            return False
+
     def clean(value):
         if isinstance(value, str):
             if SECRET_VALUE.search(value) or ASSIGNMENT.search(value):
@@ -46,11 +52,7 @@ def safe_observation(snapshot, base_url):
             return [clean(item) for item in value]
         if isinstance(value, dict):
             return {
-                key: (
-                    "[omitted]"
-                    if key == "href" and not safe_url(urljoin(base_url, item))
-                    else clean(item)
-                )
+                key: ("[omitted]" if key == "href" and not safe_link(item) else clean(item))
                 for key, item in value.items()
             }
         return value

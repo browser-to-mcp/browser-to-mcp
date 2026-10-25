@@ -6,6 +6,7 @@ import pytest
 from builder_site import proposal, task
 
 from browser_to_mcp.builder.contracts import check_task, make_candidate
+from browser_to_mcp.builder.service import safe_observation
 from browser_to_mcp.jobs.models import Budgets, JobError
 from browser_to_mcp.replay import render_url_template
 
@@ -145,3 +146,26 @@ def test_task_jobs_are_idempotent_and_keep_task_data_out_of_metadata(store):
     assert store.read_artifact(initial["id"], "input")
     with pytest.raises(JobError, match="different work"):
         store.start_task(key, request | {"name": "other"}, Budgets())
+
+
+def test_page_view_omits_malformed_or_unsafe_links_without_losing_safe_relative_links():
+    value = safe_observation(
+        {
+            "nodes": [
+                {"attrs": {"href": "http://[invalid"}},
+                {"attrs": {"href": "javascript:alert(1)"}},
+                {"attrs": {"href": "/?token=PRIVATE"}},
+                {"attrs": {"href": "/products/blue"}},
+                {"text": "Bearer PRIVATE"},
+            ]
+        },
+        "http://127.0.0.1:1234/books/",
+    )
+    assert [node["attrs"]["href"] for node in value["nodes"][:4]] == [
+        "[omitted]",
+        "[omitted]",
+        "[omitted]",
+        "/products/blue",
+    ]
+    assert value["nodes"][-1]["text"] == "[omitted]"
+    assert "PRIVATE" not in json.dumps(value)

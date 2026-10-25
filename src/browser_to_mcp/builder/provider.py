@@ -20,12 +20,38 @@ MAX_RESPONSE_BYTES = 1048576
 MAX_PROMPT_BYTES = 131072
 
 
+async def post_json(url, payload, *, headers=None, transport=None):
+    """Bounded provider transport; never expose response bodies or authentication errors."""
+    try:
+        async with httpx.AsyncClient(
+            timeout=60, follow_redirects=False, trust_env=False, transport=transport
+        ) as client:
+            async with client.stream("POST", url, json=payload, headers=headers) as response:
+                if response.status_code != 200:
+                    raise JobError("provider_unavailable")
+                data = bytearray()
+                async for chunk in response.aiter_bytes():
+                    data.extend(chunk)
+                    if len(data) > MAX_RESPONSE_BYTES:
+                        raise JobError("provider_response")
+                value = json.loads(data)
+                if not isinstance(value, dict):
+                    raise ValueError
+                return value
+    except JobError:
+        raise
+    except (httpx.HTTPError, ValueError, TypeError, RecursionError):
+        raise JobError("provider_unavailable") from None
+
+
 @dataclass(frozen=True)
 class ModelReply:
     content: str
     prompt_tokens: int
     completion_tokens: int
     seconds: float
+    model: str | None = None
+    estimated_cost_microusd: int | None = None
 
 
 class PreparedRequest(Protocol):
@@ -41,6 +67,8 @@ class DraftProvider(Protocol):
 
 class LlamaCppProvider:
     """Use an explicitly configured local model; no download, retry, redirect, or proxy."""
+
+    name = "llama_cpp"
 
     def __init__(self, endpoint: str, *, api_key=None, max_tokens=4096, transport=None):
         try:
@@ -80,28 +108,12 @@ class LlamaCppProvider:
 
     async def _post(self, path, payload):
         headers = {"Authorization": "Bearer " + self._api_key} if self._api_key else {}
-        try:
-            async with httpx.AsyncClient(
-                timeout=60, follow_redirects=False, trust_env=False, transport=self._transport
-            ) as client:
-                async with client.stream(
-                    "POST", self.endpoint + path, json=payload, headers=headers
-                ) as response:
-                    if response.status_code != 200:
-                        raise JobError("provider_unavailable")
-                    data = bytearray()
-                    async for chunk in response.aiter_bytes():
-                        data.extend(chunk)
-                        if len(data) > MAX_RESPONSE_BYTES:
-                            raise JobError("provider_response")
-                    value = json.loads(data)
-                    if not isinstance(value, dict):
-                        raise ValueError
-                    return value
-        except JobError:
-            raise
-        except (httpx.HTTPError, ValueError, TypeError, RecursionError):
-            raise JobError("provider_unavailable") from None
+        return await post_json(
+            self.endpoint + path,
+            payload,
+            headers=headers,
+            transport=self._transport,
+        )
 
     async def prepare(self, prompt, schema):
         if len(prompt.encode()) > MAX_PROMPT_BYTES:
@@ -173,3 +185,14 @@ class LlamaRequest:
         ):
             raise JobError("provider_response")
         return ModelReply(content, evaluated, predicted, monotonic() - start)
+
+
+def provider_from_environment():
+    choice = os.environ.get("BROWSER_TO_MCP_PROVIDER")
+    if choice == "llama_cpp" or choice is None and os.environ.get("BROWSER_TO_MCP_MODEL_URL"):
+        return LlamaCppProvider.from_environment()
+    if choice == "openai":
+        from .cloud import OpenAIProvider
+
+        return OpenAIProvider.from_environment()
+    raise JobError("provider_configuration")

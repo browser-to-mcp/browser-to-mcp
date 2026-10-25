@@ -41,6 +41,10 @@ async def prepare_phase(context, job):
         from browser_to_mcp.builder.service import generate_phase
 
         return await generate_phase(context, job)
+    if job["kind"] == "generate_workflow" and job["phase"] == "check_proposal":
+        from browser_to_mcp.builder.service import check_client_proposal
+
+        return await check_client_proposal(context, job)
     if job["phase"] == "prepare":
         loaded, data = check_candidate(store.read_artifact(job_id, "input").decode("utf-8"))
         compile_workflow(loaded)
@@ -59,6 +63,8 @@ async def execute_phase(store, job_id, handler=prepare_phase):
             outcome = await handler(context, job)
         if outcome == "review":
             store.ask(job_id, "review_draft", "finish", ready=True)
+        elif outcome == "proposal":
+            store.ask(job_id, "draft_proposal", "check_proposal")
         elif outcome == "complete":
             store.complete(job_id)
         elif isinstance(outcome, tuple) and len(outcome) == 2:

@@ -48,6 +48,11 @@ class Usage(ClosedModel):
 
 
 QUESTION_TEXT = {
+    "draft_proposal": (
+        "Read this job's task context, then submit a JSON draft proposal with "
+        "submit_task_proposal. No separate model installation is needed.",
+        [],
+    ),
     "review_draft": (
         "Keep this checked draft? Keeping it does not run or publish it.",
         ["keep", "discard"],
@@ -57,7 +62,7 @@ QUESTION_TEXT = {
         ["single", "list"],
     ),
 }
-QuestionKind = Literal["review_draft", "output_shape"]
+QuestionKind = Literal["review_draft", "output_shape", "draft_proposal"]
 
 
 class Question(ClosedModel):
@@ -78,15 +83,16 @@ MESSAGES = {
         "Check the requested fields and URL inputs, then start a new attempt."
     ),
     "provider_configuration": (
-        "Set BROWSER_TO_MCP_MODEL_URL to http://127.0.0.1:PORT for a running llama.cpp server. "
-        "Keep its optional API key in BROWSER_TO_MCP_MODEL_API_KEY, never in the task."
+        "Choose a worker provider: openai with an API key, model and price limits, "
+        "or llama_cpp with a local model URL. Client generation needs neither. "
+        "See the task-builder guide; never put keys in tasks or answers."
     ),
     "provider_unavailable": (
-        "The local model server could not answer. Check its setup and available context size. "
+        "The configured model provider could not answer. Check setup, access and context size. "
         "This attempt was not retried."
     ),
     "provider_response": (
-        "The local model returned an incomplete or invalid response. Check its model and context "
+        "The provider returned an incomplete or invalid response. Check its model and context "
         "size, or raise the output-token limit within your budget, then start a new attempt."
     ),
     "page_too_large": (
@@ -182,18 +188,22 @@ class Artifact(ClosedModel):
 
 
 class BuildReport(ClosedModel):
-    provider: Literal["llama_cpp", "controlled"]
-    prompt_tokens: int = Field(ge=0)
-    completion_tokens: int = Field(ge=0)
-    model_seconds: float = Field(ge=0, allow_inf_nan=False)
+    provider: Literal["mcp_client", "openai", "llama_cpp", "controlled"]
+    model: str | None = None
+    prompt_tokens: int | None = Field(ge=0)
+    completion_tokens: int | None = Field(ge=0)
+    model_seconds: float | None = Field(ge=0, allow_inf_nan=False)
     browser_seconds: float = Field(ge=0, allow_inf_nan=False)
-    api_cost_microusd: Literal[0] = 0
+    api_cost_microusd: Literal[0] | None = 0
+    estimated_cost_microusd: int | None = Field(default=None, ge=0)
+    cost_basis: Literal["local_no_api", "configured_rates", "external_client"] = "local_no_api"
     checks: list[Literal["schema", "policy", "compiler", "first_page_preview"]]
 
 
 class JobSnapshot(ClosedModel):
     id: str
     kind: Literal["prepare_workflow", "generate_workflow"]
+    generation: Literal["client", "provider"] | None = None
     state: State
     revision: int
     stage: str

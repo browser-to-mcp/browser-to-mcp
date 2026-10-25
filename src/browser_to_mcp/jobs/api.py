@@ -15,6 +15,20 @@ def dispatch(store: JobStore, operation: str, arguments: dict):
                 arguments["request_key"],
                 arguments["candidate" if operation == "start" else "task"],
                 Budgets.model_validate({} if limits is None else limits),
+                **(
+                    {"generation": arguments.get("generation", "client")}
+                    if operation == "start-task"
+                    else {}
+                ),
+            )
+        if operation == "context":
+            return store.read_context(arguments["job_id"])
+        if operation == "submit-proposal":
+            return store.submit_proposal(
+                arguments["job_id"],
+                arguments["question_id"],
+                arguments["revision"],
+                arguments["proposal"],
             )
         if operation == "read":
             return store.read(arguments["job_id"])

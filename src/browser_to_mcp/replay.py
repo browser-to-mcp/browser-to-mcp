@@ -34,6 +34,7 @@ from browser_to_mcp.models import (
     Workflow,
     WorkflowInput,
 )
+from browser_to_mcp.paging import PagingPermissionError, collect_pages
 from browser_to_mcp.records import extract_records
 from browser_to_mcp.structured_outputs import OutputValidationError, validate_outputs
 from browser_to_mcp.tracing import (
@@ -41,6 +42,7 @@ from browser_to_mcp.tracing import (
     TraceAssertion,
     TraceError,
     TraceMetadata,
+    TracePage,
     TraceStatus,
     WorkflowTrace,
     has_sensitive_outputs,
@@ -114,6 +116,7 @@ class ActionResult:
     status: ActionStatus
     output_key: str | None = None
     duration_seconds: float = 0.0
+    pages: tuple[TracePage, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,15 +202,16 @@ class PlaywrightReplayEngine:
                         violation.message,
                     )
         try:
-            return await asyncio.wait_for(
-                self._run(workflow, inputs, failure_screenshot_path),
-                timeout=self.overall_timeout_seconds,
-            )
+            async with asyncio.timeout(self.overall_timeout_seconds):
+                return await self._run(workflow, inputs, failure_screenshot_path)
         except TimeoutError as error:
             raise WorkflowExecutionError(
                 ExecutionFailureCategory.RUNTIME,
                 "replay",
-                f"Workflow exceeded overall timeout of {self.overall_timeout_seconds} seconds.",
+                f"Workflow exceeded overall timeout of {self.overall_timeout_seconds} seconds."
+                + (" Collection is incomplete." if any(s.paging for s in workflow.steps) else ""),
+                actions=getattr(error.__cause__, "actions", ()),
+                browser_version=getattr(error.__cause__, "browser_version", "unknown"),
             ) from error
 
     async def _run(
@@ -238,6 +242,9 @@ class PlaywrightReplayEngine:
                         assertions = evaluate_success_assertions(
                             workflow.success, execution.outputs
                         )
+                    except asyncio.CancelledError as error:
+                        error.browser_version = browser_version
+                        raise
                     except WorkflowExecutionError as error:
                         error.message = redact_text(error.message, workflow, inputs)
                         error.browser_version = browser_version
@@ -252,6 +259,7 @@ class PlaywrightReplayEngine:
                             not has_sensitive_input
                             and not has_sensitive_outputs(workflow)
                             and boundary.failure is None
+                            and error.category is not ExecutionFailureCategory.PERMISSION
                         ):
                             error.screenshot_path = await _capture_failure_screenshot(
                                 page, failure_screenshot_path
@@ -376,6 +384,27 @@ async def replay_workflow(
         outputs = engine_result.execution.outputs
         actions = engine_result.execution.actions
         assertions = engine_result.assertions
+    except asyncio.CancelledError as error:
+        execution_error = WorkflowExecutionError(
+            ExecutionFailureCategory.RUNTIME,
+            "replay",
+            "Collection was cancelled and is incomplete; no results were returned.",
+            actions=getattr(error, "actions", ()),
+        )
+        _persist_trace(
+            trace_dir,
+            run_id,
+            loaded,
+            started_at_utc,
+            started_at,
+            inputs,
+            actions=execution_error.actions,
+            outputs={},
+            assertions=(),
+            browser_version=getattr(error, "browser_version", browser_version),
+            error=execution_error,
+        )
+        raise
     except WorkflowExecutionError as error:
         error.message = redact_text(error.message, loaded.workflow, inputs)
         error.trace_path = _persist_trace(
@@ -478,7 +507,9 @@ def _persist_trace(
 
     finished_at = datetime.now(UTC)
     trace = WorkflowTrace(
-        schema_version=2
+        schema_version=3
+        if any(s.paging for s in loaded.workflow.steps)
+        else 2
         if any(isinstance(d, StructuredOutput) for d in loaded.workflow.outputs.values())
         else 1,
         status=TraceStatus.FAILED if error else TraceStatus.COMPLETED,
@@ -504,6 +535,7 @@ def _persist_trace(
                 status=str(action.status),
                 output_key=action.output_key,
                 duration_seconds=max(0.0, action.duration_seconds),
+                pages=list(action.pages),
             )
             for action in actions
         ],
@@ -570,6 +602,7 @@ async def execute_steps(
     outputs: dict[str, OutputValue] = {}
     actions: list[ActionResult] = []
     for step in workflow.steps:
+        page_evidence: list[TracePage] = []
         output_key: str | None = step.id if step.id in workflow.outputs else None
         step_started_at = monotonic()
         try:
@@ -591,11 +624,20 @@ async def execute_steps(
                         f"steps.{step.id}.url",
                         violation.message,
                     )
-                await page.goto(
+                response = await page.goto(
                     url,
                     wait_until="domcontentloaded",
                     timeout=step.timeout_seconds * 1000,
                 )
+                if any(s.paging for s in workflow.steps) and (
+                    response is None or not 200 <= response.status < 300
+                ):
+                    _check_boundary(boundary, step.id)
+                    raise WorkflowExecutionError(
+                        ExecutionFailureCategory.RUNTIME,
+                        f"steps.{step.id}",
+                        "The page returned an unsuccessful response. Collection is incomplete.",
+                    )
             elif step.action is StepAction.FILL:
                 await page.locator(render_template(step.selector or "", inputs)).fill(
                     render_template(step.value or "", inputs),
@@ -629,7 +671,17 @@ async def execute_steps(
                 if output_key is not None:
                     outputs[output_key] = extracted
             elif step.action is StepAction.EXTRACT_RECORDS:
-                outputs[step.id] = await extract_records(page, step, workflow.outputs[step.id])
+                if step.paging:
+                    outputs[step.id], outputs[step.paging.status_output] = await collect_pages(
+                        page,
+                        step,
+                        workflow.outputs[step.id],
+                        allowed_domains or workflow.permissions.allowed_domains,
+                        lambda: _check_boundary(boundary, step.id),
+                        page_evidence,
+                    )
+                else:
+                    outputs[step.id] = await extract_records(page, step, workflow.outputs[step.id])
             elif step.action is StepAction.DOWNLOAD:
                 async with page.expect_download(
                     timeout=step.timeout_seconds * 1000
@@ -647,11 +699,25 @@ async def execute_steps(
                     f"Replay does not support action '{step.action}'.",
                 )
             _check_boundary(boundary, step.id)
+        except asyncio.CancelledError as error:
+            error.actions = tuple(actions) + (
+                ActionResult(
+                    step_id=step.id,
+                    action=step.action,
+                    status=ActionStatus.FAILED,
+                    output_key=output_key,
+                    duration_seconds=monotonic() - step_started_at,
+                    pages=tuple(page_evidence),
+                ),
+            )
+            raise
         except OutputValidationError as error:
             raise WorkflowExecutionError(
-                ExecutionFailureCategory.ASSERTION,
+                ExecutionFailureCategory.PERMISSION
+                if isinstance(error, PagingPermissionError)
+                else ExecutionFailureCategory.ASSERTION,
                 error.path,
-                error.message,
+                error.message + (" Collection is incomplete." if step.paging else ""),
                 actions=tuple(actions)
                 + (
                     ActionResult(
@@ -660,10 +726,13 @@ async def execute_steps(
                         status=ActionStatus.FAILED,
                         output_key=output_key,
                         duration_seconds=monotonic() - step_started_at,
+                        pages=tuple(page_evidence),
                     ),
                 ),
             ) from None
         except WorkflowExecutionError as error:
+            if step.paging:
+                error.message += " Collection is incomplete; no results were returned."
             if not error.actions:
                 error.actions = tuple(actions) + (
                     ActionResult(
@@ -672,6 +741,7 @@ async def execute_steps(
                         status=ActionStatus.FAILED,
                         output_key=output_key,
                         duration_seconds=monotonic() - step_started_at,
+                        pages=tuple(page_evidence),
                     ),
                 )
             raise
@@ -690,6 +760,16 @@ async def execute_steps(
             else:
                 category = ExecutionFailureCategory.RUNTIME
                 message = _runtime_message(error)
+            if step.paging:
+                if violation:
+                    message = violation.message
+                elif isinstance(error, TimeoutError):
+                    message = "Paging exceeded its total deadline."
+                elif isinstance(error, PlaywrightTimeoutError):
+                    message = "A paging browser operation timed out."
+                else:
+                    message = "A paging browser operation failed."
+                message += " Collection is incomplete; no results were returned."
             raise WorkflowExecutionError(
                 category,
                 f"steps.{step.id}",
@@ -702,6 +782,7 @@ async def execute_steps(
                         status=ActionStatus.FAILED,
                         output_key=output_key,
                         duration_seconds=monotonic() - step_started_at,
+                        pages=tuple(page_evidence),
                     ),
                 ),
             ) from error
@@ -716,6 +797,7 @@ async def execute_steps(
                 status=ActionStatus.COMPLETED,
                 output_key=output_key,
                 duration_seconds=monotonic() - step_started_at,
+                pages=tuple(page_evidence),
             )
         )
     return StepExecution(outputs=outputs, actions=tuple(actions))

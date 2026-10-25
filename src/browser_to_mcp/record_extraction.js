@@ -1,5 +1,5 @@
 // Internal fixed extractor. Workflows supply CSS and declared fields, never page code.
-({area, rows, fields, empty, limit, cellLimit, byteLimit, readyOnly}) => {
+({area, rows, fields, empty, limit, cellLimit, byteLimit, readyOnly, paging}) => {
   const visible = el => !!el.getClientRects().length &&
     getComputedStyle(el).visibility !== 'hidden';
   const failure = (error, row, field) => ({error, row, field});
@@ -14,9 +14,34 @@
       if (visible(marker)) markers.push(marker);
       if (markers.length > 1) break;
     }
+    let navigation;
+    if (paging) {
+      const next = document.querySelectorAll(paging.next_selector);
+      const end = [];
+      for (const marker of document.querySelectorAll(paging.end_selector)) {
+        if (visible(marker)) end.push(marker);
+        if (end.length > 1) break;
+      }
+      if (readyOnly && !next.length && !end.length) return false;
+      if (!readyOnly) {
+        if (next.length > 1 || end.length > 1 || (next.length && end.length))
+          return failure('ambiguous_paging');
+        if (end.length === 1) navigation = {end: true};
+        else {
+          const link = next[0];
+          if (!link || link.tagName !== 'A' || !visible(link) ||
+              !link.getAttribute('href') || link.hasAttribute('download') ||
+              link.getAttribute('aria-disabled') === 'true' || link.hasAttribute('disabled') ||
+              (link.target && link.target !== '_self')) return failure('invalid_next_link');
+          const target = new URL(link.getAttribute('href'), document.baseURI);
+          if (target.href.length > 4096) return failure('next_link_limit');
+          navigation = {end: false, url: target.href};
+        }
+      }
+    }
     if (readyOnly) return foundRows.length > 0 || markers.length > 0;
     if (!foundRows.length)
-      return markers.length === 1 ? {records: []} : failure('unconfirmed_empty');
+      return markers.length === 1 ? {records: [], navigation} : failure('unconfirmed_empty');
     if (markers.length) return failure('mixed_empty_state');
     if (foundRows.length > limit) return failure('row_limit');
     const matches = [...foundRows];
@@ -54,6 +79,6 @@
       }
       records.push(record);
     }
-    return {records};
+    return {records, navigation};
   } catch (_) { return readyOnly ? true : failure('invalid_selector_or_link'); }
 }

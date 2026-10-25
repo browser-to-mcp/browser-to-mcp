@@ -106,10 +106,13 @@ def validate_workflow_policy(workflow: Workflow) -> None:
             _validate_navigation(step.id, step.url, workflow.permissions.allowed_domains)
 
     producers = {step.id: step for step in workflow.steps}
+    paging_status = _validate_paging_outputs(workflow, producers)
     for name, definition in workflow.outputs.items():
         name_error = schema_field_name_error(name)
         if name_error:
             raise WorkflowValidationError(FailureCategory.SCHEMA, f"outputs.{name}", name_error)
+        if name in paging_status:
+            continue
         producer = producers.get(name)
         if producer is None or producer.action not in {
             StepAction.EXTRACT_TEXT,
@@ -230,3 +233,45 @@ def _validate_navigation(step_id: str, url: str | None, allowed_domains: list[st
             f"steps.{step_id}.url",
             violation.message,
         )
+
+
+def _validate_paging_outputs(workflow: Workflow, producers: dict) -> set[str]:
+    statuses = set()
+    expected = {"pages_read": "integer", "complete": "boolean", "stop_reason": "string"}
+    for step in workflow.steps:
+        if step.paging is None:
+            continue
+        path = f"steps.{step.id}.paging"
+        output = workflow.outputs.get(step.id)
+        if (
+            not isinstance(output, StructuredOutput)
+            or output.type != "array"
+            or step.record is None
+            or step.record.duplicates != "deduplicate"
+            or step.record.unique_by is None
+        ):
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                path,
+                "Paging requires an array and deduplicate with an explicit stable unique_by key.",
+            )
+        name = step.paging.status_output
+        status = workflow.outputs.get(name)
+        if name in producers or name in statuses:
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA, path, "Paging status outputs must have one unique owner."
+            )
+        if (
+            not isinstance(status, StructuredOutput)
+            or status.type != "object"
+            or {k: v.type for k, v in status.record_fields.items()} != expected
+            or any(v.nullable for v in status.record_fields.values())
+        ):
+            raise WorkflowValidationError(
+                FailureCategory.SCHEMA,
+                path,
+                "Declare status_output as an object with required pages_read (integer), "
+                "complete (boolean), and stop_reason (string) fields.",
+            )
+        statuses.add(name)
+    return statuses

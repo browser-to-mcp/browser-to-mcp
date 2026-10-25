@@ -84,6 +84,10 @@ traces agree on output types. Conversion failures use `assertion` errors at
 [OUTPUTS.md](OUTPUTS.md) for primitive conversion and redaction, and
 [RECORD_OUTPUTS.md](RECORD_OUTPUTS.md) for bounded objects, lists, nulls, and empty results.
 
+A [paging record step](PAGING.md) also produces its declared `status_output`
+object. This summary contains `pages_read`, `complete`, and `stop_reason`; it
+does not need a separate extraction step. Each summary has one paging owner.
+
 V0 supports `goto`, `fill`, `press`, `click`, `wait_for_text`,
 `extract_text`, `extract_records`, and permission-gated `download` actions. The workflow must be
 `read_only`. Domains are explicit, and every navigation and page request is

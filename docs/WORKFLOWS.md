@@ -68,6 +68,10 @@ pass a presence check. See [OUTPUTS.md](OUTPUTS.md) for the full rules, a
 four-field workflow, compatibility, and error/redaction behavior. Bounded records
 and lists use row-relative extraction; see [RECORD_OUTPUTS.md](RECORD_OUTPUTS.md).
 
+A [paging record step](PAGING.md) also produces its declared `status_output`
+object. This summary contains `pages_read`, `complete`, and `stop_reason`; it
+does not need a separate extraction step. Each summary has one paging owner.
+
 ## URL inputs
 
 Use `{{input_name}}` to insert a declared input. Spaces around the name, as in

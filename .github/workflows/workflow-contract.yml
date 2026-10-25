@@ -21,3 +21,4 @@ jobs:
       - run: uv run browser-to-mcp validate workflows/hn_search.yaml
       - run: uv run browser-to-mcp validate workflows/wikipedia_search.yaml
       - run: uv run browser-to-mcp validate examples/records/catalog.yaml
+      - run: uv run browser-to-mcp validate examples/paging/catalog.yaml

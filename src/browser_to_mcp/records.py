@@ -1,5 +1,6 @@
 """Extract one synchronous snapshot of row-aligned fields in a protected browser."""
 
+import asyncio
 from importlib.resources import files
 from urllib.parse import urlsplit
 
@@ -14,6 +15,16 @@ from browser_to_mcp.structured_outputs import OutputValidationError
 
 
 async def extract_records(page, step: WorkflowStep, output: StructuredOutput):
+    rows, _ = await extract_record_snapshot(page, step, output)
+    return rows
+
+
+async def extract_record_snapshot(page, step: WorkflowStep, output: StructuredOutput):
+    async def observe(operation):
+        if step.paging:
+            return await cancellable_page_operation(page, operation)
+        return await operation
+
     config = {
         "area": step.selector,
         "rows": step.record.rows,
@@ -22,12 +33,15 @@ async def extract_records(page, step: WorkflowStep, output: StructuredOutput):
         "limit": output.max_items if output.type == "array" else 1,
         "cellLimit": MAX_CELL_CHARS,
         "byteLimit": MAX_RECORD_BYTES,
+        "paging": step.paging.model_dump() if step.paging else None,
     }
     script = files("browser_to_mcp").joinpath("record_extraction.js").read_text("utf-8")
-    await page.wait_for_function(
-        script, arg={**config, "readyOnly": True}, timeout=step.timeout_seconds * 1000
+    await observe(
+        page.wait_for_function(
+            script, arg={**config, "readyOnly": True}, timeout=step.timeout_seconds * 1000
+        )
     )
-    result = await page.evaluate(script, {**config, "readyOnly": False})
+    result = await observe(page.evaluate(script, {**config, "readyOnly": False}))
     if "error" in result:
         path = f"outputs.{step.id}"
         if result.get("row") is not None:
@@ -54,5 +68,22 @@ async def extract_records(page, step: WorkflowStep, output: StructuredOutput):
     if output.type == "object":
         if len(rows) != 1:
             raise OutputValidationError(f"outputs.{step.id}", "Expected exactly one record.")
-        return rows[0]
-    return rows
+        return rows[0], result.get("navigation")
+    return rows, result.get("navigation")
+
+
+async def cancellable_page_operation(page, operation):
+    """Close and drain an in-flight browser command when its caller is cancelled.
+
+    Let Playwright receive the page-closed response before discarding the command;
+    otherwise its detached future can log an unhandled error containing the URL.
+    """
+    pending = asyncio.create_task(operation)
+    try:
+        return await asyncio.shield(pending)
+    except asyncio.CancelledError:
+        try:
+            await page.close()
+        finally:
+            await asyncio.gather(pending, return_exceptions=True)
+        raise

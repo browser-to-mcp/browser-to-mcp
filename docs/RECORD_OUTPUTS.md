@@ -18,8 +18,9 @@ tries to join them later. It reads the matched rows in one browser snapshot and
 keeps their page order.
 
 This implements [#59](https://github.com/browser-to-mcp/browser-to-mcp/issues/59).
-It provides extraction from one reviewed results area on one page. Paging and
-whole-catalog completeness belong to #60. The [three-site pilot](THREE_SITE_PILOT.md)
+It provides extraction from one reviewed results area on one page. Add
+[reviewed paging rules](PAGING.md) to collect several pages with explicit completion
+and limit outcomes. The [three-site pilot](THREE_SITE_PILOT.md)
 still needs its later implementation and real-user validation.
 
 ## Try the local example
@@ -194,7 +195,12 @@ The hard limits are:
 - One record level: arrays contain records, and records contain scalar or
   explicitly nullable scalar values. Nested arrays and records are refused.
 
-Too many rows or oversized data fail instead of returning a shortened list.
+These are the single-page rules. [Paging](PAGING.md) uses a separate 100-row
+per-page bound and treats `max_items` as the total unique-record budget, with
+an explicit incomplete result when that budget is reached.
+
+For single-page extraction, too many rows or oversized data fail instead of
+returning a shortened list.
 Overlapping row containers and ambiguous results areas also fail. The runner
 waits for rows or the approved empty marker within the extraction timeout, then
 checks all fields immediately. If a site fills cells after creating its rows,
@@ -242,7 +248,8 @@ authorized CLI/MCP response. They are declarations, not automatic secret or
 personal-data detection. Failure screenshots are omitted when any output field
 is marked sensitive.
 
-Structured workflows write trace `schema_version: 2`. Unmarked values retain
+Single-page structured workflows write trace `schema_version: 2`. Paging
+workflows use version 3 with page counts and outcomes. Unmarked values retain
 their types; marked fields become `[REDACTED]`. Existing scalar workflows keep
 trace version 1, their current manifest digests, and their existing text handling.
 Older runners and trace readers must be upgraded for these new structures;

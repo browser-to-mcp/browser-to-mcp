@@ -6,6 +6,10 @@ a permission-gated `download` step can produce a string filename only.
 An `extract_records` step can produce a bounded object or array; see
 [record outputs](RECORD_OUTPUTS.md). Every record extraction requires a declared
 output. Scalar extraction steps whose IDs are not declared outputs do not add result fields.
+
+A [paging record step](PAGING.md) also produces its declared `status_output`
+object. This summary contains `pages_read`, `complete`, and `stop_reason`; it
+does not need a separate extraction step. Each summary has one paging owner.
 There is no separate mapping expression or transformation language.
 
 Missing producers, unsupported producer actions, invalid output names, and

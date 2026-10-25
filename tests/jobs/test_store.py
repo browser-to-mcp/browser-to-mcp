@@ -306,3 +306,13 @@ def test_public_job_view_stays_bounded(store, candidate):
     public = json.dumps(store.read(job["id"]))
     assert len(public.encode()) < 16384
     assert "source_sha256" not in public and "resume_phase" not in public
+
+
+@pytest.mark.parametrize("limits", [False, [], 0, ""])
+def test_malformed_budget_objects_are_not_silently_replaced_with_defaults(store, candidate, limits):
+    with pytest.raises(JobError) as caught:
+        dispatch(
+            store, "start", dict(request_key=str(uuid4()), candidate=candidate, budgets=limits)
+        )
+    assert caught.value.code == "invalid_request"
+    assert not store.directory.exists()

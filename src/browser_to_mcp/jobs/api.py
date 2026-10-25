@@ -9,10 +9,11 @@ from .store import JobStore
 def dispatch(store: JobStore, operation: str, arguments: dict):
     try:
         if operation == "start":
+            limits = arguments.get("budgets")
             return store.start(
                 arguments["request_key"],
                 arguments["candidate"],
-                Budgets.model_validate(arguments.get("budgets") or {}),
+                Budgets.model_validate({} if limits is None else limits),
             )
         if operation == "read":
             return store.read(arguments["job_id"])

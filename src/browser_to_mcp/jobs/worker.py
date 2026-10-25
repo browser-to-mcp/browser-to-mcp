@@ -166,20 +166,21 @@ async def child(store, job_id, handler=prepare_phase):
     parent_gone = asyncio.create_task(reader.read(1))
     stopped = asyncio.create_task(stop.wait())
     job = store.internal(job_id)
-    task = asyncio.create_task(execute_phase(store, job_id, handler))
     timer = asyncio.create_task(asyncio.sleep(max(0, job["deadline"] - store.clock())))
+    task = asyncio.create_task(execute_phase(store, job_id, handler))
     try:
         done, _ = await asyncio.wait(
             [task, parent_gone, stopped, timer], return_when=asyncio.FIRST_COMPLETED
         )
         if task not in done:
+            timed_out = timer in done or store.clock() >= job["deadline"]
             task.cancel()
             _, pending = await asyncio.wait([task], timeout=4)
             if pending:
                 # A stuck helper must not outlive this phase. Recovery records the interruption.
                 os.killpg(os.getpgrp(), signal.SIGKILL)
             await asyncio.gather(task, return_exceptions=True)
-            code = "budget_wall_seconds" if timer in done else "interrupted"
+            code = "budget_wall_seconds" if timed_out else "interrupted"
             store.finish_failure(job_id, code)
         else:
             await task

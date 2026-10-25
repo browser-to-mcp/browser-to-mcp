@@ -356,3 +356,21 @@ def test_phase_reuses_one_browser_and_charges_startup(store, candidate):
     snapshot = store.read(job["id"])
     assert snapshot["state"] == "waiting_for_input"
     assert snapshot["usage"]["browser_actions"] == 2
+
+
+def test_deadline_reason_survives_a_phase_that_temporarily_blocks_its_event_loop(store, candidate):
+    job = store.start(str(uuid4()), candidate, Budgets(wall_seconds=1))
+    code = """
+import asyncio,sys,time
+from pathlib import Path
+from browser_to_mcp.jobs.store import JobStore
+from browser_to_mcp.jobs.worker import child
+async def slow(context, job):
+    time.sleep(1.2)
+    await asyncio.Event().wait()
+asyncio.run(child(JobStore(Path(sys.argv[1])), sys.argv[2], slow))
+"""
+    asyncio.run(work(store, asyncio.Event(), once=True, child_command=[sys.executable, "-c", code]))
+    failed = store.read(job["id"])
+    assert failed["state"] == "failed"
+    assert failed["error"]["code"] == "budget_wall_seconds"

@@ -20,6 +20,7 @@ from .models import (
     TERMINAL,
     TRANSITIONS,
     Budgets,
+    BuildReport,
     JobError,
     JobSnapshot,
     State,
@@ -151,9 +152,9 @@ class JobStore:
         public = {
             key: value
             for key, value in job.items()
-            if key not in {"phase", "resume_phase", "answer", "source_sha256"}
+            if key not in {"phase", "resume_phase", "answer", "source_sha256", "progress"}
         }
-        public["stage"] = job["phase"]
+        public["stage"] = job.get("progress", job["phase"])
         return JobSnapshot.model_validate(public).model_dump(mode="json")
 
     def read(self, job_id):
@@ -200,11 +201,22 @@ class JobStore:
         return data
 
     def start(self, request_key: str, source: str, budgets: Budgets):
+        _, data = check_candidate(source)
+        return self._start(request_key, data, budgets, kind="prepare_workflow", phase="prepare")
+
+    def start_task(self, request_key: str, task, budgets: Budgets):
+        from browser_to_mcp.builder.contracts import check_task
+
+        _, data = check_task(task)
+        return self._start(request_key, data, budgets, kind="generate_workflow", phase="generate")
+
+    def _start(self, request_key, data, budgets, *, kind, phase):
         _identifier(request_key)
         if not isinstance(budgets, Budgets):
             raise JobError("invalid_request")
-        _, data = check_candidate(source)
-        request_hash = _digest(data + json.dumps(budgets.model_dump(), sort_keys=True).encode())
+        # Preserve existing prepare-job receipts, and separate new task requests by kind.
+        identity = data if kind == "prepare_workflow" else kind.encode() + b"\n" + data
+        request_hash = _digest(identity + json.dumps(budgets.model_dump(), sort_keys=True).encode())
         key_hash = _digest(request_key.encode())
         with self._db(write=True) as db:
             previous = db.execute("SELECT * FROM requests WHERE key_hash=?", (key_hash,)).fetchone()
@@ -225,7 +237,7 @@ class JobStore:
             now = self.clock()
             job = dict(
                 id=str(uuid4()),
-                kind="prepare_workflow",
+                kind=kind,
                 state=State.QUEUED,
                 revision=1,
                 created_at=now,
@@ -233,7 +245,7 @@ class JobStore:
                 deadline=now + budgets.wall_seconds,
                 budgets=budgets.model_dump(),
                 usage=Usage().model_dump(),
-                phase="prepare",
+                phase=phase,
                 question=None,
                 answer=None,
                 resume_phase=None,
@@ -251,6 +263,20 @@ class JobStore:
                 (key_hash, request_hash, job["id"]),
             )
             return self._public(job)
+
+    def record_report(self, job_id, report: BuildReport):
+        with self._db(write=True) as db:
+            job = self._running(db, job_id)
+            job["report"] = BuildReport.model_validate(report).model_dump()
+            self._save(db, job)
+
+    def set_stage(self, job_id, stage):
+        if stage not in {"inspect_page", "ask_model", "check_draft"}:
+            raise JobError("invalid_request")
+        with self._db(write=True) as db:
+            job = self._running(db, job_id)
+            job["progress"] = stage
+            self._save(db, job)
 
     def _running(self, db, job_id):
         job = self._load(db, job_id)
@@ -302,6 +328,7 @@ class JobStore:
             job = self._running(db, job_id)
             prompt, choices = QUESTION_TEXT[kind]
             job["question"] = dict(id=str(uuid4()), kind=kind, prompt=prompt, choices=choices)
+            job.pop("progress", None)
             job["resume_phase"] = resume_phase
             job["answer"] = None
             self._transition(job, State.REVIEW if ready else State.WAITING)

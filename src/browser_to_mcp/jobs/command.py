@@ -26,6 +26,14 @@ def add_jobs_parser(subparsers):
     )
     for name, field in Budgets.model_fields.items():
         start.add_argument("--" + name.replace("_", "-"), type=int, default=field.default)
+    task = commands.add_parser(
+        "start-task", help="Build a draft from a public URL and a JSON task description."
+    )
+    task.add_argument("task_path", type=Path)
+    task.add_argument("--request-key", required=True, help="UUID v4 for this build attempt.")
+    for name, field in Budgets.model_fields.items():
+        # Resource use must be explicitly permitted; existing job defaults remain zero.
+        task.add_argument("--" + name.replace("_", "-"), type=int, default=field.default)
     read = commands.add_parser("read", help="Read status without starting or changing work.")
     read.add_argument("job_id")
     answer = commands.add_parser("answer", help="Answer the current question with a listed choice.")
@@ -65,15 +73,22 @@ def run_jobs(namespace):
             result = {"status": "cleaned"}
         else:
             arguments = vars(namespace).copy()
-            if operation == "start":
+            if operation in {"start", "start-task"}:
+                path = namespace.candidate_path if operation == "start" else namespace.task_path
                 try:
-                    if not namespace.candidate_path.is_file():
+                    if not path.is_file():
                         raise OSError
-                    with namespace.candidate_path.open("rb") as stream:
+                    with path.open("rb") as stream:
                         source = stream.read(MAX_SOURCE_BYTES + 1).decode("utf-8")
-                except (OSError, UnicodeError):
-                    raise JobError("invalid_candidate") from None
-                arguments["candidate"] = source
+                    if len(source.encode()) > MAX_SOURCE_BYTES:
+                        raise ValueError
+                    arguments["candidate" if operation == "start" else "task"] = (
+                        source if operation == "start" else json.loads(source)
+                    )
+                except (OSError, ValueError, RecursionError):
+                    raise JobError(
+                        "invalid_candidate" if operation == "start" else "invalid_task"
+                    ) from None
                 arguments["budgets"] = {name: arguments[name] for name in Budgets.model_fields}
             result = dispatch(store, operation, arguments)
         print(json.dumps(result, sort_keys=True))

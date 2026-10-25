@@ -8,11 +8,12 @@ from .store import JobStore
 
 def dispatch(store: JobStore, operation: str, arguments: dict):
     try:
-        if operation == "start":
+        if operation in {"start", "start-task"}:
             limits = arguments.get("budgets")
-            return store.start(
+            start = store.start if operation == "start" else store.start_task
+            return start(
                 arguments["request_key"],
-                arguments["candidate"],
+                arguments["candidate" if operation == "start" else "task"],
                 Budgets.model_validate({} if limits is None else limits),
             )
         if operation == "read":

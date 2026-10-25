@@ -44,6 +44,22 @@ def create_job_server(directory):
 
     @server.tool(
         annotations=ToolAnnotations(
+            readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False
+        )
+    )
+    def start_task_build_job(
+        request_key: str, task: dict[str, object], budgets: dict[str, object] | None = None
+    ) -> CallToolResult:
+        """Queue a public URL/task description for a draft. Explicitly grant resource budgets.
+
+        The task declares name, start_url, description, allowed_domains, inputs, and fields.
+        Read status and answer any shape/review question. Configure the local model on the worker.
+        Never supply credentials. This operation cannot publish or register tools.
+        """
+        return invoke("start-task", dict(request_key=request_key, task=task, budgets=budgets))
+
+    @server.tool(
+        annotations=ToolAnnotations(
             readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False
         )
     )

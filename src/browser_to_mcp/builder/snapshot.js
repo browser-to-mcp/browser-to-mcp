@@ -16,6 +16,7 @@
     nodes.push({path, tag: element.tagName.toLowerCase(), text: text.slice(0, 512), attrs});
     const counts = {};
     for (const child of element.children) {
+      if (clipped) break;
       const tag = child.tagName.toLowerCase();
       counts[tag] = (counts[tag] || 0) + 1;
       walk(child, `${path} > ${tag}:nth-of-type(${counts[tag]})`, depth + 1);

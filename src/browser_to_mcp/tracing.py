@@ -6,10 +6,10 @@ import json
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import quote
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
 from browser_to_mcp.models import OutputValue, StructuredOutput, Workflow
 
@@ -32,6 +32,17 @@ class TraceError(BaseModel):
     screenshot_path: str | None = None
 
 
+class TracePage(BaseModel):
+    """Counts and outcomes only: no page addresses, identities, or cell contents."""
+
+    model_config = ConfigDict(extra="forbid")
+    page_number: int = Field(ge=1, le=20)
+    rows_read: int = Field(ge=0, le=100)
+    records_collected: int = Field(ge=0, le=100)
+    outcome: Literal["next", "end", "page_limit", "record_limit", "failed", "cancelled"]
+    duration_seconds: float = Field(ge=0)
+
+
 class TraceAction(BaseModel):
     """One executed or failed browser action."""
 
@@ -42,6 +53,14 @@ class TraceAction(BaseModel):
     status: str
     output_key: str | None = None
     duration_seconds: float = Field(ge=0)
+    pages: list[TracePage] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def serialize_action(self, handler):
+        result = handler(self)
+        if not self.pages:
+            result.pop("pages", None)
+        return result
 
 
 class TraceAssertion(BaseModel):

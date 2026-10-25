@@ -245,6 +245,38 @@ class RecordExtraction(StrictModel):
         return self
 
 
+class Paging(StrictModel):
+    """Follow reviewed numbered Next links, with explicit end and finite budgets."""
+
+    next_selector: str = Field(min_length=1, max_length=512)
+    end_selector: str = Field(min_length=1, max_length=512)
+    page_parameter: str | None = Field(
+        default=None, max_length=64, pattern=r"^[a-zA-Z][a-zA-Z0-9_]*$"
+    )
+    page_path: str | None = Field(default=None, max_length=512)
+    max_pages: Annotated[int, Field(strict=True, ge=1, le=20)]
+    timeout_seconds: Annotated[int, Field(strict=True, ge=1, le=300)]
+    status_output: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def validate_paging(self):
+        if (self.page_parameter is None) == (self.page_path is None):
+            raise ValueError("Paging requires exactly one of page_parameter or page_path.")
+        if self.page_path is not None and (
+            not self.page_path.startswith("/")
+            or self.page_path.startswith("//")
+            or self.page_path.count("{page}") != 1
+            or any(c in self.page_path.replace("{page}", "") for c in "{}?#\\")
+            or any(part in {".", ".."} for part in self.page_path.split("/"))
+        ):
+            raise ValueError("page_path must be an absolute path with one {page} placeholder.")
+        if any("{{" in s or "}}" in s for s in (self.next_selector, self.end_selector)):
+            raise ValueError("Paging selectors must be fixed CSS, without templates.")
+        if schema_field_name_error(self.status_output):
+            raise ValueError("Paging status_output requires a public output name.")
+        return self
+
+
 class WorkflowStep(StrictModel):
     """One declared browser operation supported by the V0 contract."""
 
@@ -256,6 +288,7 @@ class WorkflowStep(StrictModel):
     key: str | None = None
     text: str | None = None
     record: RecordExtraction | None = None
+    paging: Paging | None = None
     timeout_seconds: PositiveInt
     risk: Risk
     idempotency: Idempotency
@@ -282,6 +315,8 @@ class WorkflowStep(StrictModel):
             raise ValueError(f"Action '{self.action}' requires: {fields}.")
         if self.action is not StepAction.EXTRACT_RECORDS and self.record is not None:
             raise ValueError("Only extract_records can declare record extraction settings.")
+        if self.paging is not None and self.action is not StepAction.EXTRACT_RECORDS:
+            raise ValueError("Only extract_records can declare paging settings.")
         if self.action is StepAction.EXTRACT_RECORDS and (
             not self.selector
             or len(self.selector) > 512
@@ -298,6 +333,8 @@ class WorkflowStep(StrictModel):
         result = handler(self)
         if self.record is None:
             result.pop("record", None)  # Existing scalar manifests retain their identity.
+        if self.paging is None:
+            result.pop("paging", None)
         return result
 
 

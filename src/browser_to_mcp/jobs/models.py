@@ -68,6 +68,52 @@ class Question(ClosedModel):
 
 
 MESSAGES = {
+    "invalid_task": (
+        "Supply a name, concrete starting URL, allowed domains, task description, "
+        "input definitions, and output fields. Use public data only. "
+        "Choose object or array, or answer the shape question."
+    ),
+    "invalid_proposal": (
+        "The model draft did not match the task or supported workflow rules. "
+        "Check the requested fields and URL inputs, then start a new attempt."
+    ),
+    "provider_configuration": (
+        "Set BROWSER_TO_MCP_MODEL_URL to http://127.0.0.1:PORT for a running llama.cpp server. "
+        "Keep its optional API key in BROWSER_TO_MCP_MODEL_API_KEY, never in the task."
+    ),
+    "provider_unavailable": (
+        "The local model server could not answer. Check its setup and available context size. "
+        "This attempt was not retried."
+    ),
+    "provider_response": (
+        "The local model returned an incomplete or invalid response. Check its model and context "
+        "size, or raise the output-token limit within your budget, then start a new attempt."
+    ),
+    "page_too_large": (
+        "This page is too large to inspect within the supported limits. Choose a smaller listing."
+    ),
+    "preview_failed": (
+        "The proposed selectors could not read the requested fields on the starting page. "
+        "Check the page and field descriptions, then start a new attempt."
+    ),
+    "task_login": "This task needs login. Choose a public page that works without an account.",
+    "task_challenge": (
+        "The page has an access challenge. Stop and choose an accessible permitted public page."
+    ),
+    "task_interaction": (
+        "This task needs unsupported interaction. Use a listing or a search URL with input values."
+    ),
+    "task_ambiguous": (
+        "The task or page is ambiguous. Describe the exact fields and choose a more specific page."
+    ),
+    "task_missing_data": (
+        "The requested data was not found in the bounded page view. "
+        "Check the starting page and requested fields."
+    ),
+    "page_unavailable": (
+        "The page could not be read under the browser policy. Check the URL, access, and required "
+        "hosts. No redirects, login, challenge bypass, or automatic retry is supported."
+    ),
     "invalid_request": "Use valid job arguments and declared limits.",
     "invalid_candidate": (
         "The candidate must be a supported public read-only workflow without secrets."
@@ -135,9 +181,19 @@ class Artifact(ClosedModel):
     manifest_digest: str
 
 
+class BuildReport(ClosedModel):
+    provider: Literal["llama_cpp", "controlled"]
+    prompt_tokens: int = Field(ge=0)
+    completion_tokens: int = Field(ge=0)
+    model_seconds: float = Field(ge=0, allow_inf_nan=False)
+    browser_seconds: float = Field(ge=0, allow_inf_nan=False)
+    api_cost_microusd: Literal[0] = 0
+    checks: list[Literal["schema", "policy", "compiler", "first_page_preview"]]
+
+
 class JobSnapshot(ClosedModel):
     id: str
-    kind: Literal["prepare_workflow"]
+    kind: Literal["prepare_workflow", "generate_workflow"]
     state: State
     revision: int
     stage: str
@@ -150,3 +206,4 @@ class JobSnapshot(ClosedModel):
     cancel_requested: bool
     error: Failure | None
     artifact: Artifact | None
+    report: BuildReport | None = None

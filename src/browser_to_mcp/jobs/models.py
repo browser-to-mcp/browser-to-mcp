@@ -196,6 +196,8 @@ class BuildReport(ClosedModel):
     browser_seconds: float = Field(ge=0, allow_inf_nan=False)
     api_cost_microusd: Literal[0] | None = 0
     estimated_cost_microusd: int | None = Field(default=None, ge=0)
+    input_microusd_per_million: int | None = Field(default=None, ge=0)
+    output_microusd_per_million: int | None = Field(default=None, ge=0)
     cost_basis: Literal["local_no_api", "configured_rates", "external_client"] = "local_no_api"
     checks: list[Literal["schema", "policy", "compiler", "first_page_preview"]]
 

@@ -139,6 +139,8 @@ async def generate_phase(context, job, *, provider: DraftProvider | None = None)
             browser_seconds=monotonic() - browser_started,
             api_cost_microusd=None if getattr(provider, "name", "") == "openai" else 0,
             estimated_cost_microusd=reply.estimated_cost_microusd,
+            input_microusd_per_million=getattr(provider, "input_rate", None),
+            output_microusd_per_million=getattr(provider, "output_rate", None),
             cost_basis="configured_rates"
             if getattr(provider, "name", "") == "openai"
             else "local_no_api",

@@ -44,7 +44,9 @@ a promise of zero provider retention; your account's provider policies apply.
 
 The report records the configured model, actual returned token counts, request
 duration, and a cost estimate using the configured rates. `api_cost_microusd` is
-unknown because the app does not read your invoice. The estimate and reserved
+unknown because the app does not read your invoice. The rate values used are saved
+with the report; job timestamps identify when those assumptions applied.
+The estimate and reserved
 budget are not certified billing totals. Failed calls can still incur charges;
 reserved limits are not refunded. API credentials never enter job metadata.
 Other hosted providers need their own adapter; they cannot be enabled just by

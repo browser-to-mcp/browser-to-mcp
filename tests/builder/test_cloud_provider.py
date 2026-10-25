@@ -218,6 +218,8 @@ def test_hosted_generation_obeys_job_limits_and_records_estimates(
         assert result["report"]["estimated_cost_microusd"] == 140
         assert result["report"]["api_cost_microusd"] is None
         assert result["report"]["cost_basis"] == "configured_rates"
+        assert result["report"]["input_microusd_per_million"] == 1000000
+        assert result["report"]["output_microusd_per_million"] == 2000000
         assert result["report"]["model"] == "test-model"
     else:
         assert result["state"] == "failed"

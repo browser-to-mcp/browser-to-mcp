@@ -7,9 +7,11 @@ reconnect, and read the same job. Reading its status never starts it again.
 This implements [#61](https://github.com/browser-to-mcp/browser-to-mcp/issues/61).
 The first supported job takes an **existing public workflow YAML file**, checks
 its schema and permissions, builds its MCP schema, and prepares a local draft
-for review. It does not open the website or call a model. Creating a draft from
-a description belongs to #62; independent browser testing and publication
-belong to #63 and #64.
+for review. That job does not open the website or call a model.
+The [task builder](TASK_BUILDER.md) adds a second job type that reads a public
+page and asks a configured local model to propose a draft. It uses the same
+status, questions, cancellation, and resource limits described here.
+Independent browser testing and publication belong to #63 and #64.
 
 ## Try it
 
@@ -137,7 +139,7 @@ reservations are not refunded or silently retried.
 | --- | --- | --- | --- |
 | `--wall-seconds` | 900 | 1–86,400 | Time from job creation, including queue and human waiting time |
 | `--browser-actions` | 0 | 0–1,000 | Browser startup and metered operations across phases |
-| `--model-requests` | 0 | 0–100 | Provider calls across phases |
+| `--model-requests` | 0 | 0–100 | Inference requests across phases |
 | `--tokens` | 0 | 0–1,000,000 | Reserved provider token upper bounds |
 | `--cost-microusd` | 0 | 0–100,000,000 | Reserved provider cost; 1,000,000 units means US$1 |
 | `--output-bytes` | 262,144 | 1–1,048,576 | Cumulative generated text and saved draft bytes |
@@ -148,12 +150,13 @@ For example:
 uv run browser-to-mcp jobs start workflows/hn_search.yaml --request-key PASTE_REQUEST_ID --wall-seconds 600 --output-bytes 65536
 ```
 
-The current preparation job uses no browser actions, model requests, tokens, or
-provider cost. Raising those limits does not enable AI generation. The worker
-runtime provides metered browser and provider operations for the later builder.
-A provider integration must enforce the reserved token limit and supply a
-conservative price upper bound before dispatch. This release includes no live
-provider or pricing estimate.
+The existing-YAML preparation job uses no browser actions, model requests,
+tokens, or provider cost. Raising those limits does not change its job type.
+The separate [task builder](TASK_BUILDER.md) uses metered browser operations and
+a configured local model. Its adapter reserves the exact input-token count plus
+the allowed output tokens before inference. It makes no billable API request;
+hardware and electricity costs are not measured. There is no cloud provider or
+cloud pricing estimate in this release.
 
 The source candidate and its normalized form are each limited to 256 KiB.
 YAML aliases and anchors are refused. Browser text and model responses are
@@ -252,6 +255,8 @@ This job-management server offers `start_build_job`, `read_build_job`,
 `answer_build_job`, and `cancel_build_job`. `start_build_job` accepts the public
 candidate YAML as `candidate`, a UUID `request_key`, and optional `budgets`
 using the underscore versions of the CLI option names.
+It also offers `start_task_build_job` for the task-description format in the
+[task builder guide](TASK_BUILDER.md).
 
 CLI and MCP call the same service and return the same job fields and error
 codes. CLI operation errors use exit code 2 and JSON on stderr; MCP operation

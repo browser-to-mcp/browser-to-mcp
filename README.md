@@ -3,6 +3,8 @@
 Turn reviewed browser workflows into typed, read-only MCP tools.
 
 Record a public browser task, review it with `author`, or write a workflow in YAML.
+You can also [prepare a draft from a website and a written task](docs/TASK_BUILDER.md)
+using a configured local model.
 The project validates the permissions,
 runs the workflow in Chromium, and exposes each valid workflow as an MCP tool.
 

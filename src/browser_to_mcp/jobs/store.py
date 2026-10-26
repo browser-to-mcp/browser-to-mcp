@@ -20,6 +20,7 @@ from .models import (
     TERMINAL,
     TRANSITIONS,
     Budgets,
+    BuildReport,
     JobError,
     JobSnapshot,
     State,
@@ -148,12 +149,10 @@ class JobStore:
                 job["artifact"] = None
 
     def _public(self, job):
-        public = {
-            key: value
-            for key, value in job.items()
-            if key not in {"phase", "resume_phase", "answer", "source_sha256"}
-        }
-        public["stage"] = job["phase"]
+        public = {key: job[key] for key in JobSnapshot.model_fields if key in job}
+        public["stage"] = job.get("progress", job["phase"])
+        if job["kind"] == "generate_workflow":
+            public["generation"] = job.get("generation", "provider")
         return JobSnapshot.model_validate(public).model_dump(mode="json")
 
     def read(self, job_id):
@@ -166,7 +165,7 @@ class JobStore:
 
     def artifact_path(self, job_id, kind):
         _identifier(job_id)
-        if kind not in {"input", "draft"}:
+        if kind not in {"input", "draft", "context", "proposal"}:
             raise JobError("invalid_request")
         return self.directory / f"{job_id}.{kind}.candidate"
 
@@ -183,28 +182,53 @@ class JobStore:
             temporary.unlink(missing_ok=True)
 
     def read_artifact(self, job_id, kind):
-        job = self.internal(job_id)
-        path = self.artifact_path(job_id, kind)
+        return self._read_artifact(self.internal(job_id), kind)
+
+    def _read_artifact(self, job, kind):
+        path = self.artifact_path(job["id"], kind)
         if path.is_symlink() or not path.is_file():
             raise JobError("invalid_candidate")
-        limit = MAX_SOURCE_BYTES if kind == "input" else job["budgets"]["output_bytes"]
+        limit = job["budgets"]["output_bytes"] if kind == "draft" else MAX_SOURCE_BYTES
         with path.open("rb") as stream:
             data = stream.read(limit + 1)
-        expected = (
-            job["source_sha256"]
-            if kind == "input"
-            else (job["artifact"]["sha256"] if job["artifact"] else None)
-        )
+        expected = {
+            "input": job["source_sha256"],
+            "draft": job["artifact"]["sha256"] if job["artifact"] else None,
+            "context": job.get("context_sha256"),
+            "proposal": job.get("proposal_sha256"),
+        }[kind]
         if len(data) > limit or _digest(data) != expected:
             raise JobError("invalid_candidate")
         return data
 
     def start(self, request_key: str, source: str, budgets: Budgets):
+        _, data = check_candidate(source)
+        return self._start(request_key, data, budgets, kind="prepare_workflow", phase="prepare")
+
+    def start_task(self, request_key: str, task, budgets: Budgets, *, generation="client"):
+        from browser_to_mcp.builder.contracts import check_task
+
+        _, data = check_task(task)
+        if not isinstance(generation, str) or generation not in {"client", "provider"}:
+            raise JobError("invalid_request")
+        return self._start(
+            request_key,
+            data,
+            budgets,
+            kind="generate_workflow",
+            phase="generate",
+            generation=generation,
+        )
+
+    def _start(self, request_key, data, budgets, *, kind, phase, generation=None):
         _identifier(request_key)
         if not isinstance(budgets, Budgets):
             raise JobError("invalid_request")
-        _, data = check_candidate(source)
-        request_hash = _digest(data + json.dumps(budgets.model_dump(), sort_keys=True).encode())
+        # Preserve existing prepare-job receipts, and separate new task requests by kind.
+        identity = data if kind == "prepare_workflow" else kind.encode() + b"\n" + data
+        if generation == "client":
+            identity = b"client\n" + identity
+        request_hash = _digest(identity + json.dumps(budgets.model_dump(), sort_keys=True).encode())
         key_hash = _digest(request_key.encode())
         with self._db(write=True) as db:
             previous = db.execute("SELECT * FROM requests WHERE key_hash=?", (key_hash,)).fetchone()
@@ -225,7 +249,7 @@ class JobStore:
             now = self.clock()
             job = dict(
                 id=str(uuid4()),
-                kind="prepare_workflow",
+                kind=kind,
                 state=State.QUEUED,
                 revision=1,
                 created_at=now,
@@ -233,7 +257,7 @@ class JobStore:
                 deadline=now + budgets.wall_seconds,
                 budgets=budgets.model_dump(),
                 usage=Usage().model_dump(),
-                phase="prepare",
+                phase=phase,
                 question=None,
                 answer=None,
                 resume_phase=None,
@@ -242,6 +266,8 @@ class JobStore:
                 artifact=None,
                 source_sha256=_digest(data),
             )
+            if generation is not None:
+                job["generation"] = generation
             self._write_artifact(self.artifact_path(job["id"], "input"), data)
             db.execute(
                 "INSERT INTO jobs VALUES (?,?,?,?)", (job["id"], job["state"], now, json.dumps(job))
@@ -251,6 +277,116 @@ class JobStore:
                 (key_hash, request_hash, job["id"]),
             )
             return self._public(job)
+
+    def record_report(self, job_id, report: BuildReport):
+        with self._db(write=True) as db:
+            job = self._running(db, job_id)
+            job["report"] = BuildReport.model_validate(report).model_dump()
+            self._save(db, job)
+
+    def save_context(self, job_id, context):
+        data = json.dumps(context, ensure_ascii=False, allow_nan=False).encode()
+        if len(data) > 131072:
+            raise JobError("page_too_large")
+        with self._db(write=True) as db:
+            job = self._running(db, job_id)
+            self._charge(job, output_bytes=len(data))
+            self._write_artifact(self.artifact_path(job_id, "context"), data)
+            job["context_sha256"] = _digest(data)
+            self._save(db, job)
+
+    def _proposal_context(self, job):
+        if (
+            job.get("generation") != "client"
+            or job["state"] != State.WAITING
+            or not job["question"]
+            or job["question"]["kind"] != "draft_proposal"
+        ):
+            raise JobError("invalid_transition")
+        if self.clock() >= job["deadline"]:
+            raise JobError("budget_wall_seconds")
+        return json.loads(self._read_artifact(job, "context"))
+
+    def read_context(self, job_id):
+        job = self.internal(job_id)
+        context = self._proposal_context(job)
+        return dict(
+            job_id=job_id,
+            question_id=job["question"]["id"],
+            revision=job["revision"],
+            context=context,
+        )
+
+    def submit_proposal(self, job_id, question_id, revision, proposal):
+        from browser_to_mcp.builder.contracts import check_task, make_candidate
+
+        # Validate before storing; recheck the question under the write lock below.
+        job = self.internal(job_id)
+        self._question(job, question_id, revision)
+        context = self._proposal_context(job)
+        try:
+            if not isinstance(proposal, dict):
+                raise ValueError
+            data = json.dumps(proposal, ensure_ascii=False, allow_nan=False).encode()
+            if len(data) > 65536:
+                raise ValueError
+        except (ValueError, TypeError, RecursionError):
+            raise JobError("invalid_proposal") from None
+        unsupported = None
+        try:
+            make_candidate(check_task(context["task"])[0], data.decode())
+        except JobError as error:
+            if not error.code.startswith("task_"):
+                raise
+            unsupported = error.code
+        with self._db(write=True) as db:
+            job = self._load(db, job_id)
+            self._question(job, question_id, revision)
+            if self.clock() >= job["deadline"]:
+                self._transition(job, State.FAILED, "budget_wall_seconds")
+                self._save(db, job)
+                raise JobError("budget_wall_seconds")
+            try:
+                self._charge(job, output_bytes=len(data))
+            except JobError as error:
+                self._transition(job, State.FAILED, error.code)
+                self._save(db, job)
+                raise
+            if unsupported:
+                self._transition(job, State.FAILED, unsupported)
+            else:
+                self._write_artifact(self.artifact_path(job_id, "proposal"), data)
+                job["proposal_sha256"] = _digest(data)
+                job["phase"] = "check_proposal"
+                job["question"] = job["answer"] = job["resume_phase"] = None
+                self._transition(job, State.QUEUED)
+            self._save(db, job)
+            return self._public(job)
+
+    def _question(self, job, question_id, revision):
+        if (
+            type(revision) is not int
+            or revision != job["revision"]
+            or not job["question"]
+            or question_id != job["question"]["id"]
+            or job["state"] not in {State.WAITING, State.REVIEW}
+        ):
+            raise JobError("stale_answer")
+
+    def _charge(self, job, **amounts):
+        for key, amount in amounts.items():
+            if job["usage"][key] + amount > job["budgets"][key]:
+                raise JobError("budget_" + key)
+        for key, amount in amounts.items():
+            job["usage"][key] += amount
+
+    def set_stage(self, job_id, stage):
+        if stage not in {"inspect_page", "ask_model", "check_draft"}:
+            raise JobError("invalid_request")
+        with self._db(write=True) as db:
+            job = self._running(db, job_id)
+            job["progress"] = stage
+            self._save(db, job)
 
     def _running(self, db, job_id):
         job = self._load(db, job_id)
@@ -286,11 +422,7 @@ class JobStore:
             raise JobError("invalid_request")
         with self._db(write=True) as db:
             job = self._running(db, job_id)
-            for key, amount in amounts.items():
-                if job["usage"][key] + amount > job["budgets"][key]:
-                    raise JobError("budget_" + key)
-            for key, amount in amounts.items():
-                job["usage"][key] += amount
+            self._charge(job, **amounts)
             self._save(db, job)
 
     def ask(self, job_id, kind, resume_phase, *, ready=False):
@@ -302,6 +434,7 @@ class JobStore:
             job = self._running(db, job_id)
             prompt, choices = QUESTION_TEXT[kind]
             job["question"] = dict(id=str(uuid4()), kind=kind, prompt=prompt, choices=choices)
+            job.pop("progress", None)
             job["resume_phase"] = resume_phase
             job["answer"] = None
             self._transition(job, State.REVIEW if ready else State.WAITING)
@@ -312,14 +445,7 @@ class JobStore:
         with self._db(write=True) as db:
             job = self._load(db, job_id)
             question = job["question"]
-            if (
-                type(revision) is not int
-                or revision != job["revision"]
-                or not question
-                or question_id != question["id"]
-                or job["state"] not in {State.WAITING, State.REVIEW}
-            ):
-                raise JobError("stale_answer")
+            self._question(job, question_id, revision)
             if not isinstance(value, str) or value not in question["choices"]:
                 raise JobError("invalid_answer")
             if self.clock() >= job["deadline"]:
@@ -329,6 +455,8 @@ class JobStore:
             if question["kind"] == "review_draft" and value == "discard":
                 self._transition(job, State.CANCELLED, "cancelled")
             else:
+                if question["kind"] == "output_shape":
+                    job["output_shape"] = "object" if value == "single" else "array"
                 job["answer"] = {"question_id": question_id, "value": value}
                 job["phase"] = job["resume_phase"]
                 job["resume_phase"] = None
@@ -413,7 +541,8 @@ class JobStore:
                 if state in TERMINAL and now - job["updated_at"] >= RETENTION_SECONDS:
                     db.execute("DELETE FROM jobs WHERE id=?", (job["id"],))
                 if state in TERMINAL or state == State.REVIEW:
-                    self.artifact_path(job["id"], "input").unlink(missing_ok=True)
+                    for kind in ("input", "context", "proposal"):
+                        self.artifact_path(job["id"], kind).unlink(missing_ok=True)
                 if state in {State.FAILED, State.CANCELLED} or (
                     state in TERMINAL and now - job["updated_at"] >= RETENTION_SECONDS
                 ):
@@ -427,6 +556,8 @@ class JobStore:
                 if len(parts) != 3 or parts[1:] not in (
                     ["input", "candidate"],
                     ["draft", "candidate"],
+                    ["context", "candidate"],
+                    ["proposal", "candidate"],
                 ):
                     continue
                 try:

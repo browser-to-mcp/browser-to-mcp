@@ -64,6 +64,9 @@ def test_cli_and_reconnected_mcp_clients_follow_one_job(store, candidate, tmp_pa
                 listing = await client.list_tools()
                 assert {tool.name for tool in listing.tools} == {
                     "start_build_job",
+                    "start_task_build_job",
+                    "read_task_context",
+                    "submit_task_proposal",
                     "read_build_job",
                     "answer_build_job",
                     "cancel_build_job",

@@ -8,12 +8,25 @@ from .store import JobStore
 
 def dispatch(store: JobStore, operation: str, arguments: dict):
     try:
-        if operation == "start":
-            limits = arguments.get("budgets")
-            return store.start(
+        if operation in {"start", "start-task"}:
+            raw_limits = arguments.get("budgets")
+            limits = Budgets.model_validate({} if raw_limits is None else raw_limits)
+            if operation == "start":
+                return store.start(arguments["request_key"], arguments["candidate"], limits)
+            return store.start_task(
                 arguments["request_key"],
-                arguments["candidate"],
-                Budgets.model_validate({} if limits is None else limits),
+                arguments["task"],
+                limits,
+                generation=arguments.get("generation", "client"),
+            )
+        if operation == "context":
+            return store.read_context(arguments["job_id"])
+        if operation == "submit-proposal":
+            return store.submit_proposal(
+                arguments["job_id"],
+                arguments["question_id"],
+                arguments["revision"],
+                arguments["proposal"],
             )
         if operation == "read":
             return store.read(arguments["job_id"])

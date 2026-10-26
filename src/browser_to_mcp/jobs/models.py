@@ -48,6 +48,11 @@ class Usage(ClosedModel):
 
 
 QUESTION_TEXT = {
+    "draft_proposal": (
+        "Read this job's task context, then submit a JSON draft proposal with "
+        "submit_task_proposal. No separate model installation is needed.",
+        [],
+    ),
     "review_draft": (
         "Keep this checked draft? Keeping it does not run or publish it.",
         ["keep", "discard"],
@@ -57,7 +62,7 @@ QUESTION_TEXT = {
         ["single", "list"],
     ),
 }
-QuestionKind = Literal["review_draft", "output_shape"]
+QuestionKind = Literal["review_draft", "output_shape", "draft_proposal"]
 
 
 class Question(ClosedModel):
@@ -68,6 +73,53 @@ class Question(ClosedModel):
 
 
 MESSAGES = {
+    "invalid_task": (
+        "Supply a name, concrete starting URL, allowed domains, task description, "
+        "input definitions, and output fields. Use public data only. "
+        "Choose object or array, or answer the shape question."
+    ),
+    "invalid_proposal": (
+        "The model draft did not match the task or supported workflow rules. "
+        "Check the requested fields and URL inputs, then start a new attempt."
+    ),
+    "provider_configuration": (
+        "Choose a worker provider: openai with an API key, model and price limits, "
+        "or llama_cpp with a local model URL. Client generation needs neither. "
+        "See the task-builder guide; never put keys in tasks or answers."
+    ),
+    "provider_unavailable": (
+        "The configured model provider could not answer. Check setup, access and context size. "
+        "This attempt was not retried."
+    ),
+    "provider_response": (
+        "The provider returned an incomplete or invalid response. Check its model and context "
+        "size, or raise the output-token limit within your budget, then start a new attempt."
+    ),
+    "page_too_large": (
+        "This page is too large to inspect within the supported limits. Choose a smaller listing."
+    ),
+    "preview_failed": (
+        "The proposed selectors could not read the requested fields on the starting page. "
+        "Check the page and field descriptions, then start a new attempt."
+    ),
+    "task_login": "This task needs login. Choose a public page that works without an account.",
+    "task_challenge": (
+        "The page has an access challenge. Stop and choose an accessible permitted public page."
+    ),
+    "task_interaction": (
+        "This task needs unsupported interaction. Use a listing or a search URL with input values."
+    ),
+    "task_ambiguous": (
+        "The task or page is ambiguous. Describe the exact fields and choose a more specific page."
+    ),
+    "task_missing_data": (
+        "The requested data was not found in the bounded page view. "
+        "Check the starting page and requested fields."
+    ),
+    "page_unavailable": (
+        "The page could not be read under the browser policy. Check the URL, access, and required "
+        "hosts. No redirects, login, challenge bypass, or automatic retry is supported."
+    ),
     "invalid_request": "Use valid job arguments and declared limits.",
     "invalid_candidate": (
         "The candidate must be a supported public read-only workflow without secrets."
@@ -135,9 +187,25 @@ class Artifact(ClosedModel):
     manifest_digest: str
 
 
+class BuildReport(ClosedModel):
+    provider: Literal["mcp_client", "openai", "llama_cpp", "controlled"]
+    model: str | None = None
+    prompt_tokens: int | None = Field(ge=0)
+    completion_tokens: int | None = Field(ge=0)
+    model_seconds: float | None = Field(ge=0, allow_inf_nan=False)
+    browser_seconds: float = Field(ge=0, allow_inf_nan=False)
+    api_cost_microusd: Literal[0] | None = 0
+    estimated_cost_microusd: int | None = Field(default=None, ge=0)
+    input_microusd_per_million: int | None = Field(default=None, ge=0)
+    output_microusd_per_million: int | None = Field(default=None, ge=0)
+    cost_basis: Literal["local_no_api", "configured_rates", "external_client"] = "local_no_api"
+    checks: list[Literal["schema", "policy", "compiler", "first_page_preview"]]
+
+
 class JobSnapshot(ClosedModel):
     id: str
-    kind: Literal["prepare_workflow"]
+    kind: Literal["prepare_workflow", "generate_workflow"]
+    generation: Literal["client", "provider"] | None = None
     state: State
     revision: int
     stage: str
@@ -150,3 +218,4 @@ class JobSnapshot(ClosedModel):
     cancel_requested: bool
     error: Failure | None
     artifact: Artifact | None
+    report: BuildReport | None = None

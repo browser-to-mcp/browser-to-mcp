@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from contextlib import AsyncExitStack
+from importlib.resources import files
 
 from playwright.async_api import async_playwright
 
+from browser_to_mcp.authoring.records import check_record_preview
 from browser_to_mcp.browser_policy import BrowserBoundary
-from browser_to_mcp.records import cancellable_page_operation
+from browser_to_mcp.records import cancellable_page_operation, extract_records
+from browser_to_mcp.structured_outputs import validate_record_output
 
-from .candidate import check_candidate
+from .candidate import ASSIGNMENT, check_candidate
 from .models import JobError
 
 
@@ -33,11 +37,19 @@ class JobContext:
             return self._browser
         # Startup consumes an action too; the immutable request owns the host list.
         self.store.reserve(self.job_id, browser_actions=1)
-        loaded, _ = check_candidate(self.store.read_artifact(self.job_id, "input").decode("utf-8"))
+        source = self.store.read_artifact(self.job_id, "input").decode("utf-8")
+        if self.store.internal(self.job_id)["kind"] == "generate_workflow":
+            from browser_to_mcp.builder.contracts import check_task
+
+            task, _ = check_task(json.loads(source))
+            domains = task.allowed_domains
+        else:
+            loaded, _ = check_candidate(source)
+            domains = loaded.workflow.permissions.allowed_domains
         playwright = await self.resources.enter_async_context(async_playwright())
         browser = await playwright.chromium.launch(headless=True)
         self.resources.push_async_callback(browser.close)
-        boundary = BrowserBoundary(loaded.workflow.permissions.allowed_domains)
+        boundary = BrowserBoundary(domains)
         context = await boundary.create_context(browser)
 
         async def close():
@@ -115,3 +127,32 @@ class JobBrowser:
         text = await self._call(lambda: self._page.locator(selector).inner_text(timeout=5000))
         self._context.store.reserve(self._context.job_id, output_bytes=len(text.encode()))
         return text
+
+    async def inspect(self):
+        """Take a bounded DOM view using fixed application code, never model-generated JS."""
+
+        async def snapshot():
+            # A short settling window covers simple delayed lists, not arbitrary app readiness.
+            await self._page.wait_for_timeout(500)
+            script = files("browser_to_mcp.builder").joinpath("snapshot.js").read_text("utf-8")
+            return await self._page.evaluate(script)
+
+        value = await self._call(snapshot)
+        data = json.dumps(value, ensure_ascii=False)
+        if value.get("clipped") or len(data.encode()) > 65536:
+            raise JobError("page_too_large")
+        self._context.store.reserve(self._context.job_id, output_bytes=len(data.encode()))
+        return value
+
+    async def preview(self, workflow):
+        """Validate the proposed fields on this page using the normal fixed extractor."""
+        step = workflow.steps[-1].model_copy(update={"paging": None})
+        definition = workflow.outputs[step.id]
+        raw = await self._call(lambda: extract_records(self._page, step, definition))
+        checked = validate_record_output(raw, definition, step.record, f"outputs.{step.id}")
+        check_record_preview(checked)
+        if ASSIGNMENT.search(json.dumps(checked)):
+            raise JobError("preview_failed")
+        self._context.store.reserve(
+            self._context.job_id, output_bytes=len(json.dumps(checked).encode())
+        )

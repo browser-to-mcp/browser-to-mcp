@@ -29,6 +29,8 @@ class Catalog:
         parts = urlsplit(path).path.strip("/").split("/")
         slug = unquote(parts[1]) if len(parts) == 3 and parts[0] == "catalogue" else ""
         book = BOOKS.get(slug)
+        if slug == "changed-layout":
+            book = ("Changed layout", "£1.00")
         body = (
             '<!doctype html><html><head><meta charset="utf-8"><title>Local book catalog</title>'
             '</head><body><nav><a id="book-a" '
@@ -41,7 +43,11 @@ class Catalog:
         if self.mode == "challenge":
             body += "<p>This is a local challenge example. No product result is available.</p>"
         elif book:
-            title = "" if self.mode == "broken" else f"<h1>{html.escape(book[0])}</h1>"
+            title = (
+                ""
+                if self.mode == "broken" or slug == "changed-layout"
+                else f"<h1>{html.escape(book[0])}</h1>"
+            )
             count = "unknown" if self.mode == "bad_count" else "0"
             content = (
                 f'<main class="product_main">{title}'

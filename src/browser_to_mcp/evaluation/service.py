@@ -90,7 +90,7 @@ def _prepare(candidate: Path, suite_path: Path, expected_suite_sha256: str):
         if isinstance(case.expected, ExpectedOutputs):
             outputs_model = compiled.output_model.model_fields["outputs"].annotation
             outputs_model.model_validate(case.expected.outputs)
-    return loaded, compiled, suite, digest(candidate_data)
+    return loaded, compiled, suite, candidate_data, suite_data
 
 
 def _exact(actual, expected):
@@ -174,6 +174,8 @@ def _coverage_blockers(workflow, suite, observations):
             )
         elif not all(by_id[c.id].status == "passed" for c in cases):
             blockers.append(f"{tag}: required checks have not all passed.")
+        elif tag != "invalid_input" and not any(by_id[c.id].trace_file for c in cases):
+            blockers.append(f"{tag}: a browser observation is required, not an input rejection.")
     for case in suite.cases:
         if case.required and by_id[case.id].status != "passed":
             blockers.append(f"{case.id}: {by_id[case.id].status}.")
@@ -213,6 +215,9 @@ def _coverage_blockers(workflow, suite, observations):
         and "invalid_input" in c.covers
         and isinstance(c.expected, ExpectedError)
         and c.expected.category == "input"
+        and c.expected.path == "inputs"
+        and by_id[c.id].outcome == "error"
+        and by_id[c.id].trace_file is None
         for c in suite.cases
     ):
         blockers.append("invalid_input: an explicit input refusal is required.")
@@ -301,6 +306,7 @@ def _save_report(report, directory):
         f"Plan: `{report.suite_sha256}`",
         f"Mode: {report.mode}",
         f"Elapsed: {report.seconds:.3f} seconds",
+        "Tested files: [draft](draft.candidate) and [test plan](plan.json)",
         "Details and runtime versions: [report.json](report.json)",
         "",
         "| Case | Check | Observed outcome | Reason | Trace |",
@@ -333,8 +339,14 @@ def _save_report(report, directory):
 
 async def evaluate(candidate, suite_path, directory, expected_suite_sha256, *, generation=None):
     """Use normal typed inputs and replay; no model, retries, publication or answer edits."""
-    loaded, compiled, suite, candidate_hash = _prepare(candidate, suite_path, expected_suite_sha256)
+    loaded, compiled, suite, candidate_data, suite_data = _prepare(
+        candidate, suite_path, expected_suite_sha256
+    )
+    candidate_hash = digest(candidate_data)
     directory.mkdir(mode=0o700)  # One new directory per attempt, including failed attempts.
+    for name, data in (("draft.candidate", candidate_data), ("plan.json", suite_data)):
+        with (directory / name).open("xb") as stream:
+            stream.write(data)
     traces = directory / "traces"
     traces.mkdir(mode=0o700)
     started_at, started = datetime.now(UTC).isoformat(), monotonic()
@@ -448,10 +460,18 @@ async def evaluate(candidate, suite_path, directory, expected_suite_sha256, *, g
 
 def verify_evaluation(candidate, suite_path, directory, expected_suite_sha256):
     """Publication seam for #64. Recompute verdicts from the approved plan and saved traces."""
-    loaded, compiled, suite, candidate_hash = _prepare(candidate, suite_path, expected_suite_sha256)
+    loaded, compiled, suite, candidate_data, _ = _prepare(
+        candidate, suite_path, expected_suite_sha256
+    )
+    candidate_hash = digest(candidate_data)
     if directory.is_symlink() or (directory / "traces").is_symlink():
         raise ValueError("The evidence directory must not be a symbolic link.")
     report = Report.model_validate(read_json(directory / "report.json"))
+    if (
+        digest(read_bytes(directory / "draft.candidate")) != candidate_hash
+        or digest(read_bytes(directory / "plan.json")) != expected_suite_sha256
+    ):
+        raise ValueError("The retained candidate or test plan has changed.")
     if (
         report.candidate_sha256 != candidate_hash
         or report.manifest_digest != loaded.manifest_digest

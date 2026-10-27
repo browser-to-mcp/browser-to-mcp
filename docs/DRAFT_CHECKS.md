@@ -30,7 +30,8 @@ uv run browser-to-mcp evaluate examples/paging/catalog.yaml \
 ```
 
 Read `catalog-check-1/report.md`, then inspect `report.json` and the linked
-`traces/` files. A passed refusal means the tool failed safely; it does not mean
+`traces/` files. The folder also keeps the exact tested draft and plan.
+A passed refusal means the tool failed safely; it does not mean
 it returned correct data. Check saved evidence again without opening a browser:
 
 ```bash

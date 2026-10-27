@@ -53,6 +53,8 @@ def test_exact_independent_results_types_paging_and_negatives(evaluation_site, t
     assert report.replay_api_cost_microusd == 0
     before = list(evaluation_site.hits)
     assert verify_evaluation(*args) == report
+    assert (args[2] / "draft.candidate").read_bytes() == args[0].read_bytes()
+    assert (args[2] / "plan.json").read_bytes() == args[1].read_bytes()
     assert evaluation_site.hits == before  # Rechecking approval performs no browser work.
     text = (args[2] / "report.md").read_text()
     assert "changed_markup | passed | error" in text and "not a successful data result" in text
@@ -66,8 +68,6 @@ def test_exact_independent_results_types_paging_and_negatives(evaluation_site, t
         target = Path(destination)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(args[2], target)
-        shutil.copy2(args[0], target / "draft.candidate")
-        shutil.copy2(args[1], target / "plan.json")
 
 
 @pytest.mark.parametrize(
@@ -133,6 +133,8 @@ def passed_attempt(evaluation_site, tmp_path):
         "trace_outputs",
         "forged_verdict",
         "trace_symlink",
+        "retained_candidate",
+        "retained_plan",
     ],
 )
 def test_old_or_changed_evidence_cannot_approve_a_draft(passed_attempt, mutation, tmp_path):
@@ -160,6 +162,11 @@ def test_old_or_changed_evidence_cannot_approve_a_draft(passed_attempt, mutation
         real = tmp_path / "elsewhere.json"
         trace_path.rename(real)
         trace_path.symlink_to(real)
+    elif mutation in {"retained_candidate", "retained_plan"}:
+        retained = directory / (
+            "draft.candidate" if mutation == "retained_candidate" else "plan.json"
+        )
+        retained.write_bytes(retained.read_bytes() + b"\n")
     elif mutation.startswith("trace_"):
         trace = json.loads(trace_path.read_text())
         if mutation == "trace_inputs":
@@ -378,3 +385,18 @@ def test_strict_invalid_inputs_do_not_open_a_browser(
     assert not report.eligible  # A single negative case cannot stand in for the whole plan.
     assert not evaluation_site.hits
     browser.assert_not_called()
+
+
+@pytest.mark.parametrize("tag", ["zero_results", "changed_page"])
+def test_input_rejection_cannot_impersonate_a_page_check(evaluation_site, tmp_path, tag):
+    def change(value):
+        for case in value["cases"]:
+            if tag in case["covers"]:
+                case["inputs"] = {"query": True, "color": "all"}
+                case["expected"] = {"outcome": "error", "category": "input", "path": "inputs"}
+
+    report, args = invoke(tmp_path, evaluation_site, plan_change=change)
+    assert not report.eligible
+    assert any(tag in b and "browser observation" in b for b in report.blockers)
+    with pytest.raises(ValueError):
+        verify_evaluation(*args)

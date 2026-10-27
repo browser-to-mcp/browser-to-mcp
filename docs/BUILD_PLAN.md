@@ -97,6 +97,10 @@ dependencies in the tracking issue. No new catalog tool is published by the brie
 
 ## Working Rules
 
+The [independent draft checks](DRAFT_CHECKS.md) implement #63's shared evidence
+gate. The publishing lifecycle in #64 will consume it. They do not complete #62's
+remaining live-site checks or the wider three-site trial.
+
 - Keep the workflow contract reviewable and versioned.
 - Keep CLI and future MCP calls on the same engine path.
 - Fail closed on policy, domain, schema, and assertion failures.

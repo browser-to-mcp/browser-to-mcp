@@ -125,6 +125,10 @@ All modes use the same contract checks, preview, job service, and review gate.
 
 ## What is verified
 
+The first-page preview does not prove the whole tool is correct. Use the separate
+[draft checks](DRAFT_CHECKS.md) before approval; they compare exact answers,
+changed inputs and paging with an independently reviewed test plan.
+
 CI uses three original local layouts, controlled model replies, real browser
 checks, and MCP reconnects. It checks changing inputs, empty results, paging,
 traces, malformed proposals, hostile page instructions, budgets and cancellation.

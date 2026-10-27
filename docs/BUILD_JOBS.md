@@ -272,6 +272,8 @@ codes. CLI operation errors use exit code 2 and JSON on stderr; MCP operation
 errors set `isError: true` and include the same JSON fields. The regular
 workflow MCP server remains a separate command and receives no new callable
 tools from a completed build job.
+Before approving a saved candidate, run the [independent draft checks](DRAFT_CHECKS.md).
+The job's first-page preview and keep/discard question do not replace those checks.
 
 ## Checks
 

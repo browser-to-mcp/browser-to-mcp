@@ -20,6 +20,8 @@ jobs:
       - run: uv sync --locked --all-groups
       - run: uv run playwright install --with-deps chromium
       - name: Unit and existing browser checks
+        env:
+          BROWSER_TO_MCP_EVALUATION_EVIDENCE: reports/evaluation
         run: uv run pytest --ignore=tests/authoring/test_journey.py --junitxml=reports/unit.xml
       - name: Real recording-to-MCP journey and 30 controlled runs
         env:

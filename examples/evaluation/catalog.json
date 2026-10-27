@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "name": "Local catalog correctness",
+  "mode": "controlled",
+  "requirements_source": "docs/THREE_SITE_PILOT.md: fixed local catalog rows and failures",
+  "expectations_source": "Fixed Blue/Green/Red values written separately from the page renderer",
+  "not_applicable": {
+    "combined_filters": "This example has only one input."
+  },
+  "cases": [
+    {
+      "id": "shown",
+      "covers": [
+        "demonstration",
+        "multiple_pages"
+      ],
+      "inputs": {
+        "case": "full"
+      },
+      "expected": {
+        "outcome": "outputs",
+        "outputs": {
+          "products": [
+            {
+              "title": "Blue Notebook",
+              "price_text": "£12.50",
+              "product_url": "http://127.0.0.1:8767/products/blue"
+            },
+            {
+              "title": "Green Notebook",
+              "price_text": "£0.00",
+              "product_url": "http://127.0.0.1:8767/products/green"
+            },
+            {
+              "title": "Red Notebook",
+              "price_text": "£9.75",
+              "product_url": "http://127.0.0.1:8767/products/red"
+            }
+          ],
+          "collection": {
+            "pages_read": 2,
+            "complete": true,
+            "stop_reason": "end"
+          }
+        }
+      }
+    },
+    {
+      "id": "changed",
+      "covers": [
+        "changed_inputs"
+      ],
+      "inputs": {
+        "case": "single"
+      },
+      "expected": {
+        "outcome": "outputs",
+        "outputs": {
+          "products": [
+            {
+              "title": "Blue Notebook",
+              "price_text": "£12.50",
+              "product_url": "http://127.0.0.1:8767/products/blue"
+            },
+            {
+              "title": "Green Notebook",
+              "price_text": "£0.00",
+              "product_url": "http://127.0.0.1:8767/products/green"
+            },
+            {
+              "title": "Red Notebook",
+              "price_text": "£9.75",
+              "product_url": "http://127.0.0.1:8767/products/red"
+            }
+          ],
+          "collection": {
+            "pages_read": 1,
+            "complete": true,
+            "stop_reason": "end"
+          }
+        }
+      }
+    },
+    {
+      "id": "empty",
+      "covers": [
+        "zero_results"
+      ],
+      "inputs": {
+        "case": "empty"
+      },
+      "expected": {
+        "outcome": "outputs",
+        "outputs": {
+          "products": [],
+          "collection": {
+            "pages_read": 1,
+            "complete": true,
+            "stop_reason": "end"
+          }
+        }
+      }
+    },
+    {
+      "id": "invalid",
+      "covers": [
+        "invalid_input"
+      ],
+      "inputs": {
+        "case": true
+      },
+      "expected": {
+        "outcome": "error",
+        "category": "input",
+        "path": "inputs"
+      }
+    },
+    {
+      "id": "changed_page",
+      "covers": [
+        "changed_page"
+      ],
+      "inputs": {
+        "case": "broken"
+      },
+      "expected": {
+        "outcome": "error",
+        "category": "assertion",
+        "path": "outputs.products.0.price_text"
+      }
+    }
+  ]
+}

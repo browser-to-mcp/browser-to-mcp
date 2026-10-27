@@ -7,6 +7,8 @@ You can also [prepare a draft from a website and a written task](docs/TASK_BUILD
 through Codex/Claude MCP tools, a configured model API, or an optional local model.
 The project validates the permissions,
 runs the workflow in Chromium, and exposes each valid workflow as an MCP tool.
+Before approving a new draft, [test it against independent expected answers](docs/DRAFT_CHECKS.md).
+The report belongs to that exact draft; changing it requires new checks.
 
 ## Quick start
 

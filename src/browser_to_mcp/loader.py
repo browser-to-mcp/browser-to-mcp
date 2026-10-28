@@ -20,11 +20,21 @@ from browser_to_mcp.validation import (
 
 
 @dataclass(frozen=True, slots=True)
+class Publication:
+    """Immutable local-library identity pinned when a server starts."""
+
+    tool_id: str
+    version: int
+    candidate_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
 class LoadedWorkflow:
     """A validated workflow and its deterministic identity digest."""
 
     workflow: Workflow
     manifest_digest: str
+    publication: Publication | None = None
 
 
 def load_workflow(path: Path) -> LoadedWorkflow:

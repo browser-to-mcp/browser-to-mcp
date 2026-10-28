@@ -8,3 +8,4 @@ traces/
 recordings/
 reports/
 .browser-to-mcp-jobs/
+.browser-to-mcp-library/

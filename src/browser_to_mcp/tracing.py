@@ -91,6 +91,7 @@ class TraceMetadata(BaseModel):
     browser_name: str
     browser_version: str
     platform: str
+    publication: dict[str, str | int] | None = None
 
 
 class WorkflowTrace(BaseModel):

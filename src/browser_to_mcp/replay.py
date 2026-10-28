@@ -526,6 +526,15 @@ def _persist_trace(
             browser_name="chromium",
             browser_version=browser_version,
             platform=platform.platform(),
+            publication=(
+                {
+                    "tool_id": loaded.publication.tool_id,
+                    "version": loaded.publication.version,
+                    "candidate_sha256": loaded.publication.candidate_sha256,
+                }
+                if loaded.publication
+                else None
+            ),
         ),
         inputs=redact_inputs(loaded.workflow, inputs),
         actions=[

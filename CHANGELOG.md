@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Add a local version library with evidence-bound review, atomic publication,
+  rollback, retirement, audit history and pinned MCP/trace identities (#64).
+
 - Add a one-tab Chromium recorder for public read-only demonstrations (#46).
   Save versioned local drafts with executable targets, coalesced typing,
   ordered diagnostics, explicit partial saves, and exclusive private files.

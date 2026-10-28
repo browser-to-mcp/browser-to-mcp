@@ -141,3 +141,9 @@ The project is focused on reliable, permissioned browser workflows first.
 - [`SECURITY.md`](SECURITY.md) — security reports
 
 The implementation follows the [browser-to-mcp specification](https://browser-to-mcp.github.io/spec/).
+
+## Versioned local tools
+
+Use `browser-to-mcp library` to import, test, review, publish, retire and roll back
+local tool versions. `library server` exposes only approved published versions.
+See [the tool library guide](docs/TOOL_LIBRARY.md) for migration, review and restart instructions.

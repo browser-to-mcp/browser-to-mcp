@@ -98,7 +98,7 @@ dependencies in the tracking issue. No new catalog tool is published by the brie
 ## Working Rules
 
 The [independent draft checks](DRAFT_CHECKS.md) implement #63's shared evidence
-gate. The publishing lifecycle in #64 will consume it. They do not complete #62's
+gate. The [publishing lifecycle](TOOL_LIBRARY.md) in #64 consumes it. They do not complete #62's
 remaining live-site checks or the wider three-site trial.
 
 - Keep the workflow contract reviewable and versioned.

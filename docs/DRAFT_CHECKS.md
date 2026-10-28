@@ -104,10 +104,10 @@ Replay makes zero model requests and API charges; local compute cost is unmeasur
 `verify_evaluation(...)` is the shared approval gate for the publishing work in
 [#64](https://github.com/browser-to-mcp/browser-to-mcp/issues/64). It rechecks the
 candidate, plan, required outcomes and saved trace identities rather than trusting
-a green summary. This release does **not** add the published-version library or
-change the developer `server --workflow-dir` command. Keeping a build draft still
-only keeps a draft. The builder's first-page preview remains separate from these
-independent checks.
+a green summary. The [tool library](TOOL_LIBRARY.md) now uses this gate before
+explicit publication and on server startup. The developer `server --workflow-dir`
+command remains separate. Keeping a build draft still only keeps a draft. The
+builder's first-page preview remains separate from these independent checks.
 
 The two unresolved public-site creation checks in #62 and the full three-site
 release trial remain pending. These controlled checks do not complete those gates

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -164,7 +164,10 @@ def _workflow_tool(
                 timeout_seconds=timeout_seconds,
             )
         except WorkflowExecutionError as error:
-            return _error_result(error, workflow, kwargs)
+            response = _error_result(error, workflow, kwargs)
+            if loaded.publication:
+                response.meta = {"publication": asdict(loaded.publication)}
+            return response
 
         payload = {
             "workflow": result.workflow,
@@ -173,7 +176,10 @@ def _workflow_tool(
             "trace_path": result.trace_path,
             "duration_seconds": round(result.duration_seconds, 3),
         }
-        return _result(payload)
+        response = _result(payload)
+        if loaded.publication:
+            response.meta = {"publication": asdict(loaded.publication)}
+        return response
 
     invoke.__name__ = workflow.name
     invoke.__doc__ = workflow.description

@@ -242,6 +242,38 @@ def _validate_paging_outputs(workflow: Workflow, producers: dict) -> set[str]:
         if step.paging is None:
             continue
         path = f"steps.{step.id}.paging"
+        limit_input = step.paging.max_pages_input
+        if limit_input is not None:
+            definition = workflow.inputs.get(limit_input)
+            if (
+                definition is None
+                or definition.type != "integer"
+                or definition.required
+                or definition.sensitive
+                or schema_field_name_error(limit_input)
+                or any(
+                    limit_input in TEMPLATE_PATTERN.findall(value or "")
+                    for action in workflow.steps
+                    for value in (
+                        action.url,
+                        action.selector,
+                        action.value,
+                        action.text,
+                        action.key,
+                    )
+                )
+                or sum(
+                    s.paging is not None and s.paging.max_pages_input == limit_input
+                    for s in workflow.steps
+                )
+                != 1
+            ):
+                raise WorkflowValidationError(
+                    FailureCategory.SCHEMA,
+                    path,
+                    "A page-limit input must be a unique optional public integer, "
+                    "used only to lower this step's reviewed page limit.",
+                )
         output = workflow.outputs.get(step.id)
         if (
             not isinstance(output, StructuredOutput)

@@ -3,6 +3,11 @@
 Some websites show only a few products at a time. Paging lets one reviewed
 workflow follow the site's Next link and collect the rest.
 
+To let callers choose fewer pages, set `max_pages_input: max_pages` in the task
+request (or check **Let callers choose fewer pages** in the interface). The saved
+tool accepts an optional whole number from 1 to its reviewed maximum. Leaving it
+out uses that maximum. Callers cannot raise it or use it to change a website URL.
+
 The result includes the products and a small summary:
 
 ```json

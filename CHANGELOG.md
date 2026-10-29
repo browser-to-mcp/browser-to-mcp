@@ -12,6 +12,10 @@
 
 ## Unreleased
 
+- Check nine builds and 90 published MCP calls across three local layouts (#66).
+  Let callers choose fewer pages within the reviewed limit. Keep live-site and
+  real-user results separate; the release checks remain open.
+
 - Add a loopback-only local interface for task creation, job questions, previews,
   independent evaluation, full review, explicit publication and run history (#65).
   Reuse the existing worker/evaluator/library/replay services, support client-led

@@ -255,6 +255,7 @@ class Paging(StrictModel):
     )
     page_path: str | None = Field(default=None, max_length=512)
     max_pages: Annotated[int, Field(strict=True, ge=1, le=20)]
+    max_pages_input: str | None = Field(default=None, min_length=1, max_length=64)
     timeout_seconds: Annotated[int, Field(strict=True, ge=1, le=300)]
     status_output: str = Field(min_length=1, max_length=64)
 

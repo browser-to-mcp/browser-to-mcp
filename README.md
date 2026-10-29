@@ -9,6 +9,8 @@ The project validates the permissions,
 runs the workflow in Chromium, and exposes each valid workflow as an MCP tool.
 Before approving a new draft, [test it against independent expected answers](docs/DRAFT_CHECKS.md).
 The report belongs to that exact draft; changing it requires new checks.
+See the [three-layout release checks](docs/RELEASE_CHECKS.md) for repeated calls
+and the remaining live-site and user checks.
 
 ## Quick start
 

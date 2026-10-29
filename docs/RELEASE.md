@@ -7,6 +7,9 @@ the regression and readiness work tracked in issue #17.
 
 ## Before tagging
 
+Complete the [three-site checks](RELEASE_CHECKS.md) and their open user requirements
+before closing #66 or the local-release milestone.
+
 1. Confirm the private-release scope is approved and no credentials or private
    browser state are included in the artifact.
 2. Set the project version in `pyproject.toml` and the lock file to the exact

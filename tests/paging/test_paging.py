@@ -96,6 +96,49 @@ def test_limits_are_explicit_and_end_wins_when_proven(
     assert trace_for(result)["actions"][-1]["pages"][-1]["outcome"] == reason
 
 
+def test_caller_page_limit_matches_schema_cli_and_browser(paging_site, tmp_path):
+    from browser_to_mcp.replay import parse_input_pairs
+
+    data = contract(paging_site.base, max_pages=2)
+    data["inputs"]["max_pages"] = {"type": "integer", "required": False}
+    data["steps"][-1]["paging"]["max_pages_input"] = "max_pages"
+    loaded = write_contract(tmp_path / "caller.yaml", data)
+    compiled = compile_workflow(loaded)
+    assert compiled.input_model.model_validate({"case": "full"}).max_pages == 2
+    for raw in ("0", "3", "true", "1.5"):
+        with pytest.raises(WorkflowExecutionError) as caught:
+            parse_input_pairs(["case=full", "max_pages=" + raw], loaded.workflow)
+        assert caught.value.category == "input"
+        assert not paging_site.hits
+    for raw, pages, complete in (([], 2, True), (["max_pages=1"], 1, False)):
+        result = asyncio.run(replay_workflow(loaded, ["case=full", *raw], tmp_path / "traces"))
+        assert result.outputs["collection"]["pages_read"] == pages
+        assert result.outputs["collection"]["complete"] is complete
+
+
+@pytest.mark.parametrize(
+    "mutation", ["missing", "required", "string", "sensitive", "url", "shared"]
+)
+def test_bad_caller_page_limit_is_rejected_before_browser(tmp_path, mutation):
+    data = contract("http://127.0.0.1:1")
+    data["inputs"]["max_pages"] = {"type": "integer", "required": False}
+    data["steps"][-1]["paging"]["max_pages_input"] = "max_pages"
+    if mutation == "missing":
+        del data["inputs"]["max_pages"]
+    elif mutation in {"required", "sensitive"}:
+        data["inputs"]["max_pages"][mutation] = True
+    elif mutation == "string":
+        data["inputs"]["max_pages"]["type"] = "string"
+    elif mutation == "url":
+        data["steps"][0]["url"] += "&limit={{max_pages}}"
+    else:
+        duplicate = copy.deepcopy(data["steps"][-1])
+        duplicate["id"] = "second"
+        data["steps"].append(duplicate)
+    with pytest.raises(WorkflowValidationError):
+        write_contract(tmp_path / "bad.yaml", data)
+
+
 @pytest.mark.parametrize(
     "case",
     [
@@ -430,8 +473,10 @@ def test_combined_size_limit_is_checked_across_pages(paging_site, tmp_path, monk
     from browser_to_mcp import paging
 
     rows = expected(paging_site.base)
+
     def size(value):
         return len(json.dumps(value, sort_keys=True, ensure_ascii=False).encode())
+
     monkeypatch.setattr(paging, "MAX_RECORD_BYTES", max(size(rows[:2]), size(rows[1:])))
     with pytest.raises(WorkflowExecutionError) as caught:
         invoke(tmp_path, paging_site)

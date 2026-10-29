@@ -1,0 +1,230 @@
+{
+  "date": "2026-10-30",
+  "issue": 66,
+  "decision": "Continue local technical checks; hold release and expansion. Issue 66 remains open.",
+  "controlled": {
+    "source": {
+      "package_version": "0.0.1a1",
+      "source_sha256": "sha256:251de64b8fe53fa9bf6291c90989a548553033ccbc65fede7e8b839b5f933ef9",
+      "git_commit": "f7ba61f5b26c3fcb692d3e7d6b9e2761e62fdd30",
+      "worktree_dirty": true,
+      "python": "3.12.12",
+      "playwright": "1.61.0",
+      "platform": "macOS-27.2-arm64-arm-64bit"
+    },
+    "report_sha256": "sha256:cf4ed3f02289a45140c616e1e50ae6a884da1f2f9dd8ad7ffef265cbacb9e6ed",
+    "full_local_report": "reports/release-dev-1.json",
+    "ci_artifact": "browser-to-mcp-test-evidence: release.json, release.xml and release/",
+    "observer": "Python MCP SDK over STDIO; not a native assistant client",
+    "proposal_source": "fixed protocol replies; no actual model inference",
+    "builds_started": 9,
+    "builds_matched": 9,
+    "calls_started": 90,
+    "calls_matched": 90,
+    "refusals_matched": 54,
+    "latency_seconds": {
+      "median": 0.404,
+      "p95_nearest_rank": 0.986
+    },
+    "build_seconds": [
+      6.14,
+      5.312,
+      5.381,
+      4.98,
+      5.22,
+      4.664,
+      7.413,
+      7.549,
+      7.736
+    ],
+    "versions": [
+      {
+        "layout": "books",
+        "attempt": 1,
+        "candidate_sha256": "sha256:8b6919e3167ff7a012f702d2c05dbba3c5589f7cbad6c34bee7fb7af2dc61159",
+        "manifest_digest": "sha256:2f722061a24257c8c61a56b1d88371a48d55b33355df90a12c9058bf4b877809"
+      },
+      {
+        "layout": "books",
+        "attempt": 2,
+        "candidate_sha256": "sha256:8b6919e3167ff7a012f702d2c05dbba3c5589f7cbad6c34bee7fb7af2dc61159",
+        "manifest_digest": "sha256:2f722061a24257c8c61a56b1d88371a48d55b33355df90a12c9058bf4b877809"
+      },
+      {
+        "layout": "books",
+        "attempt": 3,
+        "candidate_sha256": "sha256:8b6919e3167ff7a012f702d2c05dbba3c5589f7cbad6c34bee7fb7af2dc61159",
+        "manifest_digest": "sha256:2f722061a24257c8c61a56b1d88371a48d55b33355df90a12c9058bf4b877809"
+      },
+      {
+        "layout": "laptops",
+        "attempt": 1,
+        "candidate_sha256": "sha256:8b26671324288bde57bb9bed700bdf8f4d9dab9ec7041c98d321d5d999f1403e",
+        "manifest_digest": "sha256:09e45013e5a25780dcbded1a0bcc2996c63637ae170ed4b940bc2ff13e2f708f"
+      },
+      {
+        "layout": "laptops",
+        "attempt": 2,
+        "candidate_sha256": "sha256:8b26671324288bde57bb9bed700bdf8f4d9dab9ec7041c98d321d5d999f1403e",
+        "manifest_digest": "sha256:09e45013e5a25780dcbded1a0bcc2996c63637ae170ed4b940bc2ff13e2f708f"
+      },
+      {
+        "layout": "laptops",
+        "attempt": 3,
+        "candidate_sha256": "sha256:8b26671324288bde57bb9bed700bdf8f4d9dab9ec7041c98d321d5d999f1403e",
+        "manifest_digest": "sha256:09e45013e5a25780dcbded1a0bcc2996c63637ae170ed4b940bc2ff13e2f708f"
+      },
+      {
+        "layout": "clothing",
+        "attempt": 1,
+        "candidate_sha256": "sha256:320a11105022f7bdda22ac7ad5ef0078f9a9db649b7605350540876d75379ae1",
+        "manifest_digest": "sha256:50853567317b424476f1f11c42a94069be69acfa9267508fa9d82e597bf1e560"
+      },
+      {
+        "layout": "clothing",
+        "attempt": 2,
+        "candidate_sha256": "sha256:320a11105022f7bdda22ac7ad5ef0078f9a9db649b7605350540876d75379ae1",
+        "manifest_digest": "sha256:50853567317b424476f1f11c42a94069be69acfa9267508fa9d82e597bf1e560"
+      },
+      {
+        "layout": "clothing",
+        "attempt": 3,
+        "candidate_sha256": "sha256:320a11105022f7bdda22ac7ad5ef0078f9a9db649b7605350540876d75379ae1",
+        "manifest_digest": "sha256:50853567317b424476f1f11c42a94069be69acfa9267508fa9d82e597bf1e560"
+      }
+    ],
+    "gates": {
+      "controlled_creation": true,
+      "controlled_first_result": true,
+      "controlled_correctness": true,
+      "controlled_latency": true,
+      "complete_journeys": true,
+      "model_cost": "unmeasured; no inference performed",
+      "live_creation": "pending real-model trials (#62)",
+      "human_baseline_and_newcomer": "pending (#48)",
+      "repeat_use": "pending real users (#57/#66)",
+      "release": "pending; controlled checks alone do not complete #66"
+    },
+    "limits": [
+      "Fixed replies test the protocol, not actual model quality.",
+      "One search tool per layout; query and max_pages inputs. The single collect_catalog(catalog,max_pages) contract remains unverified.",
+      "CI uses local original fixtures only; no live traffic or billable inference."
+    ]
+  },
+  "live": {
+    "source": {
+      "package_version": "0.0.1a1",
+      "source_sha256": "sha256:251de64b8fe53fa9bf6291c90989a548553033ccbc65fede7e8b839b5f933ef9",
+      "git_commit": "f7ba61f5b26c3fcb692d3e7d6b9e2761e62fdd30",
+      "worktree_dirty": true,
+      "python": "3.12.12",
+      "playwright": "1.61.0",
+      "platform": "macOS-27.2-arm64-arm-64bit"
+    },
+    "started_at": "2026-10-29T21:33:57.082647+00:00",
+    "finished_at": "2026-10-29T21:35:12.405877+00:00",
+    "permissions_checked": [
+      "https://toscrape.com/",
+      "https://webscraper.io/test-sites",
+      "https://www.scrapingcourse.com/"
+    ],
+    "attempts": [
+      {
+        "site": "books",
+        "job_id": "6241703d-86a8-4350-be54-e55fe0b17b12",
+        "start_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+        "allowed_domains": [
+          "books.toscrape.com",
+          "ajax.googleapis.com"
+        ],
+        "state": "waiting_for_input",
+        "error": null
+      },
+      {
+        "site": "laptops",
+        "job_id": "98264831-0430-4a79-b14f-9ab661019c17",
+        "start_url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+        "allowed_domains": [
+          "webscraper.io"
+        ],
+        "state": "failed",
+        "error": {
+          "code": "page_unavailable",
+          "message": "The page could not be read under the browser policy. Check the URL, access, and required hosts. No redirects, login, challenge bypass, or automatic retry is supported."
+        }
+      },
+      {
+        "site": "clothing",
+        "job_id": "833b5e9c-5b82-45e3-b050-f130f9f2cd25",
+        "start_url": "https://www.scrapingcourse.com/ecommerce/",
+        "allowed_domains": [
+          "www.scrapingcourse.com"
+        ],
+        "state": "failed",
+        "error": {
+          "code": "page_unavailable",
+          "message": "The page could not be read under the browser policy. Check the URL, access, and required hosts. No redirects, login, challenge bypass, or automatic retry is supported."
+        }
+      }
+    ],
+    "books": {
+      "matched_rows": 11,
+      "scope": "One-page travel category, no caller inputs; not the full pilot contract",
+      "proposal_source": "Codex read the live page context and supplied these selectors; no fixture response or selector editing after submission",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 12.116392333000476,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "manifest_digest": "sha256:1e4e6744dcfc41c01f3499f0a06254c836a0ef0cba638da3fdff1c4349eb4218",
+      "replay_seconds": 3.4844423750000715,
+      "candidate": "live-2026-10-30/books.candidate",
+      "expected": "live-2026-10-30/books-expected.json",
+      "proposal": "live-2026-10-30/books-proposal.json",
+      "trace_sha256": "sha256:f35bc7d4b14d9f5ecce9dae7274a317989a2aff811641d9acc250f26c1397d8c",
+      "published": false
+    },
+    "native_client_version": null,
+    "external_model_version": null,
+    "client_tokens": null,
+    "client_charges_usd": null,
+    "local_compute_cost_usd": null,
+    "outcome": "One proposal and matching book replay. Two page_unavailable inspections. No retry or bypass; no three-site success claim."
+  },
+  "human": {
+    "owner_reply": "2026-10-30: No results yet — keep these requirements open",
+    "manual_baseline_seconds": null,
+    "newcomer_seconds": null,
+    "repeat_user_observations": null
+  },
+  "remaining": [
+    "Full live three-site creation, evaluation, publication and new-input MCP calls (#62/#66).",
+    "Verify the exact single catalog/max_pages contract from the pilot brief.",
+    "Actual native-client/provider/model versions and measured charges; unknown is not free.",
+    "Timed manual baseline and first-time walkthrough (#48).",
+    "Repeated use and feedback from real participants (#57/#66)."
+  ],
+  "validation": {
+    "targeted_tests": "124 passed; development run before final refinements",
+    "full_regression": "989 passed; before final targeted verification",
+    "lint": "passed",
+    "example_workflows": "all four passed",
+    "package_build": "passed",
+    "readiness": "five fixture cases, ten times each; passed",
+    "installed_wheel": "passed with the locked environment dependencies"
+  }
+}

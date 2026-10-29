@@ -125,11 +125,19 @@ def _tool_name(workflow: Workflow) -> str:
 
 def _input_model(workflow: Workflow) -> type[StrictArguments]:
     fields: dict[str, tuple[Any, Any]] = {}
+    limits = {
+        s.paging.max_pages_input: s.paging.max_pages
+        for s in workflow.steps
+        if s.paging and s.paging.max_pages_input
+    }
     for name, definition in workflow.inputs.items():
         _validate_field_name(name, f"inputs.{name}")
         annotation = _type_for(definition.type, f"inputs.{name}.type")
         default: Any = ...
-        if not definition.required:
+        if name in limits:
+            annotation = Annotated[annotation, Field(ge=1, le=limits[name])]
+            default = limits[name]
+        elif not definition.required:
             annotation = annotation | None
             default = None
         fields[name] = (annotation, _field(default, definition))

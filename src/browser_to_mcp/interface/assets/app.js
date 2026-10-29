@@ -384,6 +384,7 @@ $('#task-form').addEventListener('submit', event => {
       max_pages: Number(f.get('max_pages')),
       allow_empty: f.has('allow_empty')
     };
+    if (f.has('caller_page_limit')) task.max_pages_input = 'max_pages';
     const budgets = {};
     for (const key of ['browser_actions', 'model_requests', 'tokens', 'cost_microusd'])
       budgets[key] = Number(f.get(key));

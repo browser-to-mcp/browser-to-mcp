@@ -12,6 +12,11 @@
 
 ## Unreleased
 
+- Add a loopback-only local interface for task creation, job questions, previews,
+  independent evaluation, full review, explicit publication and run history (#65).
+  Reuse the existing worker/evaluator/library/replay services, support client-led
+  or worker-provider creation, and protect local controls with origin/host/token checks.
+
 - Add a local version library with evidence-bound review, atomic publication,
   rollback, retirement, audit history and pinned MCP/trace identities (#64).
 

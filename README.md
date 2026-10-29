@@ -147,3 +147,10 @@ The implementation follows the [browser-to-mcp specification](https://browser-to
 Use `browser-to-mcp library` to import, test, review, publish, retire and roll back
 local tool versions. `library server` exposes only approved published versions.
 See [the tool library guide](docs/TOOL_LIBRARY.md) for migration, review and restart instructions.
+
+## Local browser interface
+
+Run `uv run browser-to-mcp ui` and open the private local URL printed in the
+terminal. Create tasks, answer questions, preview results, evaluate independent
+checks, review and publish tools, and inspect run history. See the
+[local interface guide](docs/LOCAL_INTERFACE.md) for modes, MCP setup and limits.

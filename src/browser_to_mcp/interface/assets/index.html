@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Browser to MCP · Local tools</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/app.js" defer>
+</script>
+</head>
+<body>
+<header>
+<span class="eyebrow">BROWSER TO MCP · LOCAL WORKSPACE</span>
+<h1>Turn a task into a tool.</h1>
+<p>Describe a public, read-only task. Check the answer. Publish when you’re ready.</p>
+</header>
+<nav aria-label="Workspace">
+<button data-view="tools">Tools</button>
+<button data-view="new">New task</button>
+<button data-view="jobs">Build jobs</button>
+<button data-view="review">Review &amp; tests</button>
+<button data-view="runs">Run history</button>
+<button data-view="setup">MCP setup</button>
+</nav>
+<main>
+<p id="message" role="status" aria-live="polite">
+</p>
+<p id="worker" class="note">
+</p>
+<section id="tools">
+<h2>Your tool library</h2>
+<p>Published tools are ready to run. Drafts need tests and review.</p>
+<div id="tool-list">
+</div>
+<form id="run-form" hidden>
+<h3 id="run-title">Run tool</h3>
+<label>Inputs (JSON)<textarea aria-label="Inputs (JSON)" id="run-inputs" rows="5">{}</textarea>
+</label>
+<button>Run published version</button>
+</form>
+</section>
+<section id="new" hidden>
+<h2>Describe your task</h2>
+<p>Use public data only. No login, purchases, messages, uploads or secrets.</p>
+<form id="task-form">
+<div class="grid">
+<label>Tool name<input name="name" required pattern="[a-z][a-z0-9_]{0,63}" placeholder="catalog_lookup">
+</label>
+<label>Starting URL<input name="start_url" type="url" required placeholder="https://example.org/catalog">
+</label>
+</div>
+<label>What should the tool do?<textarea name="description" required rows="3">
+</textarea>
+</label>
+<label>Allowed website hostnames, separated by commas<input name="domains" required placeholder="example.org">
+</label>
+<fieldset>
+<legend>Values that change between runs</legend>
+<div id="input-rows">
+</div>
+<button type="button" id="add-input">Add input</button>
+</fieldset>
+<fieldset>
+<legend>Information to return</legend>
+<div id="field-rows">
+</div>
+<button type="button" id="add-field">Add result field</button>
+</fieldset>
+<div class="grid">
+<label>Result shape<select name="shape" aria-label="Result shape">
+<option value="array">List of records</option>
+<option value="object">One record</option>
+<option value="">Ask me</option>
+</select>
+</label>
+<label>Maximum items<input name="max_items" type="number" min="1" max="100" value="20" required>
+</label>
+<label>Maximum pages<input name="max_pages" type="number" min="1" max="20" value="1" required>
+</label>
+</div>
+<label>Unique result field (optional)<input name="unique_by" placeholder="product_url">
+</label>
+<label>
+<input name="allow_empty" type="checkbox">An empty list is a valid answer</label>
+<label>Creation mode<select name="generation" aria-label="Creation mode">
+<option value="client">Connected assistant through MCP</option>
+<option value="provider">Worker API provider (explicit configuration required)</option>
+</select>
+</label>
+<p>Connected assistant: no additional model installation is required. The assistant supplies a proposal through the build-jobs MCP connection. Its model cost remains unknown to this worker.</p>
+<p>Provider mode: public task/page data is sent to the provider configured in the trusted worker environment. Never enter credentials here. Configure rates and credentials before starting the interface.</p>
+<details>
+<summary>Resource budgets</summary>
+<div class="grid">
+<label>Browser actions<input name="browser_actions" type="number" min="0" max="1000" value="6" required>
+</label>
+<label>Model requests<input name="model_requests" type="number" min="0" max="100" value="0" required>
+</label>
+<label>Token limit<input name="tokens" type="number" min="0" max="1000000" value="0" required>
+</label>
+<label>API cost ceiling (micro-USD)<input name="cost_microusd" type="number" min="0" max="100000000" value="0" required>
+</label>
+</div>
+</details>
+<button id="start-task">Start build</button>
+</form>
+</section>
+<section id="jobs" hidden>
+<h2>Build progress &amp; questions</h2>
+<p>Reloading reads saved state. It does not start another build. Correct a failed task by creating a new attempt.</p>
+<div id="job-list">
+</div>
+<div id="draft-view">
+</div>
+</section>
+<section id="review" hidden>
+<h2>Review before publication</h2>
+<p>Inspect every input, named output, target, action, timeout, permission and success check. First-page previews are not independent tests.</p>
+<form id="review-form">
+<label>Tool ID<input id="review-tool" required>
+</label>
+<label>Library version<input id="review-version" type="number" min="1" value="1" required>
+</label>
+<button>Load full review</button>
+</form>
+<div id="review-data">
+</div>
+<form id="evaluation-form">
+<h3>Independent expected answers</h3>
+<p>Write or paste a JSON test plan with independently checked expected answers. Do not copy the generated answer as the expected result. See the bundled guide for required coverage and examples.</p>
+<label>JSON test plan<textarea id="suite" rows="12" required placeholder='{"schema_version":1,"name":"catalog checks",...}'>
+</textarea>
+</label>
+<label>
+<input id="plan-approved" type="checkbox" required>I reviewed the plan and its expected answers independently.</label>
+<button>Evaluate this exact version</button>
+</form>
+<form id="publish-form">
+<label>
+<input id="review-approved" type="checkbox" required>I reviewed the full contract, permissions, test outcomes and limitations.</label>
+<button>Publish reviewed version</button>
+</form>
+</section>
+<section id="runs" hidden>
+<h2>Run &amp; test history</h2>
+<p>Each run identifies its exact published version. Interrupted work is never automatically retried.</p>
+<div id="run-list">
+</div>
+</section>
+<section id="setup" hidden>
+<h2>Connect your assistant</h2>
+<p>Use the build-jobs server for client-led proposals. After publication, start or restart the library server so it adopts the current versions. An already running server keeps its startup snapshot.</p>
+<pre id="mcp-config">
+</pre>
+<button id="copy-config">Copy MCP configuration</button>
+<p>Replace the Python environment command if your client does not inherit your shell PATH. Run the interface and client on the same computer. No model keys belong in this configuration.</p>
+</section>
+</main>
+<footer>Local, single-owner workspace · Public read-only tasks · Explicit tests and approval</footer>
+</body>
+</html>

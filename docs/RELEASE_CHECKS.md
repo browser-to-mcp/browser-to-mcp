@@ -21,6 +21,9 @@ The [dated results](evidence/release-2026-10-30.json) separate these checks from
 live websites and real people. Fixed replies do not measure model quality.
 Timings start at submitting a task or calling a tool; installation is separate.
 Each saved version must pass its own independent tests before publication.
+The controlled correctness, creation, first-result timing and call-latency gates
+are enforced by pytest. A missed gate fails the run after saving its report,
+so the evidence remains available even when CI fails.
 
 These checks use one search tool per layout (`query` and optional `max_pages`).
 They exercise the pilot's fixed notebook answers; the proposed single

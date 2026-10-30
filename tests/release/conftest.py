@@ -76,3 +76,6 @@ def release_report(tmp_path_factory):
             "p95_nearest_rank": seconds[math.ceil(0.95 * len(seconds)) - 1] if seconds else None,
         }
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+        failed = [name for name, passed in report["gates"].items() if passed is False]
+        if failed:
+            pytest.fail("Controlled release gates failed: " + ", ".join(failed))

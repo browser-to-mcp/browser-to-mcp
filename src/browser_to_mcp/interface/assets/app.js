@@ -130,8 +130,10 @@ async function poll() {
           $('#run-form').hidden = false;
           $('#run-title').textContent = 'Run ' + tool.display_name;
           const values = {};
-          for (const [name, input] of Object.entries(r.workflow.inputs)) values[name] =
-            input.type === 'string' ? '' : input.type === 'boolean' ? false : 0;
+          for (const [name, input] of Object.entries(r.workflow.inputs)) {
+            if (!input.required) continue;
+            values[name] = input.type === 'string' ? '' : input.type === 'boolean' ? false : 0;
+          }
           $('#run-inputs').value = JSON.stringify(values, null, 2);
           pre(r.workflow.inputs, $('#run-form'));
           $('#run-inputs').focus();

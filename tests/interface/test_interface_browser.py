@@ -4,11 +4,80 @@ import os
 from pathlib import Path
 from time import monotonic
 
+from builder_site import proposal, task
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from pilot import PROPOSAL, pilot, plan
 from playwright.async_api import async_playwright, expect
 from test_security import interface
+
+from browser_to_mcp.builder.contracts import TaskRequest, make_candidate
+from browser_to_mcp.compiler import compile_workflow
+
+
+def test_run_form_omits_optional_page_limit_and_accepts_explicit_override(tmp_path):
+    loaded, _ = make_candidate(
+        TaskRequest.model_validate(
+            task("http://127.0.0.1:12345", max_pages=20, max_pages_input="max_pages")
+        ),
+        json.dumps(proposal()),
+    )
+    compiled = compile_workflow(loaded)
+    submitted = []
+
+    async def exercise(server):
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch()
+            page = await browser.new_page()
+
+            async def api(route):
+                request = route.request.post_data_json
+                operation = request["operation"]
+                if operation == "status":
+                    result = dict(
+                        worker_ready=False,
+                        jobs=[],
+                        operations=[],
+                        executable="browser-to-mcp",
+                        jobs_directory="jobs",
+                        library_directory="library",
+                        tools=[
+                            dict(
+                                id="demo", name="Catalog", display_name="Catalog", live=1, latest=1
+                            )
+                        ],
+                    )
+                elif operation == "review":
+                    result = {"workflow": loaded.workflow.model_dump(mode="json")}
+                else:
+                    assert operation == "run"
+                    values = request["arguments"]["inputs"]
+                    submitted.append(compiled.input_model.model_validate(values))
+                    result = {"operation_id": "demo-run"}
+                await route.fulfill(json=result)
+
+            # Isolate form behavior; validate submissions with the real tool input model.
+            await page.route("**/api", api)
+            await page.goto(server.url)
+            await page.get_by_role("button", name="Run tool", exact=True).click()
+            inputs = page.get_by_label("Inputs (JSON)", exact=True)
+            assert json.loads(await inputs.input_value()) == {"query": ""}
+            await inputs.fill('{"query":"notebook"}')
+            await page.get_by_role("button", name="Run published version").click()
+            await until(lambda: len(submitted) == 1)
+            assert submitted[0].max_pages == 20
+            await expect(page.locator("#runs")).to_be_visible()
+            await page.get_by_role("button", name="Tools", exact=True).click()
+            await page.get_by_role("button", name="Run tool", exact=True).click()
+            await expect(inputs).to_have_value(json.dumps({"query": ""}, indent=2))
+            await inputs.fill('{"query":"notebook","max_pages":1}')
+            await page.get_by_role("button", name="Run published version").click()
+            await until(lambda: len(submitted) == 2)
+            assert submitted[1].max_pages == 1
+            await browser.close()
+
+    with interface(tmp_path) as (_, server):
+        asyncio.run(exercise(server))
 
 
 async def until(predicate):

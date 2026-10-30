@@ -56,6 +56,7 @@ class TaskRequest(ClosedModel):
     shape: Literal["object", "array"] | None = None
     max_items: Limit = 50
     max_pages: Annotated[int, Field(strict=True, ge=1, le=20)] = 1
+    max_pages_input: str | None = Field(default=None, min_length=1, max_length=64)
     timeout_seconds: Annotated[int, Field(strict=True, ge=1, le=120)] = 30
     allow_empty: StrictBool = False
     unique_by: str | None = None
@@ -72,6 +73,13 @@ class TaskRequest(ClosedModel):
         for name in [*self.inputs, *self.fields]:
             if len(name) > 64 or schema_field_name_error(name) or SECRET_NAME.search(name):
                 raise ValueError("Use public input and output names.")
+        if self.max_pages_input is not None and (
+            self.max_pages <= 1
+            or self.max_pages_input in self.inputs
+            or schema_field_name_error(self.max_pages_input)
+            or SECRET_NAME.search(self.max_pages_input)
+        ):
+            raise ValueError("Choose a separate public name for the optional page-limit input.")
         if self.unique_by is not None and self.unique_by not in self.fields:
             raise ValueError("Choose a declared unique field.")
         for field in self.fields.values():
@@ -225,6 +233,7 @@ def make_candidate(task: TaskRequest, response: str):
             paging = Paging(
                 **plan.paging.model_dump(exclude_none=True),
                 max_pages=task.max_pages,
+                max_pages_input=task.max_pages_input,
                 timeout_seconds=task.timeout_seconds,
                 status_output="collection",
             )
@@ -243,17 +252,24 @@ def make_candidate(task: TaskRequest, response: str):
                     "stop_reason": {"type": "string"},
                 },
             }
+        inputs = {
+            name: WorkflowInput(type=field.type, description=field.description).model_dump(
+                exclude_none=True
+            )
+            for name, field in task.inputs.items()
+        }
+        if task.max_pages_input:
+            inputs[task.max_pages_input] = dict(
+                type="integer",
+                required=False,
+                description=f"Pages to read, from 1 to {task.max_pages}; defaults to the limit.",
+            )
         loaded = build_workflow(
             task.name,
             task.description,
             task.allowed_domains,
             [_url_step(task, plan.bindings), extraction],
-            {
-                name: WorkflowInput(type=field.type, description=field.description).model_dump(
-                    exclude_none=True
-                )
-                for name, field in task.inputs.items()
-            },
+            inputs,
             outputs,
         )
         # The same normalization and credential checks as manually supplied job drafts.

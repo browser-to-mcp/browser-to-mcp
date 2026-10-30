@@ -22,11 +22,15 @@ jobs:
       - name: Unit and existing browser checks
         env:
           BROWSER_TO_MCP_EVALUATION_EVIDENCE: reports/evaluation
-        run: uv run pytest --ignore=tests/authoring/test_journey.py --junitxml=reports/unit.xml
+        run: uv run pytest --ignore=tests/authoring/test_journey.py --ignore=tests/release --junitxml=reports/unit.xml
       - name: Real recording-to-MCP journey and 30 controlled runs
         env:
           BROWSER_TO_MCP_JOURNEY_REPORT: reports/journey.json
         run: uv run pytest tests/authoring/test_journey.py -q --junitxml=reports/journey.xml
+      - name: Three layouts, nine builds and 90 published MCP calls
+        env:
+          BROWSER_TO_MCP_RELEASE_REPORT: reports/release.json
+        run: uv run pytest tests/release -q --junitxml=reports/release.xml
       - name: Save test results and measured journey outcomes
         if: always()
         uses: actions/upload-artifact@v4

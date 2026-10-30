@@ -79,7 +79,7 @@ def _raw_rows(rows):
     ]
 
 
-async def collect_pages(page, step, output, allowed_domains, check_boundary, evidence):
+async def collect_pages(page, step, output, allowed_domains, check_boundary, evidence, limit=None):
     """Return bounded raw outputs; failures/cancellation never return partial records."""
     initial_url = page.url
     rows = []
@@ -146,7 +146,7 @@ async def collect_pages(page, step, output, allowed_domains, check_boundary, evi
                     reason = "end"
                 elif len(rows) == output.max_items:
                     reason = "record_limit"
-                elif page_number == step.paging.max_pages:
+                elif page_number == (step.paging.max_pages if limit is None else limit):
                     reason = "page_limit"
                 else:
                     reason = "next"

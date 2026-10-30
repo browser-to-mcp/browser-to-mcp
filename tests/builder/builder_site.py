@@ -114,8 +114,17 @@ def serve():
                 cells = []
                 table = url.path.startswith("/laptops/")
                 for slug, title, price in rows:
+                    if mode == "conflict" and page == "2" and slug == "green":
+                        price = "£1.00"
+                    if mode == "same_title":
+                        title = "Same title"
+                    if mode == "blank_price":
+                        price = "  "
+                    destination = (
+                        "/cart?add-to-cart=blue" if mode == "cart" else f"/products/{slug}"
+                    )
                     content = (
-                        f'<a class="title" title="  {title}  " href="/products/{slug}">{title}</a>'
+                        f'<a class="title" title="  {title}  " href="{destination}">{title}</a>'
                     )
                     if table:
                         content = f'<tr><td>{content}</td><td class="price">{price}</td></tr>'
@@ -129,12 +138,26 @@ def serve():
                     inside = (
                         "<table><tbody>" + "".join(cells) + "</tbody></table>" if cells else inside
                     )
-                if mode == "broken":
+                if mode == "broken" or query.get("q") == ["broken"]:
                     inside = inside.replace('class="price"', 'class="missing"')
+                if mode == "unmarked_empty":
+                    inside = ""
                 if page == "1" and query.get("q") == ["notebook"]:
                     navigation = f'<a class="next" href="{url.path}?q=notebook&amp;page=2">Next</a>'
                 else:
                     navigation = '<span class="end">End of list</span>'
+                if page == "2":
+                    if mode == "loop":
+                        navigation = f'<a class="next" href="{url.path}?q=notebook">Next</a>'
+                    if mode == "outside":
+                        navigation = f'<a class="next" href="{self.server.outside_url}">Next</a>'
+                    if mode == "challenge":
+                        inside, navigation = "<h1>Verify you are human</h1>", ""
+                    if mode == "slow":
+                        inside, navigation = "", ""
+                    if mode == "missing_page":
+                        self.send_error(404)
+                        return
                 body = (
                     '<aside><a class="title">Fake sidebar product</a>'
                     '<b class="price">£999</b></aside>'

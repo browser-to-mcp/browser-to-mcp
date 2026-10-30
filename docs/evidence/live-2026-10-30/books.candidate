@@ -1,0 +1,80 @@
+name: live_books
+description: Collect full product titles, displayed prices and product page links
+  from this public listing. Stop on any access challenge or policy refusal.
+version: 1
+risk: read_only
+manifest:
+  version: 1
+permissions:
+  allowed_domains:
+  - books.toscrape.com
+  - ajax.googleapis.com
+  downloads: false
+  uploads: false
+  submit_forms: false
+  send_messages: false
+  spend_money: false
+  requires_authentication: false
+inputs: {}
+steps:
+- id: open
+  action: goto
+  url: https://books.toscrape.com/catalogue/category/books/travel_2/index.html
+  timeout_seconds: 30
+  risk: read_only
+  idempotency: safe
+  retry: none
+  confirmation: never
+- id: result
+  action: extract_records
+  selector: .col-sm-8.col-md-9
+  record:
+    rows: article.product_pod
+    fields:
+      title:
+        selector: h3 a
+        source: title
+        normalize_whitespace: true
+      price_text:
+        selector: .price_color
+        source: text
+        normalize_whitespace: true
+      product_url:
+        selector: h3 a
+        source: href
+        normalize_whitespace: false
+        path_prefix: /catalogue/
+    duplicates: reject
+  timeout_seconds: 30
+  risk: read_only
+  idempotency: safe
+  retry: none
+  confirmation: never
+outputs:
+  result:
+    type: array
+    items:
+      type: object
+      properties:
+        price_text:
+          type: string
+          description: Displayed current price including currency
+          nullable: false
+          sensitive: false
+        product_url:
+          type: string
+          description: Product page link
+          nullable: false
+          sensitive: false
+        title:
+          type: string
+          description: Full product name
+          nullable: false
+          sensitive: false
+    max_items: 100
+    allow_empty: false
+    sensitive: false
+success:
+- id: check_result
+  assertion: output_not_empty
+  field: result

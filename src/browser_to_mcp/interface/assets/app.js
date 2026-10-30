@@ -130,8 +130,10 @@ async function poll() {
           $('#run-form').hidden = false;
           $('#run-title').textContent = 'Run ' + tool.display_name;
           const values = {};
-          for (const [name, input] of Object.entries(r.workflow.inputs)) values[name] =
-            input.type === 'string' ? '' : input.type === 'boolean' ? false : 0;
+          for (const [name, input] of Object.entries(r.workflow.inputs)) {
+            if (!input.required) continue;
+            values[name] = input.type === 'string' ? '' : input.type === 'boolean' ? false : 0;
+          }
           $('#run-inputs').value = JSON.stringify(values, null, 2);
           pre(r.workflow.inputs, $('#run-form'));
           $('#run-inputs').focus();
@@ -384,6 +386,7 @@ $('#task-form').addEventListener('submit', event => {
       max_pages: Number(f.get('max_pages')),
       allow_empty: f.has('allow_empty')
     };
+    if (f.has('caller_page_limit')) task.max_pages_input = 'max_pages';
     const budgets = {};
     for (const key of ['browser_actions', 'model_requests', 'tokens', 'cost_microusd'])
       budgets[key] = Number(f.get(key));

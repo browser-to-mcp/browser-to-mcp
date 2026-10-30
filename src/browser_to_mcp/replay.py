@@ -320,6 +320,16 @@ def parse_input_pairs(input_pairs: list[str], workflow: Workflow) -> dict[str, o
                 )
             continue
         parsed_inputs[name] = _parse_input_value(name, raw_value, definition)
+    for step in workflow.steps:
+        if step.paging and step.paging.max_pages_input:
+            name = step.paging.max_pages_input
+            value = parsed_inputs.setdefault(name, step.paging.max_pages)
+            if type(value) is not int or not 1 <= value <= step.paging.max_pages:
+                raise WorkflowExecutionError(
+                    ExecutionFailureCategory.INPUT,
+                    f"inputs.{name}",
+                    f"Choose a whole page limit from 1 to {step.paging.max_pages}.",
+                )
     return parsed_inputs
 
 
@@ -688,6 +698,7 @@ async def execute_steps(
                         allowed_domains or workflow.permissions.allowed_domains,
                         lambda: _check_boundary(boundary, step.id),
                         page_evidence,
+                        inputs.get(step.paging.max_pages_input, step.paging.max_pages),
                     )
                 else:
                     outputs[step.id] = await extract_records(page, step, workflow.outputs[step.id])

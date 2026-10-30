@@ -48,6 +48,8 @@ def test_run_form_omits_optional_page_limit_and_accepts_explicit_override(tmp_pa
                         ],
                     )
                 elif operation == "review":
+                    # Loading tool details is asynchronous, including on slower CI workers.
+                    await asyncio.sleep(0.15)
                     result = {"workflow": loaded.workflow.model_dump(mode="json")}
                 else:
                     assert operation == "run"
@@ -61,7 +63,7 @@ def test_run_form_omits_optional_page_limit_and_accepts_explicit_override(tmp_pa
             await page.goto(server.url)
             await page.get_by_role("button", name="Run tool", exact=True).click()
             inputs = page.get_by_label("Inputs (JSON)", exact=True)
-            assert json.loads(await inputs.input_value()) == {"query": ""}
+            await expect(inputs).to_have_value(json.dumps({"query": ""}, indent=2))
             await inputs.fill('{"query":"notebook"}')
             await page.get_by_role("button", name="Run published version").click()
             await until(lambda: len(submitted) == 1)

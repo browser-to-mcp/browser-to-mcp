@@ -136,8 +136,11 @@ class BrowserBoundary:
             accept_downloads=False,
             service_workers="block",
             permissions=[],
-            java_script_enabled=self._evaluation_page is None,
-            offline=self._evaluation_page is not None,
+            **(
+                {"java_script_enabled": False, "offline": True}
+                if self._evaluation_page is not None
+                else {}
+            ),
         )
         try:
             await context.route("**/*", self._route)

@@ -111,7 +111,7 @@ def test_missing_shape_asks_before_browser_or_model_and_resumes(store, catalog_s
 @pytest.mark.parametrize(
     "mode,code",
     [
-        ("blocked", "page_unavailable"),
+        ("blocked", "page_http_error"),
         ("login", "task_login"),
         ("large", "page_too_large"),
         ("broken", "preview_failed"),

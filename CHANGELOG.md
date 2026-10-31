@@ -12,6 +12,10 @@
 
 ## Unreleased
 
+- Preserve safe browser-policy reasons, navigation timeouts and unsuccessful HTTP
+  responses in task-build errors (#62/#66). Keep third-party requests blocked;
+  record the laptop and clothing trials as unsupported under the current hosts.
+
 - Check nine builds and 90 published MCP calls across three local layouts (#66).
   Let callers choose fewer pages within the reviewed limit. Keep live-site and
   real-user results separate; the release checks remain open.

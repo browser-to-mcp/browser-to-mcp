@@ -348,5 +348,5 @@ def test_page_access_failure_during_client_check_has_a_clear_error(store, catalo
     phase(store)
     result = store.read(context["job_id"])
     assert result["state"] == "failed"
-    assert result["error"]["code"] == "page_unavailable"
+    assert result["error"]["code"] == "page_http_error"
     assert result["artifact"] is None

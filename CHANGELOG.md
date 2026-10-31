@@ -12,6 +12,10 @@
 
 ## Unreleased
 
+- Add explicitly labelled offline failure-page fixtures to independent live-draft
+  evaluations (#66), with scripts disabled, network isolation and verified trace
+  identity. Keep ordinary browser execution and publication requirements intact.
+
 - Preserve safe browser-policy reasons, navigation timeouts and unsuccessful HTTP
   responses in task-build errors (#62/#66). Keep third-party requests blocked;
   record the laptop and clothing trials as unsupported under the current hosts.

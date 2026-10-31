@@ -103,8 +103,15 @@ class BrowserBoundary:
     headers, bodies, dialog text, or page contents enter the diagnostic state.
     """
 
-    def __init__(self, domains: list[str], notify: Callable[[str], None] | None = None):
+    def __init__(
+        self,
+        domains: list[str],
+        notify: Callable[[str], None] | None = None,
+        *,
+        evaluation_page: tuple[str, str] | None = None,
+    ):
         self.domains = list(domains)
+        self._evaluation_page = evaluation_page
         self.failure: BrowserViolation | None = None
         self.page: Page | None = None
         self.download_active = False
@@ -126,7 +133,14 @@ class BrowserBoundary:
         if environment != "local":
             raise ValueError("Only local execution is supported; hosted execution is unavailable.")
         context = await browser.new_context(
-            accept_downloads=False, service_workers="block", permissions=[]
+            accept_downloads=False,
+            service_workers="block",
+            permissions=[],
+            **(
+                {"java_script_enabled": False, "offline": True}
+                if self._evaluation_page is not None
+                else {}
+            ),
         )
         try:
             await context.route("**/*", self._route)
@@ -195,6 +209,20 @@ class BrowserBoundary:
             if self.page is None or frame != self.page.main_frame:
                 self.deny("frame" if self.page and frame.page == self.page else "duplicate_tab")
                 await route.abort()
+                return
+            if self._evaluation_page is not None:
+                url, markup = self._evaluation_page
+                if (
+                    request.url != url
+                    or request.method != "GET"
+                    or not request.is_navigation_request()
+                ):
+                    self.deny("blocked_request")
+                    await route.abort()
+                else:
+                    await route.fulfill(
+                        status=200, content_type="text/html; charset=utf-8", body=markup
+                    )
                 return
             # continue_ follows redirect chains without rerouting their later hops.
             # Fetch one response only; never release a redirect to the browser.

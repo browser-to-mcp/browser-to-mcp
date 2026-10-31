@@ -1,0 +1,27 @@
+{
+  "status": "draft",
+  "area": ".col-sm-8.col-md-9",
+  "bindings": {
+    "category": {
+      "location": "path",
+      "key": "4"
+    }
+  },
+  "record": {
+    "rows": "article.product_pod",
+    "fields": {
+      "title": {
+        "selector": "h3 a",
+        "source": "title"
+      },
+      "price_text": {
+        "selector": ".price_color"
+      },
+      "product_url": {
+        "selector": "h3 a",
+        "source": "href",
+        "path_prefix": "/catalogue/"
+      }
+    }
+  }
+}

@@ -87,6 +87,13 @@ def _prepare(candidate: Path, suite_path: Path, expected_suite_sha256: str):
     # Parse the same bytes whose hash was checked, even if the path changes later.
     suite = Suite.model_validate(_json(suite_data))
     for case in suite.cases:
+        if case.fixture_html is not None and (
+            len(loaded.workflow.steps) != 2
+            or loaded.workflow.steps[0].action != "goto"
+            or loaded.workflow.steps[1].action != "extract_records"
+            or loaded.workflow.steps[1].paging is not None
+        ):
+            raise ValueError("Fixtures require a single navigation and record extraction.")
         if isinstance(case.expected, ExpectedOutputs):
             outputs_model = compiled.output_model.model_fields["outputs"].annotation
             outputs_model.model_validate(case.expected.outputs)
@@ -137,7 +144,11 @@ def _score(case, trace, mode):
         return "passed", "Every expected output value and type matched."
     if trace.outputs or trace.error is None:
         return "failed", "A failed run returned partial data or has no error reason."
-    if mode == "live" and trace.error.category == "runtime":
+    if (
+        mode in {"live", "mixed"}
+        and case.fixture_html is None
+        and trace.error.category == "runtime"
+    ):
         return "blocked", "The live page could not be read; this is not a correct data result."
     if (
         isinstance(case.expected, ExpectedError)
@@ -305,6 +316,8 @@ def _save_report(report, directory):
         f"Candidate: `{report.candidate_sha256}`",
         f"Plan: `{report.suite_sha256}`",
         f"Mode: {report.mode}",
+        "Inline fixtures are synthetic offline checks; "
+        "see the pinned plan and trace fixture hashes.",
         f"Elapsed: {report.seconds:.3f} seconds",
         "Tested files: [draft](draft.candidate) and [test plan](plan.json)",
         "Details and runtime versions: [report.json](report.json)",
@@ -388,7 +401,17 @@ async def evaluate(candidate, suite_path, directory, expected_suite_sha256, *, g
                 ]
                 previous_traces = set(traces.glob("*.json"))
                 try:
-                    result = await replay_workflow(loaded, pairs, traces, suite.timeout_seconds)
+                    result = await replay_workflow(
+                        loaded,
+                        pairs,
+                        traces,
+                        suite.timeout_seconds,
+                        **(
+                            {"evaluation_html": case.fixture_html}
+                            if case.fixture_html is not None
+                            else {}
+                        ),
+                    )
                     trace_path = Path(result.trace_path)
                 except asyncio.CancelledError:
                     retained = set(traces.glob("*.json")) - previous_traces
@@ -510,6 +533,8 @@ def verify_evaluation(candidate, suite_path, directory, expected_suite_sha256):
             or trace.metadata.workflow_name != loaded.workflow.name
             or trace.metadata.workflow_version != loaded.workflow.version
             or trace.metadata.run_id != Path(observation.trace_file).stem
+            or trace.metadata.evaluation_fixture_sha256
+            != (digest(case.fixture_html.encode()) if case.fixture_html is not None else None)
             or trace.metadata.python_version != report.source.python
             or trace.metadata.playwright_version != report.source.playwright
             or not _exact(trace.inputs, values)

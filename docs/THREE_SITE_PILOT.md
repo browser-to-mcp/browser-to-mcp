@@ -228,6 +228,12 @@ Do not publish identities or private catalog data without permission.
 
 ## What happens next
 
+The [October 31 book journey](evidence/book-journey-2026-10-31/README.md)
+records a live single-page category draft, independent checks, local publication
+and two successful MCP calls with different inputs. Empty and changed-page checks
+use labelled offline fixtures. Laptop/clothing live support, human measurements
+and the remaining release gates are still pending; this does not close #66.
+
 Proceed with #58's restrictions and #59–#60's list and paging work using the
 controlled specification. Recheck public permissions and page structure before
 each opt-in live trial. Keep live traffic out of CI. A live-site result needs

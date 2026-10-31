@@ -1,0 +1,108 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 5.058779583021533,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 0.036848958989139646,
+      "output_key": "result",
+      "status": "completed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [
+    {
+      "assertion": "output_not_empty",
+      "assertion_id": "check_result",
+      "field": "result",
+      "status": "passed"
+    }
+  ],
+  "error": null,
+  "inputs": {
+    "category": "travel_2"
+  },
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 5.687646041973494,
+    "evaluation_fixture_sha256": null,
+    "finished_at": "2026-10-31T16:06:00.773394Z",
+    "manifest_digest": "sha256:f36e230573badfb5e031f3fd73aeb272e4f4dd4a06cdb8ab2a1f57f2dc67cabf",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.13.1",
+    "run_id": "135b272ae1e44ed880121c35ca556740",
+    "started_at": "2026-10-31T16:05:55.079533Z",
+    "workflow_name": "live_book_categories",
+    "workflow_version": 1
+  },
+  "outputs": {
+    "result": [
+      {
+        "price_text": "\u00a345.17",
+        "product_url": "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html",
+        "title": "It's Only the Himalayas"
+      },
+      {
+        "price_text": "\u00a349.43",
+        "product_url": "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html",
+        "title": "Full Moon over Noah\u2019s Ark: An Odyssey to Mount Ararat and Beyond"
+      },
+      {
+        "price_text": "\u00a348.87",
+        "product_url": "https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html",
+        "title": "See America: A Celebration of Our National Parks & Treasured Sites"
+      },
+      {
+        "price_text": "\u00a336.94",
+        "product_url": "https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html",
+        "title": "Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel"
+      },
+      {
+        "price_text": "\u00a337.33",
+        "product_url": "https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html",
+        "title": "Under the Tuscan Sun"
+      },
+      {
+        "price_text": "\u00a344.34",
+        "product_url": "https://books.toscrape.com/catalogue/a-summer-in-europe_458/index.html",
+        "title": "A Summer In Europe"
+      },
+      {
+        "price_text": "\u00a330.54",
+        "product_url": "https://books.toscrape.com/catalogue/the-great-railway-bazaar_446/index.html",
+        "title": "The Great Railway Bazaar"
+      },
+      {
+        "price_text": "\u00a356.88",
+        "product_url": "https://books.toscrape.com/catalogue/a-year-in-provence-provence-1_421/index.html",
+        "title": "A Year in Provence (Provence #1)"
+      },
+      {
+        "price_text": "\u00a323.21",
+        "product_url": "https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html",
+        "title": "The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)"
+      },
+      {
+        "price_text": "\u00a338.95",
+        "product_url": "https://books.toscrape.com/catalogue/neither-here-nor-there-travels-in-europe_198/index.html",
+        "title": "Neither Here nor There: Travels in Europe"
+      },
+      {
+        "price_text": "\u00a326.08",
+        "product_url": "https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html",
+        "title": "1,000 Places to See Before You Die"
+      }
+    ]
+  },
+  "schema_version": 2,
+  "screenshots": [],
+  "status": "completed"
+}

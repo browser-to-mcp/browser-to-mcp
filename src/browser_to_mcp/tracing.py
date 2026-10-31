@@ -92,6 +92,7 @@ class TraceMetadata(BaseModel):
     browser_version: str
     platform: str
     publication: dict[str, str | int] | None = None
+    evaluation_fixture_sha256: str | None = None
 
 
 class WorkflowTrace(BaseModel):

@@ -137,6 +137,7 @@ class BrowserBoundary:
             service_workers="block",
             permissions=[],
             java_script_enabled=self._evaluation_page is None,
+            offline=self._evaluation_page is not None,
         )
         try:
             await context.route("**/*", self._route)

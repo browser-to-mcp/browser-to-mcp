@@ -7,7 +7,7 @@ from pathlib import Path
 
 from browser_to_mcp.compiler import SchemaCompilationError
 from browser_to_mcp.jobs.models import JobError
-from browser_to_mcp.server import create_server
+from browser_to_mcp.server import ServerConfigurationError, create_server
 
 from .store import Library, LibraryError
 
@@ -53,6 +53,13 @@ def add_library_parser(subparsers):
     )
     server.add_argument("--trace-dir", type=Path, default=Path("traces"))
     server.add_argument("--timeout-seconds", type=int, default=300)
+    server.add_argument(
+        "--catalog",
+        action="append",
+        default=[],
+        metavar="CATALOG=WORKFLOW",
+        help="Add books, laptops or clothing to collect_catalog using a published workflow name.",
+    )
 
 
 def run_library(args):
@@ -60,9 +67,9 @@ def run_library(args):
         library = Library(args.directory)
         op = args.library_command
         if op == "server":
-            create_server(library.published(), args.trace_dir, args.timeout_seconds).run(
-                transport="stdio"
-            )
+            create_server(
+                library.published(), args.trace_dir, args.timeout_seconds, catalogs=args.catalog
+            ).run(transport="stdio")
             return 0
         if op == "import":
             result = library.import_draft(
@@ -98,7 +105,7 @@ def run_library(args):
             if isinstance(result, dict) and result.get("version", {}).get("state") == "failed"
             else 0
         )
-    except LibraryError as error:
+    except (LibraryError, ServerConfigurationError) as error:
         print(json.dumps({"status": "error", "message": str(error)}), file=sys.stderr)
         return 2
     except (

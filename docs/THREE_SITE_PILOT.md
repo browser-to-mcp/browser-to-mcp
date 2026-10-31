@@ -17,9 +17,9 @@ real-user work is finished and the decision is reviewed.
 
 The existing [book pilot](PILOT.md) and [journey evidence](JOURNEY_CHECKS.md)
 remain separate. This document does not change their results. The building blocks for lists and numbered Next-link paging are described in
-[record outputs](RECORD_OUTPUTS.md) and [paging](PAGING.md). The full three-site
-tool and caller-supplied `max_pages` contract below still need implementation
-and validation. The newcomer timing requirement in #48 is still pending.
+[record outputs](RECORD_OUTPUTS.md) and [paging](PAGING.md). The [shared catalog interface](CATALOG.md) now supports approved workflows and
+caller-supplied `max_pages`, with controlled checks for all three layouts.
+This does not establish support for all three live websites. The newcomer timing requirement in #48 is still pending.
 
 ## Who might use it, and why
 

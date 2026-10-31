@@ -26,8 +26,9 @@ are enforced by pytest. A missed gate fails the run after saving its report,
 so the evidence remains available even when CI fails.
 
 These checks use one search tool per layout (`query` and optional `max_pages`).
-They exercise the pilot's fixed notebook answers; the proposed single
-`collect_catalog(catalog, max_pages)` interface is still unverified.
+They exercise the pilot's fixed notebook answers. Separate
+`tests/builder/test_shared_catalog.py` checks cover the [shared catalog tool](CATALOG.md):
+all three layouts, page limits, failures, invalid inputs, and a published STDIO call.
 
 The live trial read the book category; the other two sites returned
 `page_unavailable`. Stop on that error and review access and required hosts;

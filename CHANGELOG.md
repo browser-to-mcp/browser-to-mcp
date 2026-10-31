@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Add one `collect_catalog` interface for selected published catalogs, with strict
+  page limits, consistent results and the original workflow trace and approval.
+
 - Add explicitly labelled offline failure-page fixtures to independent live-draft
   evaluations (#66), with scripts disabled, network isolation and verified trace
   identity. Keep ordinary browser execution and publication requirements intact.

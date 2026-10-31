@@ -145,3 +145,26 @@ def test_shutdown_cancels_resources_and_next_start_marks_unfinished_records(tmp_
         assert app.operation(key)["error"]
     finally:
         app.close()
+
+
+def test_status_releases_listing_lock_before_reading_each_job(tmp_path, monkeypatch):
+    import sqlite3
+
+    import yaml
+
+    app = instance(tmp_path)
+    try:
+        for _ in range(3):
+            app.jobs.start(str(uuid4()), yaml.safe_dump(candidate("http://127.0.0.1:1")), Budgets())
+        read = app.jobs.read
+
+        def read_while_worker_commits(job_id):
+            # A worker must be able to commit between the listing and individual reads.
+            with sqlite3.connect(app.jobs.database, timeout=0.05) as writer:
+                writer.execute("UPDATE jobs SET updated=updated WHERE id=?", (job_id,))
+            return read(job_id)
+
+        monkeypatch.setattr(app.jobs, "read", read_while_worker_commits)
+        assert len(app.status()["jobs"]) == 3
+    finally:
+        app.close()

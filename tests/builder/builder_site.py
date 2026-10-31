@@ -109,7 +109,7 @@ def serve():
                 rows = [ROWS[i] for i in ((0, 1) if page == "1" else (1, 2))]
                 if query.get("q") == ["red"]:
                     rows = [ROWS[2]]
-                if query.get("q") == ["empty"]:
+                if query.get("q") == ["empty"] or mode == "empty":
                     rows = []
                 cells = []
                 table = url.path.startswith("/laptops/")
@@ -142,7 +142,7 @@ def serve():
                     inside = inside.replace('class="price"', 'class="missing"')
                 if mode == "unmarked_empty":
                     inside = ""
-                if page == "1" and query.get("q") == ["notebook"]:
+                if page == "1" and query.get("q") == ["notebook"] and mode != "empty":
                     navigation = f'<a class="next" href="{url.path}?q=notebook&amp;page=2">Next</a>'
                 else:
                     navigation = '<span class="end">End of list</span>'

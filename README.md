@@ -11,6 +11,7 @@ Before approving a new draft, [test it against independent expected answers](doc
 The report belongs to that exact draft; changing it requires new checks.
 See the [three-layout release checks](docs/RELEASE_CHECKS.md) for repeated calls
 and the remaining live-site and user checks.
+The [shared catalog tool](docs/CATALOG.md) gives approved catalogs one consistent interface.
 
 ## Quick start
 

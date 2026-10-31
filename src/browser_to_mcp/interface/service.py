@@ -140,10 +140,11 @@ class Interface:
 
     def status(self):
         with self.jobs._db() as db:
-            jobs = [
-                self.jobs.read(row["id"])
+            job_ids = [
+                row["id"]
                 for row in db.execute("SELECT id FROM jobs ORDER BY updated DESC LIMIT 100")
             ]
+        jobs = [self.jobs.read(job_id) for job_id in job_ids]
         with self.db() as db:
             operations = [
                 dict(row)

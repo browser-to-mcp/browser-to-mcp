@@ -96,6 +96,8 @@ def create_server(
     workflows: Iterable[LoadedWorkflow],
     trace_dir: Path | None = Path("traces"),
     timeout_seconds: int = 300,
+    *,
+    catalogs: Iterable[str] = (),
 ) -> FastMCP:
     """Create an MCP server containing only the supplied validated workflows."""
 
@@ -118,6 +120,14 @@ def create_server(
         _workflow_tool(item, trace_dir=trace_dir, timeout_seconds=timeout_seconds)
         for item in compiled_workflows
     ]
+    if bindings := tuple(catalogs):
+        from browser_to_mcp.catalog import catalog_tool
+
+        tools.append(
+            catalog_tool(
+                compiled_workflows, bindings, trace_dir=trace_dir, timeout_seconds=timeout_seconds
+            )
+        )
     return FastMCP(
         name="browser-to-mcp",
         instructions=(

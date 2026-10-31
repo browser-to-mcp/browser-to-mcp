@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-31",
+  "issues": [
+    62,
+    66
+  ],
+  "decision": "Keep the current policy; improve diagnostics. Both sites remain unsupported under the original host lists.",
+  "owner_choice": "Keep the current policy; improve diagnostics",
+  "permissions_reviewed": [
+    "https://webscraper.io/test-sites",
+    "https://www.scrapingcourse.com/"
+  ],
+  "diagnostic_method": "One JobContext navigation and inspection per site under the unchanged BrowserBoundary. An observer recorded only denied hostnames, resource types, methods and fixed policy codes; no request was allowed or retried.",
+  "initial_diagnostics": [
+    {
+      "site": "laptops",
+      "started_at": "2026-10-31T06:48:44.545593+00:00",
+      "job_id": "9c852354-f0ec-46bf-b92e-81b7332ea9d5",
+      "url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+      "automatic_retries": 0,
+      "outcome": "failed",
+      "exception_type": "JobError",
+      "job_code": "worker_failed",
+      "boundary_code": "blocked_request",
+      "blocked_requests": [
+        {
+          "host": "app.termly.io",
+          "resource": "script",
+          "method": "GET",
+          "code": "blocked_request"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "resource": "stylesheet",
+          "method": "GET",
+          "code": "blocked_request"
+        },
+        {
+          "host": "www.googletagmanager.com",
+          "resource": "script",
+          "method": "GET",
+          "code": "blocked_request"
+        }
+      ],
+      "seconds": 2.091
+    },
+    {
+      "site": "clothing",
+      "started_at": "2026-10-31T06:48:46.639117+00:00",
+      "job_id": "b372eb60-f035-4f37-b05d-4e91650c27af",
+      "url": "https://www.scrapingcourse.com/ecommerce/",
+      "automatic_retries": 0,
+      "outcome": "failed",
+      "exception_type": "JobError",
+      "job_code": "worker_failed",
+      "boundary_code": "blocked_request",
+      "blocked_requests": [
+        {
+          "host": "www.googletagmanager.com",
+          "resource": "script",
+          "method": "GET",
+          "code": "blocked_request"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "resource": "stylesheet",
+          "method": "GET",
+          "code": "blocked_request"
+        },
+        {
+          "host": "static.cloudflareinsights.com",
+          "resource": "script",
+          "method": "GET",
+          "code": "blocked_request"
+        }
+      ],
+      "seconds": 3.761
+    }
+  ],
+  "verification_method": "One fresh client-mode task per site through the normal isolated worker, after the diagnostic fix. No proposal or draft was created.",
+  "worker_verification": {
+    "started_at": "2026-10-31T06:52:54.223064+00:00",
+    "source": {
+      "package_version": "0.0.1a1",
+      "source_sha256": "sha256:aa2ded3b5ddb2e9a7c65a66df0e73669ac3ae7091a50e78dd654bda05cd2d89e",
+      "git_commit": "700902c7b7a336116f4f126d33241d46c8ccb5d4",
+      "worktree_dirty": true,
+      "python": "3.13.1",
+      "playwright": "1.61.0",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+    },
+    "mode": "client",
+    "worker_model_requests": 0,
+    "external_client_tokens": null,
+    "external_client_cost_usd": null,
+    "automatic_retries": 0,
+    "attempts": [
+      {
+        "site": "laptops",
+        "start_url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+        "allowed_domains": [
+          "webscraper.io"
+        ],
+        "job_id": "7d6bdeb6-a37b-4423-aaaf-a7572f5beef8",
+        "state": "failed",
+        "error": {
+          "code": "page_blocked_request",
+          "message": "A request outside the declared HTTP(S) hosts was blocked."
+        },
+        "usage": {
+          "browser_actions": 2,
+          "model_requests": 0,
+          "tokens": 0,
+          "cost_microusd": 0,
+          "output_bytes": 0
+        },
+        "artifact": null,
+        "seconds": 1.701
+      },
+      {
+        "site": "clothing",
+        "start_url": "https://www.scrapingcourse.com/ecommerce/",
+        "allowed_domains": [
+          "www.scrapingcourse.com"
+        ],
+        "job_id": "9304bb1b-7533-4ffa-97e8-804312ffc1d6",
+        "state": "failed",
+        "error": {
+          "code": "page_blocked_request",
+          "message": "A request outside the declared HTTP(S) hosts was blocked."
+        },
+        "usage": {
+          "browser_actions": 2,
+          "model_requests": 0,
+          "tokens": 0,
+          "cost_microusd": 0,
+          "output_bytes": 0
+        },
+        "artifact": null,
+        "seconds": 2.185
+      }
+    ]
+  },
+  "limitations": [
+    "Initial diagnostic timings cover a browser context; worker timings include the complete phase. They are not comparable performance measurements.",
+    "The source record identifies a development worktree; this is a diagnosis, not a fixed-version success benchmark.",
+    "No host was added, no policy was bypassed, and no live model or paid provider request was made by the worker.",
+    "All four started attempts are retained here. Post-change worker attempts were explicit verification, not automatic retries.",
+    "No three-site creation, independent evaluation, publication or changed-input MCP success is claimed.",
+    "External client tokens and charges, manual baseline, newcomer timing and real-user feedback remain unmeasured."
+  ],
+  "initial_source": {
+    "git_commit": "700902c7b7a336116f4f126d33241d46c8ccb5d4",
+    "worktree_dirty": false,
+    "instrumentation": "In-memory observer only; request policy unchanged."
+  }
+}

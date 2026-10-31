@@ -32,6 +32,10 @@ They exercise the pilot's fixed notebook answers; the proposed single
 The live trial read the book category; the other two sites returned
 `page_unavailable`. Stop on that error and review access and required hosts;
 do not bypass it. No live three-site success is claimed.
+The [October 31 follow-up](evidence/site-access-2026-10-31.json) identified
+unapproved third-party requests on both sites. The builder now preserves the
+safe `page_blocked_request` reason. The host lists and fail-closed policy are
+unchanged, so those live trials remain blocked.
 
 #66 stays open for the remaining live coverage, actual model/client costs,
 manual comparison, first-time walkthrough (#48), and repeated user feedback.

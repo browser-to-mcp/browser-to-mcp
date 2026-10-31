@@ -123,6 +123,24 @@ OpenAI API, or an optional local llama.cpp server. Neither is required for the
 Codex/Claude path. See [provider setup and the task format](MODEL_PROVIDERS.md).
 All modes use the same contract checks, preview, job service, and review gate.
 
+## When a page cannot be read
+
+The job keeps a fixed error code instead of raw browser messages or request URLs:
+
+| Error | Meaning and next step |
+| --- | --- |
+| `page_blocked_request` | A page resource requested an unapproved host. Review the site's dependencies; do not add tracking hosts just to make the run pass. |
+| `page_timeout` | Initial navigation exceeded its time limit. This attempt was not retried. |
+| `page_http_error` | The starting page returned no successful HTTP response. Check the URL and public access. |
+| Other `page_` policy errors | The fixed message identifies a redirect, unsafe URL, write request, or another refused capability. The normal browser rules still apply. |
+| `page_unavailable` | Another browser error prevented navigation; no more specific safe reason was available. |
+
+These errors apply both when inspecting a task and when reopening the page to
+check a submitted proposal. A policy violation stays latched: it cannot become
+a successful inspection or preview, and it takes priority over the resulting
+generic browser error. No retry, additional host permission, draft publication,
+or policy exception is automatic.
+
 ## What is verified
 
 The first-page preview does not prove the whole tool is correct. Use the separate
@@ -138,6 +156,11 @@ An exploratory [live MCP check](evidence/client-creation-2026-10-26.json) produc
 a book draft whose replay matched all 11 rows. Laptop and clothing reads failed;
 the earlier book size-limit failure is retained too. This is partial evidence,
 not a three-site benchmark. Native client UI and paid API runs were not tested.
+The [October 31 diagnosis](evidence/site-access-2026-10-31.json) confirms that
+both sites request unapproved third-party resources. New worker trials report
+`page_blocked_request`; both sites remain unsupported under the current host
+lists. The owner chose to keep the current policy. No three-site live success
+or completed release is claimed.
 
 Record real-client and live-site trials separately: date, model/client versions,
 task/draft hashes, every started attempt, outcome, timings and independent result

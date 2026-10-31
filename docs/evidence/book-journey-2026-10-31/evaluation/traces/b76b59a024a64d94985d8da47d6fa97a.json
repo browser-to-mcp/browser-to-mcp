@@ -1,0 +1,58 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 5.5917406670050696,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 0.023127542022848502,
+      "output_key": "result",
+      "status": "completed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [
+    {
+      "assertion": "output_not_empty",
+      "assertion_id": "check_result",
+      "field": "result",
+      "status": "passed"
+    }
+  ],
+  "error": null,
+  "inputs": {
+    "category": "parenting_28"
+  },
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 6.2055046659952495,
+    "evaluation_fixture_sha256": null,
+    "finished_at": "2026-10-31T16:06:06.989370Z",
+    "manifest_digest": "sha256:f36e230573badfb5e031f3fd73aeb272e4f4dd4a06cdb8ab2a1f57f2dc67cabf",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.13.1",
+    "run_id": "b76b59a024a64d94985d8da47d6fa97a",
+    "started_at": "2026-10-31T16:06:00.779366Z",
+    "workflow_name": "live_book_categories",
+    "workflow_version": 1
+  },
+  "outputs": {
+    "result": [
+      {
+        "price_text": "\u00a337.35",
+        "product_url": "https://books.toscrape.com/catalogue/catastrophic-happiness-finding-joy-in-childhoods-messy-years_138/index.html",
+        "title": "Catastrophic Happiness: Finding Joy in Childhood's Messy Years"
+      }
+    ]
+  },
+  "schema_version": 2,
+  "screenshots": [],
+  "status": "completed"
+}

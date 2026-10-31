@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "candidate_sha256": "sha256:9c9c69acb7afd5bffcfe4e32a352dfb5b3caca45d3fb1eb3029a2c0cc147fbcf",
+  "manifest_digest": "sha256:f36e230573badfb5e031f3fd73aeb272e4f4dd4a06cdb8ab2a1f57f2dc67cabf",
+  "workflow": "live_book_categories",
+  "suite_sha256": "sha256:76056e3759b6dac8940fb14995a204b67e7107a8e6be0990ca387eece1b6ee67",
+  "mode": "live",
+  "started_at": "2026-10-31T15:54:08.522741+00:00",
+  "finished_at": "2026-10-31T15:54:12.100325+00:00",
+  "seconds": 3.577530292008305,
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:aa2ded3b5ddb2e9a7c65a66df0e73669ac3ae7091a50e78dd654bda05cd2d89e",
+    "git_commit": "868ddb7ecaea6b45ec8f0977b8c57a1928b49e56",
+    "worktree_dirty": false,
+    "python": "3.13.1",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "generation": null,
+  "replay_model_requests": 0,
+  "replay_api_cost_microusd": 0,
+  "local_compute_cost_microusd": null,
+  "observations": [
+    {
+      "case_id": "travel",
+      "status": "passed",
+      "reason": "Every expected output value and type matched.",
+      "seconds": 3.5143839579832274,
+      "outcome": "outputs",
+      "trace_file": "traces/f8370f14c8994b8ead703ef76594f02d.json",
+      "trace_sha256": "sha256:94f3c4436fe063e10769c2e74d6d2e625ccfdb591894cd09ee94fb3e1641eaaf"
+    },
+    {
+      "case_id": "invalid",
+      "status": "passed",
+      "reason": "Typed inputs were rejected before browsing; no trace needed.",
+      "seconds": 0.00001479100319556892,
+      "outcome": "error",
+      "trace_file": null,
+      "trace_sha256": null
+    }
+  ],
+  "blockers": [
+    "changed_inputs: untested; add a required case or explain why it does not apply.",
+    "zero_results: untested; add a required case or explain why it does not apply.",
+    "changed_page: untested; add a required case or explain why it does not apply.",
+    "changed_inputs: no different input and answer for category.",
+    "zero_results: an empty result or explicit refusal is required."
+  ],
+  "eligible": false
+}

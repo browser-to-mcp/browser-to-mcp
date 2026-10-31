@@ -58,8 +58,9 @@ Use the example's JSON format:
 
 - `name`, `requirements_source` and `expectations_source` explain what is tested
   and where the independently checked answers came from.
-- `mode` is `controlled` for fixed local pages, or `live` for a separate, explicit
-  website check. CI uses local pages only. Do not combine the two sets of results.
+- `mode` is `controlled` for fixed local pages, `live` for website checks, or
+  `mixed` for website checks plus explicitly synthetic failure pages (below).
+  CI uses local pages only; its successes do not establish live-site support.
 - Each case has a unique `id`, `covers`, typed JSON `inputs`, and `expected`.
   Expected results include **every output, field, row and paging value** in order.
   Expected errors name an exact `category` and `path`. Input-schema refusals use
@@ -82,6 +83,27 @@ Use the example's JSON format:
   for the whole attempt (`wall_seconds`, default 300). Plans must be valid JSON
   under 2 MiB. Candidates use the existing 256 KiB draft limit. Use public data;
   candidates with marked sensitive inputs or record outputs are refused.
+
+### Synthetic failure pages for a live draft
+
+A single-page draft can test `zero_results` and `changed_page` with a case's
+`fixture_html` string (at most 65,536 characters). Use `mode: "mixed"` and keep
+the same candidate bytes and inputs. Only a workflow with one navigation followed
+by one record extraction, without paging, supports these fixtures. Successful
+demonstration and changed-input cases cannot use them.
+
+The evaluator serves this reviewed HTML at the original navigation address in an
+isolated browser. Website JavaScript is disabled and every other request is
+blocked, including resources on an allowed host. Normal replay and published MCP
+calls do not expose this option. This is a test facility, not an HTML-only mode
+for unsupported websites.
+
+The approved plan pins the HTML, each fixture trace records its SHA-256, and the
+publication verifier checks that identity. Synthetic results prove behavior on
+that fixture only. For a draft without an approved empty marker, an empty page
+may correctly time out with no returned data; declare that refusal explicitly and
+allow enough replay time for the step deadline. Runtime failures on actual live
+pages still count as blocked, even if the plan expected an error.
 
 Reports distinguish **passed, failed, blocked and untested** cases. Required
 failures or gaps prevent eligibility. A live runtime failure stays blocked even

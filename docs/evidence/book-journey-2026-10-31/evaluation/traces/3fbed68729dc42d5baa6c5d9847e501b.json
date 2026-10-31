@@ -1,0 +1,50 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 0.021010041993577033,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 30.01157229099772,
+      "output_key": "result",
+      "status": "failed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [],
+  "error": {
+    "category": "runtime",
+    "message": "Action 'extract_records' timed out after 30 seconds.",
+    "path": "steps.result",
+    "screenshot_path": "traces/live-book-2026-10-31/mixed-evaluation/traces/3fbed68729dc42d5baa6c5d9847e501b-failure.png"
+  },
+  "inputs": {
+    "category": "travel_2"
+  },
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 30.53201995798736,
+    "evaluation_fixture_sha256": "sha256:1f986a2681813a018a5718d726144c29a6908955a2130c7147385ce091ba33d8",
+    "finished_at": "2026-10-31T16:06:37.534071Z",
+    "manifest_digest": "sha256:f36e230573badfb5e031f3fd73aeb272e4f4dd4a06cdb8ab2a1f57f2dc67cabf",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.13.1",
+    "run_id": "3fbed68729dc42d5baa6c5d9847e501b",
+    "started_at": "2026-10-31T16:06:06.994972Z",
+    "workflow_name": "live_book_categories",
+    "workflow_version": 1
+  },
+  "outputs": {},
+  "schema_version": 2,
+  "screenshots": [
+    "traces/live-book-2026-10-31/mixed-evaluation/traces/3fbed68729dc42d5baa6c5d9847e501b-failure.png"
+  ],
+  "status": "failed"
+}

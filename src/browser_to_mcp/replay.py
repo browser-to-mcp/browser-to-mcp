@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import platform
 import re
 from collections.abc import Callable
@@ -165,9 +166,11 @@ class PlaywrightReplayEngine:
         self,
         overall_timeout_seconds: int = 300,
         playwright_factory: Callable[[], object] | None = None,
+        evaluation_html: str | None = None,
     ) -> None:
         if overall_timeout_seconds <= 0:
             raise ValueError("overall_timeout_seconds must be positive.")
+        self._evaluation_html = evaluation_html
         self.overall_timeout_seconds = overall_timeout_seconds
         self._playwright_factory = playwright_factory or async_playwright
 
@@ -224,7 +227,24 @@ class PlaywrightReplayEngine:
             browser = await playwright.chromium.launch(headless=True)
             browser_version = getattr(browser, "version", "unknown")
             try:
-                boundary = BrowserBoundary(workflow.permissions.allowed_domains)
+                evaluation_page = None
+                if self._evaluation_html is not None:
+                    if (
+                        len(workflow.steps) != 2
+                        or workflow.steps[0].action != StepAction.GOTO
+                        or workflow.steps[1].action != StepAction.EXTRACT_RECORDS
+                        or workflow.steps[1].paging
+                    ):
+                        raise ValueError(
+                            "Evaluation fixtures support one navigation and extraction only."
+                        )
+                    evaluation_page = (
+                        render_url_template(workflow.steps[0].url, inputs),
+                        self._evaluation_html,
+                    )
+                boundary = BrowserBoundary(
+                    workflow.permissions.allowed_domains, evaluation_page=evaluation_page
+                )
                 context = await boundary.create_context(browser)
                 try:
                     page = await context.new_page()
@@ -369,10 +389,17 @@ async def replay_workflow(
     input_pairs: list[str],
     trace_dir: Path | None = None,
     timeout_seconds: int = 300,
+    *,
+    evaluation_html: str | None = None,
 ) -> ReplayResult:
     """Replay a workflow and optionally persist a redacted provenance trace."""
 
     validate_workflow_policy(loaded.workflow)
+    fixture_hash = (
+        "sha256:" + hashlib.sha256(evaluation_html.encode()).hexdigest()
+        if evaluation_html is not None
+        else None
+    )
     run_id = uuid4().hex
     started_at = monotonic()
     started_at_utc = datetime.now(UTC)
@@ -384,7 +411,10 @@ async def replay_workflow(
 
     try:
         inputs = parse_input_pairs(input_pairs, loaded.workflow)
-        engine = PlaywrightReplayEngine(overall_timeout_seconds=timeout_seconds)
+        engine = PlaywrightReplayEngine(
+            overall_timeout_seconds=timeout_seconds,
+            **({"evaluation_html": evaluation_html} if evaluation_html is not None else {}),
+        )
         engine_result = await engine.run(
             loaded.workflow,
             inputs,
@@ -411,6 +441,7 @@ async def replay_workflow(
             actions=execution_error.actions,
             outputs={},
             assertions=(),
+            evaluation_fixture_sha256=fixture_hash,
             browser_version=getattr(error, "browser_version", browser_version),
             error=execution_error,
         )
@@ -427,6 +458,7 @@ async def replay_workflow(
             actions=error.actions,
             outputs=outputs,
             assertions=error.assertions,
+            evaluation_fixture_sha256=fixture_hash,
             browser_version=error.browser_version
             if error.browser_version != "unknown"
             else browser_version,
@@ -449,6 +481,7 @@ async def replay_workflow(
             actions=actions,
             outputs=outputs,
             assertions=assertions,
+            evaluation_fixture_sha256=fixture_hash,
             browser_version=browser_version,
             error=execution_error,
         )
@@ -469,6 +502,7 @@ async def replay_workflow(
             actions=actions,
             outputs=outputs,
             assertions=assertions,
+            evaluation_fixture_sha256=fixture_hash,
             browser_version=browser_version,
             error=execution_error,
         )
@@ -484,6 +518,7 @@ async def replay_workflow(
         actions=actions,
         outputs=outputs,
         assertions=assertions,
+        evaluation_fixture_sha256=fixture_hash,
         browser_version=browser_version,
     )
     return ReplayResult(
@@ -509,6 +544,7 @@ def _persist_trace(
     assertions: tuple[AssertionResult, ...],
     browser_version: str,
     error: WorkflowExecutionError | None = None,
+    evaluation_fixture_sha256: str | None = None,
 ) -> str | None:
     """Build and write one trace, returning its path when persistence is enabled."""
 
@@ -524,6 +560,7 @@ def _persist_trace(
         else 1,
         status=TraceStatus.FAILED if error else TraceStatus.COMPLETED,
         metadata=TraceMetadata(
+            evaluation_fixture_sha256=evaluation_fixture_sha256,
             run_id=run_id,
             started_at=started_at_utc,
             finished_at=finished_at,

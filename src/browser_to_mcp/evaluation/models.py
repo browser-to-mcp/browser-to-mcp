@@ -41,6 +41,7 @@ class Case(Closed):
     covers: Annotated[list[Coverage], Field(min_length=1, max_length=7)]
     inputs: dict[str, JsonValue]
     expected: Annotated[ExpectedOutputs | ExpectedError, Field(discriminator="outcome")]
+    fixture_html: Annotated[str, Field(min_length=1, max_length=65536)] | None = None
     required: bool = True
     skip_reason: Text | None = None
     blocked_reason: Text | None = None
@@ -59,7 +60,7 @@ class Suite(Closed):
     name: Text
     requirements_source: Text
     expectations_source: Text
-    mode: Literal["controlled", "live"]
+    mode: Literal["controlled", "live", "mixed"]
     timeout_seconds: Annotated[int, Field(ge=1, le=120)] = 30
     wall_seconds: Annotated[int, Field(ge=1, le=3600)] = 300
     not_applicable: dict[Coverage, Text] = Field(default_factory=dict)
@@ -71,6 +72,14 @@ class Suite(Closed):
             raise ValueError("Case IDs must be unique.")
         if set(self.not_applicable) & {tag for case in self.cases for tag in case.covers}:
             raise ValueError("A tested requirement cannot also be marked not applicable.")
+        fixtures = [c for c in self.cases if c.fixture_html is not None]
+        if fixtures and self.mode != "mixed":
+            raise ValueError("Inline fixture evidence requires explicit mixed mode.")
+        if self.mode == "mixed" and (not fixtures or len(fixtures) == len(self.cases)):
+            raise ValueError("Mixed mode needs both live and fixture cases.")
+        for case in fixtures:
+            if not set(case.covers) <= {"zero_results", "changed_page"}:
+                raise ValueError("Fixtures only cover empty or changed-page behavior.")
         return self
 
 
@@ -100,7 +109,7 @@ class Report(Closed):
     manifest_digest: Digest
     workflow: str
     suite_sha256: Digest
-    mode: Literal["controlled", "live"]
+    mode: Literal["controlled", "live", "mixed"]
     started_at: str
     finished_at: str
     seconds: Annotated[float, Field(ge=0)]

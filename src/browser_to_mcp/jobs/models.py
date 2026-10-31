@@ -5,6 +5,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from browser_to_mcp.browser_policy import MESSAGES as BROWSER_MESSAGES
+
 
 class State(StrEnum):
     QUEUED = "queued"
@@ -120,6 +122,14 @@ MESSAGES = {
         "The page could not be read under the browser policy. Check the URL, access, and required "
         "hosts. No redirects, login, challenge bypass, or automatic retry is supported."
     ),
+    "page_timeout": (
+        "The starting page did not load within the navigation time limit. "
+        "No automatic retry was made."
+    ),
+    "page_http_error": (
+        "The starting page did not return a successful HTTP response. "
+        "Check the public URL and access; no automatic retry was made."
+    ),
     "invalid_request": "Use valid job arguments and declared limits.",
     "invalid_candidate": (
         "The candidate must be a supported public read-only workflow without secrets."
@@ -164,6 +174,8 @@ MESSAGES = {
         "choose a new private job directory for new attempts."
     ),
 }
+
+MESSAGES.update({f"page_{code}": message for code, message in BROWSER_MESSAGES.items()})
 
 
 class JobError(Exception):

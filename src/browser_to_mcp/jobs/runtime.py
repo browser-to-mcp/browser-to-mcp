@@ -7,6 +7,7 @@ import json
 from contextlib import AsyncExitStack
 from importlib.resources import files
 
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import async_playwright
 
 from browser_to_mcp.authoring.records import check_record_preview
@@ -109,19 +110,25 @@ class JobBrowser:
 
     async def _call(self, operation):
         self._context.store.reserve(self._context.job_id, browser_actions=1)
-        if self._boundary.failure:
-            raise JobError("worker_failed")
-        result = await cancellable_page_operation(self._page, operation())
-        if self._boundary.failure:
-            raise JobError("worker_failed")
+        self._check_boundary()
+        try:
+            result = await cancellable_page_operation(self._page, operation())
+        except PlaywrightError:
+            self._check_boundary()
+            raise
+        self._check_boundary()
         return result
+
+    def _check_boundary(self):
+        if self._boundary.failure:
+            raise JobError("page_" + self._boundary.failure.code) from None
 
     async def goto(self, url):
         response = await self._call(
             lambda: self._page.goto(url, wait_until="domcontentloaded", timeout=30000)
         )
         if response is None or not 200 <= response.status < 300:
-            raise JobError("worker_failed")
+            raise JobError("page_http_error")
 
     async def text(self, selector):
         text = await self._call(lambda: self._page.locator(selector).inner_text(timeout=5000))

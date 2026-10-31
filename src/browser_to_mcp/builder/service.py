@@ -7,6 +7,7 @@ from time import monotonic
 from urllib.parse import urljoin
 
 from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from browser_to_mcp.authoring.plan import AuthoringError
 from browser_to_mcp.browser_policy import SECRET_VALUE, safe_url
@@ -84,6 +85,8 @@ async def generate_phase(context, job, *, provider: DraftProvider | None = None)
         observation = safe_observation(await browser.inspect(), task.start_url)
         if observation.get("has_password"):
             raise JobError("task_login")
+    except PlaywrightTimeoutError:
+        raise JobError("page_timeout") from None
     except PlaywrightError:
         raise JobError("page_unavailable") from None
     except JobError as error:
@@ -151,6 +154,8 @@ async def _check_draft(context, task, loaded, data, *, browser=None):
         try:
             browser = await context.browser()
             await browser.goto(task.start_url)
+        except PlaywrightTimeoutError:
+            raise JobError("page_timeout") from None
         except PlaywrightError:
             raise JobError("page_unavailable") from None
         except JobError as error:

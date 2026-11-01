@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "candidate_sha256": "sha256:a3ae7244b5d1f981173d961fba99afaf95c69317c8cdcb7d14c865584225dfa2",
+  "manifest_digest": "sha256:f20a0d285872b2340e73f65bf8fb1776c24bd5df142428c015de44f32a1af32c",
+  "workflow": "travel_books",
+  "suite_sha256": "sha256:10614aae9f5ad4ef938c9641ce41eac115914d45b5c5a169835930646e1d5c91",
+  "mode": "mixed",
+  "started_at": "2026-11-01T12:27:47.735765+00:00",
+  "finished_at": "2026-11-01T12:28:23.665126+00:00",
+  "seconds": 35.929285625003104,
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:d5f9857b83b46f5e79c4981ce4defaf5a3691e905cc4e7220b2972c628dbb92c",
+    "git_commit": "ee97c6ff3c06ed9ac3b5d4c8d871de24d9962ace",
+    "worktree_dirty": true,
+    "python": "3.12.12",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.2-arm64-arm-64bit"
+  },
+  "generation": null,
+  "replay_model_requests": 0,
+  "replay_api_cost_microusd": 0,
+  "local_compute_cost_microusd": null,
+  "observations": [
+    {
+      "case_id": "travel",
+      "status": "passed",
+      "reason": "Every expected output value and type matched.",
+      "seconds": 5.217984875002003,
+      "outcome": "outputs",
+      "trace_file": "traces/79c074336a574a44a37f3805bdd00444.json",
+      "trace_sha256": "sha256:61c73616b710977e95f230fb023b779e1cfcac53abf105998805d60252188e92"
+    },
+    {
+      "case_id": "empty",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 30.34027899999637,
+      "outcome": "error",
+      "trace_file": "traces/6709de324c654c25894af60d27df0da4.json",
+      "trace_sha256": "sha256:444911cd5dba6056bb965411d453fa51e889ab4cc00ed0a113ddaca1d45e7751"
+    },
+    {
+      "case_id": "missing_price",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 0.3296639170002891,
+      "outcome": "error",
+      "trace_file": "traces/78809da2491c415bb14af86f12e4b265.json",
+      "trace_sha256": "sha256:8afcde7fdc0e5fb140b7332e381650025e414e35b53275a710986fab21234c09"
+    }
+  ],
+  "blockers": [],
+  "eligible": true
+}

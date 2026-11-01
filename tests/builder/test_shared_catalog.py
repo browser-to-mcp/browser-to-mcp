@@ -352,3 +352,64 @@ def test_cancelled_call_releases_shared_slot(catalogs, tmp_path):
         assert len(traces) == 2
 
     asyncio.run(exercise())
+
+
+@pytest.mark.parametrize("limit", [None, 1, 20])
+def test_single_page_catalog_uses_same_contract(catalogs, tmp_path, limit):
+    site, base, loaded, paths = catalogs
+    data = yaml.safe_load(paths[0].read_text())
+    data["inputs"] = {}
+    data["steps"][0]["url"] = base + "/books/?q=red"
+    del data["steps"][1]["paging"]
+    del data["outputs"]["collection"]
+    paths[0].write_text(yaml.safe_dump(data))
+    loaded[0] = replace(load_workflow(paths[0]), publication=loaded[0].publication)
+    response = asyncio.run(
+        server(loaded, tmp_path).call_tool(
+            "collect_catalog", {"catalog": "books", **({"max_pages": limit} if limit else {})}
+        )
+    )
+    assert not response.isError
+    assert response.structuredContent == dict(
+        catalog="books",
+        items=expected(base, (2,)),
+        pages_read=1,
+        complete=True,
+        stop_reason="end",
+    )
+    assert len(site.hits) == 1
+    assert response.meta["publication"]["tool_id"] == "books"
+
+
+def test_book_example_is_fixed_and_requires_publication():
+    loaded = load_workflow(Path("examples/catalog/books.yaml"))
+    assert not loaded.workflow.inputs
+    assert loaded.workflow.steps[0].url == (
+        "https://books.toscrape.com/catalogue/category/books/travel_2/index.html"
+    )
+    with pytest.raises(ServerConfigurationError, match="published"):
+        create_server([loaded], catalogs=["books=travel_books"])
+
+
+@pytest.mark.parametrize("has_next", [False, True])
+def test_book_example_refuses_new_pagination(tmp_path, has_next):
+    data = yaml.safe_load(Path("examples/catalog/books.yaml").read_text())
+    data["steps"][1]["timeout_seconds"] = 1
+    candidate = tmp_path / "book.candidate"
+    candidate.write_text(yaml.safe_dump(data))
+    loaded = replace(load_workflow(candidate), publication=Publication("books", 1, "test"))
+    html = (
+        '<main class="col-sm-8 col-md-9"><article class="product_pod">'
+        '<h3><a title="Book" href="/catalogue/book/index.html">Book</a></h3>'
+        '<b class="price_color">£1.00</b></article>'
+        + ('<li class="next"><a href="page-2.html">Next</a></li>' if has_next else "")
+        + "</main>"
+    )
+    if has_next:
+        from browser_to_mcp.replay import WorkflowExecutionError
+
+        with pytest.raises(WorkflowExecutionError):
+            asyncio.run(replay_workflow(loaded, [], evaluation_html=html))
+    else:
+        result = asyncio.run(replay_workflow(loaded, [], evaluation_html=html))
+        assert len(result.outputs["result"]) == 1

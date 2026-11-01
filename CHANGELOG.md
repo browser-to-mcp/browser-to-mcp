@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Support reviewed single-page catalogs and include the fixed travel-book example,
+  with live shared-tool checks and a refusal if a Next link appears.
+
 - Add one `collect_catalog` interface for selected published catalogs, with strict
   page limits, consistent results and the original workflow trace and approval.
 

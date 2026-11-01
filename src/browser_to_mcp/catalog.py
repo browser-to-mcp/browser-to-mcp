@@ -44,20 +44,30 @@ def catalog_tool(compiled, bindings, *, trace_dir, timeout_seconds):
             )
         item = names[name]
         workflow = item.loaded.workflow
-        steps = [step for step in workflow.steps if step.paging]
+        steps = [step for step in workflow.steps if step.action == "extract_records"]
         if not item.loaded.publication or len(steps) != 1:
-            raise ServerConfigurationError("catalog", "Each catalog needs a published paged tool.")
+            raise ServerConfigurationError(
+                "catalog", "Each catalog needs one published product collection."
+            )
         step = steps[0]
         output = workflow.outputs.get(step.id)
+        status = step.paging.status_output if step.paging else None
+        valid_inputs = (
+            set(workflow.inputs) == {"max_pages"}
+            and step.paging.max_pages_input == "max_pages"
+            and step.paging.max_pages == 20
+            if step.paging
+            else not workflow.inputs
+            and len(workflow.steps) == 2
+            and workflow.steps[0].action == "goto"
+        )
         if (
-            set(workflow.inputs) != {"max_pages"}
-            or step.paging.max_pages_input != "max_pages"
-            or step.paging.max_pages != 20
+            not valid_inputs
             or not isinstance(output, StructuredOutput)
             or output.type != "array"
             or set(output.record_fields) != {"title", "price_text", "product_url"}
             or any(field.type != "string" for field in output.record_fields.values())
-            or set(workflow.outputs) != {step.id, step.paging.status_output}
+            or set(workflow.outputs) != ({step.id, status} if status else {step.id})
             or step.record.unique_by != "product_url"
             or step.record.duplicates != "deduplicate"
             or step.record.fields["product_url"].source != "href"
@@ -66,12 +76,13 @@ def catalog_tool(compiled, bindings, *, trace_dir, timeout_seconds):
             )
         ):
             raise ServerConfigurationError(
-                "catalog", "Catalogs need only max_pages (1–20), product rows and paging status."
+                "catalog",
+                "Use a fixed single-page catalog or a paged catalog with max_pages (1–20).",
             )
         selected[catalog] = (
             _workflow_tool(item, trace_dir=trace_dir, timeout_seconds=min(timeout_seconds, 120)),
             step.id,
-            step.paging.status_output,
+            status,
         )
     if "collect_catalog" in names or not selected:
         raise ServerConfigurationError("catalog", "The collect_catalog name must be available.")
@@ -87,11 +98,15 @@ def catalog_tool(compiled, bindings, *, trace_dir, timeout_seconds):
     async def invoke(catalog, max_pages=20):
         tool, rows, status = selected[catalog]
         async with lock:
-            response = await tool.run({"max_pages": max_pages})
+            response = await tool.run({"max_pages": max_pages} if status else {})
         if response.isError:
             return response
         payload = response.structuredContent
-        progress = payload["outputs"][status]
+        progress = (
+            payload["outputs"][status]
+            if status
+            else dict(pages_read=1, complete=True, stop_reason="end")
+        )
         if progress["stop_reason"] not in {"end", "page_limit"}:
             result = _result(
                 dict(

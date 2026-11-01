@@ -413,3 +413,25 @@ def test_book_example_refuses_new_pagination(tmp_path, has_next):
     else:
         result = asyncio.run(replay_workflow(loaded, [], evaluation_html=html))
         assert len(result.outputs["result"]) == 1
+
+
+def test_saved_book_evidence_is_complete_and_matches_example():
+    from browser_to_mcp.evaluation.service import verify_evaluation
+
+    root = Path("docs/evidence/shared-books-2026-11-01")
+    for directory, candidate in (
+        (root, Path("examples/catalog/books.yaml")),
+        (root / "initial", root / "initial/evaluation/draft.candidate"),
+    ):
+        report = verify_evaluation(
+            candidate,
+            directory / "plan.json",
+            directory / "evaluation",
+            (directory / "plan.sha256").read_text().strip(),
+        )
+        assert report.eligible
+        for call in json.loads((directory / "published-calls.json").read_text()):
+            if not call["is_error"]:
+                assert call["manifest_digest"] == report.manifest_digest
+                assert call["publication"]["candidate_sha256"] == report.candidate_sha256
+                assert digest((directory / call["trace_file"]).read_bytes()) == call["trace_sha256"]

@@ -12,8 +12,9 @@ browser-to-mcp library --directory ./library server \
 ```
 
 Replace the workflow names with your published names. Each needs a fixed starting
-page, only the optional `max_pages` input (1–20, default 20), a paged product list
-with `title`, `price_text`, `product_url`, and its paging status. Rows must use
+page. Paged workflows take only optional `max_pages` (1–20, default 20);
+reviewed single-page workflows take no inputs. Both return a product list
+with `title`, `price_text`, `product_url`, and, for paged workflows, its paging status. Rows must use
 normalized text, reviewed product links and deduplication by product URL.
 An existing search workflow needs a separately tested and approved fixed-page
 version; the server never edits or publishes it for you.
@@ -23,6 +24,12 @@ Call `collect_catalog` with `{"catalog":"books","max_pages":1}`. The result cont
 `page_limit`). Omitting `max_pages` allows up to 20 pages. A failure returns its
 reason and trace, never a partly successful list. MCP metadata retains the exact
 published version and trace. Restart the server after changing published versions.
+
+The [travel-book example](../examples/catalog/books.yaml) reads one reviewed page.
+After [testing and publishing it](DRAFT_CHECKS.md), use `--catalog books=travel_books`.
+Every valid page limit returns that same complete page. A newly appearing Next
+link causes a refusal until the workflow is reviewed again.
+See the [dated live checks](evidence/shared-books-2026-11-01/README.md).
 
 Local checks cover three layouts. The live laptop and clothing sites remain
 blocked under the current access rules; this interface does not make them supported.

@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 0.01136529199720826,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 0.013311791000887752,
+      "output_key": "result",
+      "status": "completed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [],
+  "error": {
+    "category": "assertion",
+    "message": "A required record field is missing or blank.",
+    "path": "outputs.result.0.price_text",
+    "screenshot_path": "docs/evidence/shared-books-2026-11-01/evaluation/traces/78809da2491c415bb14af86f12e4b265-failure.png"
+  },
+  "inputs": {},
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 0.3284276249978575,
+    "evaluation_fixture_sha256": "sha256:1222db4a3949cb9a61432bb6a04b4b60e2e81b2a8641d06ee0006556cf5d7c3a",
+    "finished_at": "2026-11-01T12:28:23.663968Z",
+    "manifest_digest": "sha256:f20a0d285872b2340e73f65bf8fb1776c24bd5df142428c015de44f32a1af32c",
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.12.12",
+    "run_id": "78809da2491c415bb14af86f12e4b265",
+    "started_at": "2026-11-01T12:28:23.335550Z",
+    "workflow_name": "travel_books",
+    "workflow_version": 1
+  },
+  "outputs": {},
+  "schema_version": 2,
+  "screenshots": [
+    "docs/evidence/shared-books-2026-11-01/evaluation/traces/78809da2491c415bb14af86f12e4b265-failure.png"
+  ],
+  "status": "failed"
+}

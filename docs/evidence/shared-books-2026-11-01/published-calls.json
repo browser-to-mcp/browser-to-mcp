@@ -1,0 +1,253 @@
+[
+  {
+    "inputs": {
+      "catalog": "books"
+    },
+    "is_error": false,
+    "outputs": {
+      "catalog": "books",
+      "items": [
+        {
+          "price_text": "£45.17",
+          "product_url": "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html",
+          "title": "It's Only the Himalayas"
+        },
+        {
+          "price_text": "£49.43",
+          "product_url": "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html",
+          "title": "Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond"
+        },
+        {
+          "price_text": "£48.87",
+          "product_url": "https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html",
+          "title": "See America: A Celebration of Our National Parks & Treasured Sites"
+        },
+        {
+          "price_text": "£36.94",
+          "product_url": "https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html",
+          "title": "Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel"
+        },
+        {
+          "price_text": "£37.33",
+          "product_url": "https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html",
+          "title": "Under the Tuscan Sun"
+        },
+        {
+          "price_text": "£44.34",
+          "product_url": "https://books.toscrape.com/catalogue/a-summer-in-europe_458/index.html",
+          "title": "A Summer In Europe"
+        },
+        {
+          "price_text": "£30.54",
+          "product_url": "https://books.toscrape.com/catalogue/the-great-railway-bazaar_446/index.html",
+          "title": "The Great Railway Bazaar"
+        },
+        {
+          "price_text": "£56.88",
+          "product_url": "https://books.toscrape.com/catalogue/a-year-in-provence-provence-1_421/index.html",
+          "title": "A Year in Provence (Provence #1)"
+        },
+        {
+          "price_text": "£23.21",
+          "product_url": "https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html",
+          "title": "The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)"
+        },
+        {
+          "price_text": "£38.95",
+          "product_url": "https://books.toscrape.com/catalogue/neither-here-nor-there-travels-in-europe_198/index.html",
+          "title": "Neither Here nor There: Travels in Europe"
+        },
+        {
+          "price_text": "£26.08",
+          "product_url": "https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html",
+          "title": "1,000 Places to See Before You Die"
+        }
+      ],
+      "pages_read": 1,
+      "complete": true,
+      "stop_reason": "end"
+    },
+    "publication": {
+      "tool_id": "e44c9dc67ba64703b5651bb77afff438",
+      "version": 1,
+      "candidate_sha256": "sha256:c058653232f49bd7c325f407c276b45d5cc7d1436791bea38ede79c500d527ed"
+    },
+    "manifest_digest": "sha256:5f42334f099f381d28892004804827b9b1eb4db1e847b766e66ad96c966725ec",
+    "trace_file": "published-traces/44d44aaebf0d4f10bf7a72c9161aff7f.json",
+    "trace_sha256": "sha256:83d3b47aa6154c56818cb6b570d2a7daa5876af7b45c98a03bd4ecb714b87146",
+    "duration_seconds": 3.316
+  },
+  {
+    "inputs": {
+      "catalog": "books",
+      "max_pages": 1
+    },
+    "is_error": false,
+    "outputs": {
+      "catalog": "books",
+      "items": [
+        {
+          "price_text": "£45.17",
+          "product_url": "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html",
+          "title": "It's Only the Himalayas"
+        },
+        {
+          "price_text": "£49.43",
+          "product_url": "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html",
+          "title": "Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond"
+        },
+        {
+          "price_text": "£48.87",
+          "product_url": "https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html",
+          "title": "See America: A Celebration of Our National Parks & Treasured Sites"
+        },
+        {
+          "price_text": "£36.94",
+          "product_url": "https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html",
+          "title": "Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel"
+        },
+        {
+          "price_text": "£37.33",
+          "product_url": "https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html",
+          "title": "Under the Tuscan Sun"
+        },
+        {
+          "price_text": "£44.34",
+          "product_url": "https://books.toscrape.com/catalogue/a-summer-in-europe_458/index.html",
+          "title": "A Summer In Europe"
+        },
+        {
+          "price_text": "£30.54",
+          "product_url": "https://books.toscrape.com/catalogue/the-great-railway-bazaar_446/index.html",
+          "title": "The Great Railway Bazaar"
+        },
+        {
+          "price_text": "£56.88",
+          "product_url": "https://books.toscrape.com/catalogue/a-year-in-provence-provence-1_421/index.html",
+          "title": "A Year in Provence (Provence #1)"
+        },
+        {
+          "price_text": "£23.21",
+          "product_url": "https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html",
+          "title": "The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)"
+        },
+        {
+          "price_text": "£38.95",
+          "product_url": "https://books.toscrape.com/catalogue/neither-here-nor-there-travels-in-europe_198/index.html",
+          "title": "Neither Here nor There: Travels in Europe"
+        },
+        {
+          "price_text": "£26.08",
+          "product_url": "https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html",
+          "title": "1,000 Places to See Before You Die"
+        }
+      ],
+      "pages_read": 1,
+      "complete": true,
+      "stop_reason": "end"
+    },
+    "publication": {
+      "tool_id": "e44c9dc67ba64703b5651bb77afff438",
+      "version": 1,
+      "candidate_sha256": "sha256:c058653232f49bd7c325f407c276b45d5cc7d1436791bea38ede79c500d527ed"
+    },
+    "manifest_digest": "sha256:5f42334f099f381d28892004804827b9b1eb4db1e847b766e66ad96c966725ec",
+    "trace_file": "published-traces/3e7d7d1b92f2452d84ec6a27f80c9dba.json",
+    "trace_sha256": "sha256:bf8cef2e83cebf727df65b205cf7ab57e52d76d1e6f11a728d14c32874fdb5a8",
+    "duration_seconds": 5.811
+  },
+  {
+    "inputs": {
+      "catalog": "books",
+      "max_pages": 20
+    },
+    "is_error": false,
+    "outputs": {
+      "catalog": "books",
+      "items": [
+        {
+          "price_text": "£45.17",
+          "product_url": "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html",
+          "title": "It's Only the Himalayas"
+        },
+        {
+          "price_text": "£49.43",
+          "product_url": "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html",
+          "title": "Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond"
+        },
+        {
+          "price_text": "£48.87",
+          "product_url": "https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html",
+          "title": "See America: A Celebration of Our National Parks & Treasured Sites"
+        },
+        {
+          "price_text": "£36.94",
+          "product_url": "https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html",
+          "title": "Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel"
+        },
+        {
+          "price_text": "£37.33",
+          "product_url": "https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html",
+          "title": "Under the Tuscan Sun"
+        },
+        {
+          "price_text": "£44.34",
+          "product_url": "https://books.toscrape.com/catalogue/a-summer-in-europe_458/index.html",
+          "title": "A Summer In Europe"
+        },
+        {
+          "price_text": "£30.54",
+          "product_url": "https://books.toscrape.com/catalogue/the-great-railway-bazaar_446/index.html",
+          "title": "The Great Railway Bazaar"
+        },
+        {
+          "price_text": "£56.88",
+          "product_url": "https://books.toscrape.com/catalogue/a-year-in-provence-provence-1_421/index.html",
+          "title": "A Year in Provence (Provence #1)"
+        },
+        {
+          "price_text": "£23.21",
+          "product_url": "https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html",
+          "title": "The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)"
+        },
+        {
+          "price_text": "£38.95",
+          "product_url": "https://books.toscrape.com/catalogue/neither-here-nor-there-travels-in-europe_198/index.html",
+          "title": "Neither Here nor There: Travels in Europe"
+        },
+        {
+          "price_text": "£26.08",
+          "product_url": "https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html",
+          "title": "1,000 Places to See Before You Die"
+        }
+      ],
+      "pages_read": 1,
+      "complete": true,
+      "stop_reason": "end"
+    },
+    "publication": {
+      "tool_id": "e44c9dc67ba64703b5651bb77afff438",
+      "version": 1,
+      "candidate_sha256": "sha256:c058653232f49bd7c325f407c276b45d5cc7d1436791bea38ede79c500d527ed"
+    },
+    "manifest_digest": "sha256:5f42334f099f381d28892004804827b9b1eb4db1e847b766e66ad96c966725ec",
+    "trace_file": "published-traces/b6ad203b275c479c8eee4179103d2fb8.json",
+    "trace_sha256": "sha256:abf9b66efd2c2faf6d3152e5f20950ca8f550b58e487edd0d63fb5f9d8c37773",
+    "duration_seconds": 6.541
+  },
+  {
+    "inputs": {
+      "catalog": "books",
+      "max_pages": 0
+    },
+    "is_error": true,
+    "browser_started": false
+  },
+  {
+    "inputs": {
+      "catalog": "laptops"
+    },
+    "is_error": true,
+    "browser_started": false
+  }
+]

@@ -23,3 +23,4 @@ jobs:
       - run: uv run browser-to-mcp validate examples/records/catalog.yaml
       - run: uv run browser-to-mcp validate examples/paging/catalog.yaml
       - run: uv run browser-to-mcp validate examples/catalog/books.yaml
+      - run: uv run browser-to-mcp validate examples/catalog/laptops.yaml

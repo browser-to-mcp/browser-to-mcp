@@ -1,0 +1,313 @@
+[
+  {
+    "inputs": {
+      "catalog": "laptops"
+    },
+    "is_error": false,
+    "outputs": {
+      "catalog": "laptops",
+      "items": [
+        {
+          "price_text": "$86.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/1",
+          "title": "Vertex Air Laptop 107"
+        },
+        {
+          "price_text": "$136.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/2",
+          "title": "Ember Max Laptop 117"
+        },
+        {
+          "price_text": "$186.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/3",
+          "title": "Vertex Lite Laptop 127"
+        },
+        {
+          "price_text": "$236.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/4",
+          "title": "Ember Pro Laptop 137"
+        },
+        {
+          "price_text": "$286.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/5",
+          "title": "Vertex Studio Laptop 147"
+        },
+        {
+          "price_text": "$336.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/6",
+          "title": "Ember Air Laptop 157"
+        },
+        {
+          "price_text": "$386.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/7",
+          "title": "Vertex Max Laptop 167"
+        },
+        {
+          "price_text": "$436.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/8",
+          "title": "Ember Lite Laptop 177"
+        },
+        {
+          "price_text": "$486.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/9",
+          "title": "Vertex Pro Laptop 187"
+        },
+        {
+          "price_text": "$536.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/10",
+          "title": "Ember Studio Laptop 197"
+        },
+        {
+          "price_text": "$586.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/11",
+          "title": "Vertex Air Laptop 207"
+        },
+        {
+          "price_text": "$636.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/12",
+          "title": "Ember Max Laptop 217"
+        },
+        {
+          "price_text": "$686.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/13",
+          "title": "Vertex Lite Laptop 227"
+        },
+        {
+          "price_text": "$736.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/14",
+          "title": "Ember Pro Laptop 237"
+        },
+        {
+          "price_text": "$786.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/15",
+          "title": "Vertex Studio Laptop 247"
+        }
+      ],
+      "pages_read": 1,
+      "complete": true,
+      "stop_reason": "end"
+    },
+    "publication": {
+      "tool_id": "3d28884e779f4cd1bbf505d6043bd5e2",
+      "version": 1,
+      "candidate_sha256": "sha256:b599fbb0eb4f4fa853a6b5b60b01f6c82ff3b6db05601fe632d58600a25bf303"
+    },
+    "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220",
+    "trace_file": "published-traces/b0db284fccb047238d2234e74aaddd5e.json",
+    "trace_sha256": "sha256:8f026db9ad91d631434955b64f7ee7adc21d256f088351e27960a679b2a545d3",
+    "duration_seconds": 1.485
+  },
+  {
+    "inputs": {
+      "catalog": "laptops",
+      "max_pages": 1
+    },
+    "is_error": false,
+    "outputs": {
+      "catalog": "laptops",
+      "items": [
+        {
+          "price_text": "$86.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/1",
+          "title": "Vertex Air Laptop 107"
+        },
+        {
+          "price_text": "$136.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/2",
+          "title": "Ember Max Laptop 117"
+        },
+        {
+          "price_text": "$186.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/3",
+          "title": "Vertex Lite Laptop 127"
+        },
+        {
+          "price_text": "$236.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/4",
+          "title": "Ember Pro Laptop 137"
+        },
+        {
+          "price_text": "$286.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/5",
+          "title": "Vertex Studio Laptop 147"
+        },
+        {
+          "price_text": "$336.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/6",
+          "title": "Ember Air Laptop 157"
+        },
+        {
+          "price_text": "$386.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/7",
+          "title": "Vertex Max Laptop 167"
+        },
+        {
+          "price_text": "$436.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/8",
+          "title": "Ember Lite Laptop 177"
+        },
+        {
+          "price_text": "$486.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/9",
+          "title": "Vertex Pro Laptop 187"
+        },
+        {
+          "price_text": "$536.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/10",
+          "title": "Ember Studio Laptop 197"
+        },
+        {
+          "price_text": "$586.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/11",
+          "title": "Vertex Air Laptop 207"
+        },
+        {
+          "price_text": "$636.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/12",
+          "title": "Ember Max Laptop 217"
+        },
+        {
+          "price_text": "$686.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/13",
+          "title": "Vertex Lite Laptop 227"
+        },
+        {
+          "price_text": "$736.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/14",
+          "title": "Ember Pro Laptop 237"
+        },
+        {
+          "price_text": "$786.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/15",
+          "title": "Vertex Studio Laptop 247"
+        }
+      ],
+      "pages_read": 1,
+      "complete": true,
+      "stop_reason": "end"
+    },
+    "publication": {
+      "tool_id": "3d28884e779f4cd1bbf505d6043bd5e2",
+      "version": 1,
+      "candidate_sha256": "sha256:b599fbb0eb4f4fa853a6b5b60b01f6c82ff3b6db05601fe632d58600a25bf303"
+    },
+    "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220",
+    "trace_file": "published-traces/a685612034bf4a10a2d64a8519201972.json",
+    "trace_sha256": "sha256:37bd72d022c3ccfd0cce96e9191af4de2a59b6eba3639a2206bd0213bf897c5c",
+    "duration_seconds": 1.397
+  },
+  {
+    "inputs": {
+      "catalog": "laptops",
+      "max_pages": 20
+    },
+    "is_error": false,
+    "outputs": {
+      "catalog": "laptops",
+      "items": [
+        {
+          "price_text": "$86.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/1",
+          "title": "Vertex Air Laptop 107"
+        },
+        {
+          "price_text": "$136.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/2",
+          "title": "Ember Max Laptop 117"
+        },
+        {
+          "price_text": "$186.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/3",
+          "title": "Vertex Lite Laptop 127"
+        },
+        {
+          "price_text": "$236.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/4",
+          "title": "Ember Pro Laptop 137"
+        },
+        {
+          "price_text": "$286.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/5",
+          "title": "Vertex Studio Laptop 147"
+        },
+        {
+          "price_text": "$336.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/6",
+          "title": "Ember Air Laptop 157"
+        },
+        {
+          "price_text": "$386.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/7",
+          "title": "Vertex Max Laptop 167"
+        },
+        {
+          "price_text": "$436.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/8",
+          "title": "Ember Lite Laptop 177"
+        },
+        {
+          "price_text": "$486.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/9",
+          "title": "Vertex Pro Laptop 187"
+        },
+        {
+          "price_text": "$536.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/10",
+          "title": "Ember Studio Laptop 197"
+        },
+        {
+          "price_text": "$586.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/11",
+          "title": "Vertex Air Laptop 207"
+        },
+        {
+          "price_text": "$636.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/12",
+          "title": "Ember Max Laptop 217"
+        },
+        {
+          "price_text": "$686.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/13",
+          "title": "Vertex Lite Laptop 227"
+        },
+        {
+          "price_text": "$736.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/14",
+          "title": "Ember Pro Laptop 237"
+        },
+        {
+          "price_text": "$786.00",
+          "product_url": "https://testingurl.dev/scraping/ecommerce/product/15",
+          "title": "Vertex Studio Laptop 247"
+        }
+      ],
+      "pages_read": 1,
+      "complete": true,
+      "stop_reason": "end"
+    },
+    "publication": {
+      "tool_id": "3d28884e779f4cd1bbf505d6043bd5e2",
+      "version": 1,
+      "candidate_sha256": "sha256:b599fbb0eb4f4fa853a6b5b60b01f6c82ff3b6db05601fe632d58600a25bf303"
+    },
+    "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220",
+    "trace_file": "published-traces/61a9034048dd44e4903157f4a4d586a0.json",
+    "trace_sha256": "sha256:16a512ef8f664682f1806a8c5eda6489ea937091d3ce8561dbacb17046fe0119",
+    "duration_seconds": 1.399
+  },
+  {
+    "inputs": {
+      "catalog": "laptops",
+      "max_pages": 0
+    },
+    "is_error": true,
+    "browser_started": false
+  },
+  {
+    "inputs": {
+      "catalog": "clothing"
+    },
+    "is_error": true,
+    "browser_started": false
+  }
+]

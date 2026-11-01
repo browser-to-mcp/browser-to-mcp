@@ -1,0 +1,156 @@
+{
+  "name": "Reviewed replacement laptop catalog",
+  "mode": "mixed",
+  "requirements_source": "Issue #66 and reviewed TestingURL laptop pilot replacement",
+  "expectations_source": "Fifteen title/price/link triples independently transcribed from the public listing before evaluation; original synthetic refusal pages.",
+  "not_applicable": {
+    "changed_inputs": "Fixed single-page task has no workflow inputs; shared limits checked separately.",
+    "invalid_input": "No workflow inputs; shared MCP invalid limits checked separately.",
+    "combined_filters": "No filters.",
+    "multiple_pages": "This reviewed category is a single page; newly appearing pagination is refused."
+  },
+  "cases": [
+    {
+      "id": "laptops",
+      "inputs": {},
+      "covers": [
+        "demonstration"
+      ],
+      "expected": {
+        "outcome": "outputs",
+        "outputs": {
+          "result": [
+            {
+              "title": "Vertex Air Laptop 107",
+              "price_text": "$86.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/1"
+            },
+            {
+              "title": "Ember Max Laptop 117",
+              "price_text": "$136.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/2"
+            },
+            {
+              "title": "Vertex Lite Laptop 127",
+              "price_text": "$186.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/3"
+            },
+            {
+              "title": "Ember Pro Laptop 137",
+              "price_text": "$236.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/4"
+            },
+            {
+              "title": "Vertex Studio Laptop 147",
+              "price_text": "$286.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/5"
+            },
+            {
+              "title": "Ember Air Laptop 157",
+              "price_text": "$336.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/6"
+            },
+            {
+              "title": "Vertex Max Laptop 167",
+              "price_text": "$386.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/7"
+            },
+            {
+              "title": "Ember Lite Laptop 177",
+              "price_text": "$436.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/8"
+            },
+            {
+              "title": "Vertex Pro Laptop 187",
+              "price_text": "$486.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/9"
+            },
+            {
+              "title": "Ember Studio Laptop 197",
+              "price_text": "$536.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/10"
+            },
+            {
+              "title": "Vertex Air Laptop 207",
+              "price_text": "$586.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/11"
+            },
+            {
+              "title": "Ember Max Laptop 217",
+              "price_text": "$636.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/12"
+            },
+            {
+              "title": "Vertex Lite Laptop 227",
+              "price_text": "$686.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/13"
+            },
+            {
+              "title": "Ember Pro Laptop 237",
+              "price_text": "$736.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/14"
+            },
+            {
+              "title": "Vertex Studio Laptop 247",
+              "price_text": "$786.00",
+              "product_url": "https://testingurl.dev/scraping/ecommerce/product/15"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "empty",
+      "inputs": {},
+      "covers": [
+        "zero_results"
+      ],
+      "fixture_html": "<main class=\"site-main\"><div class=\"grid\"></div></main>",
+      "expected": {
+        "outcome": "error",
+        "category": "runtime",
+        "path": "steps.result"
+      }
+    },
+    {
+      "id": "missing_price",
+      "inputs": {},
+      "covers": [
+        "changed_page"
+      ],
+      "fixture_html": "<main class=\"site-main\"><div class=\"grid\"><a class=\"card\" href=\"/scraping/ecommerce/product/1\"><h3>Laptop</h3></a></div></main>",
+      "expected": {
+        "outcome": "error",
+        "category": "assertion",
+        "path": "outputs.result.0.price_text"
+      }
+    },
+    {
+      "id": "changed_separator",
+      "inputs": {},
+      "covers": [
+        "changed_page"
+      ],
+      "fixture_html": "<main class=\"site-main\"><div class=\"grid\"><a class=\"card\" href=\"/scraping/ecommerce/product/1\"><h3>Laptop</h3><p>$86.00 / rating 2</p></a></div></main>",
+      "expected": {
+        "outcome": "error",
+        "category": "assertion",
+        "path": "outputs.result.0.price_text"
+      }
+    },
+    {
+      "id": "new_paging",
+      "inputs": {},
+      "covers": [
+        "changed_page"
+      ],
+      "fixture_html": "<main class=\"site-main\"><div class=\"grid\"><a class=\"card\" href=\"/scraping/ecommerce/product/1\"><h3>Laptop</h3><p>$86.00 · ★★</p></a></div><a rel=\"next\" href=\"?page=2\">Next</a></main>",
+      "expected": {
+        "outcome": "error",
+        "category": "runtime",
+        "path": "steps.result"
+      }
+    }
+  ],
+  "timeout_seconds": 60
+}

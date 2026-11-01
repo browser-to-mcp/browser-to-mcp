@@ -1,0 +1,84 @@
+name: practice_laptops
+description: Collect laptop titles, displayed prices and product links from the public
+  practice listing.
+version: 1
+risk: read_only
+manifest:
+  version: 1
+permissions:
+  allowed_domains:
+  - testingurl.dev
+  - fonts.googleapis.com
+  - fonts.gstatic.com
+  - cdn.geekflare.com
+  downloads: false
+  uploads: false
+  submit_forms: false
+  send_messages: false
+  spend_money: false
+  requires_authentication: false
+inputs: {}
+steps:
+- id: open
+  action: goto
+  url: https://testingurl.dev/scraping/ecommerce/category/laptops
+  timeout_seconds: 30
+  risk: read_only
+  idempotency: safe
+  retry: none
+  confirmation: never
+- id: result
+  action: extract_records
+  selector: body:not(:has(a[rel="next"], a.next, nav.pagination)) main.site-main
+  record:
+    rows: .grid > a.card
+    fields:
+      title:
+        selector: h3
+        source: text
+        normalize_whitespace: true
+      price_text:
+        selector: p
+        source: text
+        normalize_whitespace: true
+        text_before: ·
+      product_url:
+        selector: :scope
+        source: href
+        normalize_whitespace: false
+        path_prefix: /scraping/ecommerce/product/
+    duplicates: deduplicate
+    unique_by: product_url
+  timeout_seconds: 30
+  risk: read_only
+  idempotency: safe
+  retry: none
+  confirmation: never
+outputs:
+  result:
+    type: array
+    items:
+      type: object
+      properties:
+        price_text:
+          type: string
+          description: Displayed price
+          nullable: false
+          sensitive: false
+        product_url:
+          type: string
+          description: Laptop link
+          nullable: false
+          sensitive: false
+        title:
+          type: string
+          description: Full laptop name
+          nullable: false
+          sensitive: false
+    max_items: 50
+    allow_empty: false
+    sensitive: false
+success:
+- id: check_result
+  assertion: output_not_empty
+  field: result

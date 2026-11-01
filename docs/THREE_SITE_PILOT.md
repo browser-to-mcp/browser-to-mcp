@@ -53,18 +53,31 @@ be enough for these pages; compare it before making performance claims.
 
 ## The three sites
 
+On November 1, the owner delegated the replacement-site choice. The laptop slot
+now uses [TestingURL's public laptop practice category](https://testingurl.dev/scraping/ecommerce/category/laptops),
+which contains 15 fictional products on one page. Its [site introduction](https://testingurl.dev/)
+explicitly invites scraping practice. This revises the original laptop site's
+entry point and live paging scope; it does not prove Web Scraper compatibility.
+The original local paging cases remain required. See the [dated review and checks](evidence/shared-laptops-2026-11-01/README.md).
+
+The laptop workflow allows `testingurl.dev`, Google Fonts' stylesheet/font hosts
+(`fonts.googleapis.com`, `fonts.gstatic.com`) and `cdn.geekflare.com` for the site
+logo. These dependencies were reviewed from page markup and then tested through
+the normal browser policy. No tracking host or broader runtime exception was added.
+The original [Web Scraper laptop entry](https://webscraper.io/test-sites/e-commerce/static/computers/laptops) remains unsupported; older observations below are historical.
+
 Only these catalog entry points belong to the trial. They are fictional or
 practice data, not three customers or three shops selling comparable products.
 
 | Input `catalog` | Start page | Permission evidence and limits |
 | --- | --- | --- |
 | `books` | [Travel books](https://books.toscrape.com/catalogue/category/books/travel_2/index.html) | [Owner's introduction](https://toscrape.com/) invites scraping practice. Prices are made up. This category is a single-page control. |
-| `laptops` | [Laptop listings](https://webscraper.io/test-sites/e-commerce/static/computers/laptops) | [Test-site introduction](https://webscraper.io/test-sites) offers training sites. Use this existing static catalog, not the newer car catalog or login variant. |
+| `laptops` | [Practice laptops](https://testingurl.dev/scraping/ecommerce/category/laptops) | [Site introduction](https://testingurl.dev/) invites practice. Revised November 1: 15 fictional products on one page; reviewed font/logo hosts listed above. |
 | `clothing` | [Practice shop](https://www.scrapingcourse.com/ecommerce/) | [Owner's introduction](https://www.scrapingcourse.com/) offers a product scraping playground. Despite the short input name, this shop also includes accessories. |
 
 Keep the entry URLs fixed in the reviewed workflow. Do not accept an arbitrary
 URL. The initial host sets are respectively `books.toscrape.com`,
-`webscraper.io`, and `www.scrapingcourse.com`. These are proposed exact hosts,
+the reviewed TestingURL host set above, and `www.scrapingcourse.com`. The original laptop host was `webscraper.io`. These are reviewed hosts,
 not a claim that today's domain policy restricts every subdomain or path.
 Enforcement improvements belong to #58.
 
@@ -124,7 +137,10 @@ duplicate key. Identical repeated rows appear once. A repeated URL with differen
 title or price fails the run as conflicting data. Same title with different
 URLs remains two products.
 
-For the public sites, the reviewed listing paths are the travel category's
+The replacement laptop listing is fixed to `/scraping/ecommerce/category/laptops`;
+its product links use `/scraping/ecommerce/product/<id>`. It does not accept filters
+or pagination. The following original-site paths remain historical.
+For the original public sites, the reviewed listing paths are the travel category's
 `index.html` or `page-N.html`, the exact laptop listing path with its `page`
 query, and `/ecommerce/` or `/ecommerce/page/N/`. Product links must respectively
 match `/catalogue/<slug>/index.html`,

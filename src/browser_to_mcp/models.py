@@ -204,10 +204,13 @@ class RecordExtractionField(StrictModel):
     selector: str = Field(min_length=1, max_length=512)
     source: Literal["text", "title", "href"] = "text"
     normalize_whitespace: StrictBool = True
+    text_before: str | None = Field(default=None, min_length=1, max_length=64)
     path_prefix: str | None = Field(default=None, max_length=512)
 
     @model_validator(mode="after")
     def validate_source(self):
+        if self.text_before is not None and self.source != "text":
+            raise ValueError("text_before requires a text source.")
         if self.source == "href":
             if "normalize_whitespace" in self.model_fields_set and self.normalize_whitespace:
                 raise ValueError(
@@ -223,6 +226,13 @@ class RecordExtractionField(StrictModel):
         if "{{" in self.selector or "}}" in self.selector:
             raise ValueError("Record selectors must be fixed CSS, without templates.")
         return self
+
+    @model_serializer(mode="wrap")
+    def serialize_field(self, handler):
+        result = handler(self)
+        if self.text_before is None:
+            result.pop("text_before", None)  # Preserve existing reviewed manifest identities.
+        return result
 
 
 class RecordExtraction(StrictModel):

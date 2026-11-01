@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "candidate_sha256": "sha256:b599fbb0eb4f4fa853a6b5b60b01f6c82ff3b6db05601fe632d58600a25bf303",
+  "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220",
+  "workflow": "practice_laptops",
+  "suite_sha256": "sha256:7160082ab8fca3b9d667fedb66922d52cbaa3b934b2dcfac0a435c0639da25d9",
+  "mode": "mixed",
+  "started_at": "2026-11-01T15:56:12.862747+00:00",
+  "finished_at": "2026-11-01T15:57:16.051507+00:00",
+  "seconds": 63.188642125001934,
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:791c4ccffc0448af13f2f4c6e7bedbf4c8bd17257ae06df0647dcf3d9a83ee56",
+    "git_commit": "c11d86077ada9b09fab2a6742cf9b64f84ac2aee",
+    "worktree_dirty": true,
+    "python": "3.12.12",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.2-arm64-arm-64bit"
+  },
+  "generation": null,
+  "replay_model_requests": 0,
+  "replay_api_cost_microusd": 0,
+  "local_compute_cost_microusd": null,
+  "observations": [
+    {
+      "case_id": "laptops",
+      "status": "passed",
+      "reason": "Every expected output value and type matched.",
+      "seconds": 1.7486862919977284,
+      "outcome": "outputs",
+      "trace_file": "traces/3c9c093ddf61413bb2bd09fd51d2eb25.json",
+      "trace_sha256": "sha256:05b435a071503a9df5cb1572f51e204de85e760b29438b1f8c3da62f2f6fb185"
+    },
+    {
+      "case_id": "empty",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 30.383888333002687,
+      "outcome": "error",
+      "trace_file": "traces/88eb6b00c087457f848c55173c480c9b.json",
+      "trace_sha256": "sha256:435fc2627da50260d82ff66636cf17e4e80ab7cef06b14caaa33e7cf3cc33942"
+    },
+    {
+      "case_id": "missing_price",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 0.3289507500012405,
+      "outcome": "error",
+      "trace_file": "traces/afb3eedfeb52424db9a069cea2fb518f.json",
+      "trace_sha256": "sha256:ebd7cd58600eb0c0f4839fbc59dde75c8bd4d74f2cf32f27853a5d229e7015b1"
+    },
+    {
+      "case_id": "changed_separator",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 0.33274733300640946,
+      "outcome": "error",
+      "trace_file": "traces/4e9d4a6640f84c8fae328a3887c3ccf0.json",
+      "trace_sha256": "sha256:1b466fbee873d249859920ae819935df034b6bc7116573d1ebf30dc048203ec3"
+    },
+    {
+      "case_id": "new_paging",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 30.342704417002096,
+      "outcome": "error",
+      "trace_file": "traces/2c7ebaf9324242dfbd71a9ac8a5eb679.json",
+      "trace_sha256": "sha256:166a6a0b0bec03f2eb6ac19478e2ddb4d4fa4692ed0dfcce66bcfe170b7cbec7"
+    }
+  ],
+  "blockers": [],
+  "eligible": true
+}

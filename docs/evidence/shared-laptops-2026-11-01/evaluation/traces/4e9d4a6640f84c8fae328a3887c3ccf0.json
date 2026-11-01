@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 0.011437042005127296,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 0.015164083000854589,
+      "output_key": "result",
+      "status": "failed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [],
+  "error": {
+    "category": "assertion",
+    "message": "Record extraction failed: text_separator.",
+    "path": "outputs.result.0.price_text",
+    "screenshot_path": "docs/evidence/shared-laptops-2026-11-01/evaluation/traces/4e9d4a6640f84c8fae328a3887c3ccf0-failure.png"
+  },
+  "inputs": {},
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 0.3318654590038932,
+    "evaluation_fixture_sha256": "sha256:9b1689cf1148c39179db870b96fdc2f1ed20c7702d7e9afd76b63609ce719fcf",
+    "finished_at": "2026-11-01T15:56:45.707945Z",
+    "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220",
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.12.12",
+    "run_id": "4e9d4a6640f84c8fae328a3887c3ccf0",
+    "started_at": "2026-11-01T15:56:45.376089Z",
+    "workflow_name": "practice_laptops",
+    "workflow_version": 1
+  },
+  "outputs": {},
+  "schema_version": 2,
+  "screenshots": [
+    "docs/evidence/shared-laptops-2026-11-01/evaluation/traces/4e9d4a6640f84c8fae328a3887c3ccf0-failure.png"
+  ],
+  "status": "failed"
+}

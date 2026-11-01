@@ -254,3 +254,9 @@ their types; marked fields become `[REDACTED]`. Existing scalar workflows keep
 trace version 1, their current manifest digests, and their existing text handling.
 Older runners and trace readers must be upgraded for these new structures;
 unknown actions or schemas should be refused rather than converted to text.
+
+## Price beside a rating
+
+For visible text such as `$86.00 · ★★☆☆☆`, set `text_before: "·"` on that
+field to read the price alone. The reviewed separator must occur exactly once;
+missing or repeated separators fail the run. This option works only with `text`.

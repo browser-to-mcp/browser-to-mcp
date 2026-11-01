@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 0.012068874995748047,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 30.009395875000337,
+      "output_key": "result",
+      "status": "failed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [],
+  "error": {
+    "category": "runtime",
+    "message": "Action 'extract_records' timed out after 30 seconds.",
+    "path": "steps.result",
+    "screenshot_path": "docs/evidence/shared-laptops-2026-11-01/evaluation/traces/88eb6b00c087457f848c55173c480c9b-failure.png"
+  },
+  "inputs": {},
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 30.382817583005817,
+    "evaluation_fixture_sha256": "sha256:f3cb16cfb3320010abea9f82b1957356cc1d9460347d39cc887b1e16de255950",
+    "finished_at": "2026-11-01T15:56:45.046046Z",
+    "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220",
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.12.12",
+    "run_id": "88eb6b00c087457f848c55173c480c9b",
+    "started_at": "2026-11-01T15:56:14.663241Z",
+    "workflow_name": "practice_laptops",
+    "workflow_version": 1
+  },
+  "outputs": {},
+  "schema_version": 2,
+  "screenshots": [
+    "docs/evidence/shared-laptops-2026-11-01/evaluation/traces/88eb6b00c087457f848c55173c480c9b-failure.png"
+  ],
+  "status": "failed"
+}

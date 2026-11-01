@@ -1,0 +1,72 @@
+{
+  "started_at": "2026-11-01T15:43:14.776606+00:00",
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:4463d4cabb01509a988bce1eb4695b23be5694b981ceafc415d74caacdc20d90",
+    "git_commit": "c11d86077ada9b09fab2a6742cf9b64f84ac2aee",
+    "worktree_dirty": false,
+    "python": "3.12.12",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.2-arm64-arm-64bit"
+  },
+  "request": {
+    "name": "collect_laptops",
+    "start_url": "https://testingurl.dev/scraping/ecommerce/category/laptops",
+    "description": "Collect laptop titles, displayed prices and product links from the public practice listing.",
+    "allowed_domains": [
+      "testingurl.dev"
+    ],
+    "inputs": {},
+    "fields": {
+      "title": {
+        "description": "Full laptop name"
+      },
+      "price_text": {
+        "description": "Displayed price"
+      },
+      "product_url": {
+        "description": "Laptop link",
+        "link_path_prefix": "/scraping/ecommerce/product/"
+      }
+    },
+    "shape": "array",
+    "max_pages": 20,
+    "max_pages_input": "max_pages",
+    "unique_by": "product_url"
+  },
+  "result": {
+    "id": "3912fc25-f384-49a3-9b66-1486825c8e04",
+    "kind": "generate_workflow",
+    "generation": "client",
+    "state": "failed",
+    "revision": 6,
+    "stage": "inspect_page",
+    "created_at": 1793547794.77529,
+    "updated_at": 1793547796.682224,
+    "deadline": 1793548694.77529,
+    "budgets": {
+      "wall_seconds": 900,
+      "browser_actions": 6,
+      "model_requests": 0,
+      "tokens": 0,
+      "cost_microusd": 0,
+      "output_bytes": 262144
+    },
+    "usage": {
+      "browser_actions": 2,
+      "model_requests": 0,
+      "tokens": 0,
+      "cost_microusd": 0,
+      "output_bytes": 0
+    },
+    "question": null,
+    "cancel_requested": false,
+    "error": {
+      "code": "page_blocked_request",
+      "message": "A request outside the declared HTTP(S) hosts was blocked."
+    },
+    "artifact": null,
+    "report": null
+  },
+  "automatic_retries": 0
+}

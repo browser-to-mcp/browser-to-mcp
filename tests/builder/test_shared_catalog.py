@@ -435,3 +435,23 @@ def test_saved_book_evidence_is_complete_and_matches_example():
                 assert call["manifest_digest"] == report.manifest_digest
                 assert call["publication"]["candidate_sha256"] == report.candidate_sha256
                 assert digest((directory / call["trace_file"]).read_bytes()) == call["trace_sha256"]
+
+
+def test_saved_laptop_evidence_is_complete_and_matches_example():
+    from browser_to_mcp.evaluation.service import verify_evaluation
+
+    root = Path("docs/evidence/shared-laptops-2026-11-01")
+    report = verify_evaluation(
+        Path("examples/catalog/laptops.yaml"),
+        root / "plan.json",
+        root / "evaluation",
+        (root / "plan.sha256").read_text().strip(),
+    )
+    assert report.eligible
+    expected_rows = json.loads((root / "expected.json").read_text())
+    for call in json.loads((root / "published-calls.json").read_text()):
+        if not call["is_error"]:
+            assert call["outputs"]["items"] == expected_rows
+            assert call["manifest_digest"] == report.manifest_digest
+            assert call["publication"]["candidate_sha256"] == report.candidate_sha256
+            assert digest((root / call["trace_file"]).read_bytes()) == call["trace_sha256"]

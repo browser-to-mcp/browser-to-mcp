@@ -1,0 +1,77 @@
+{
+  "started_at": "2026-11-01T15:47:46.079811+00:00",
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:4463d4cabb01509a988bce1eb4695b23be5694b981ceafc415d74caacdc20d90",
+    "git_commit": "c11d86077ada9b09fab2a6742cf9b64f84ac2aee",
+    "worktree_dirty": false,
+    "python": "3.12.12",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.2-arm64-arm-64bit"
+  },
+  "request": {
+    "name": "collect_laptops",
+    "start_url": "https://testingurl.dev/scraping/ecommerce/category/laptops",
+    "description": "Collect laptop titles, displayed prices and product links from the public practice listing.",
+    "allowed_domains": [
+      "testingurl.dev",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com",
+      "cdn.geekflare.com"
+    ],
+    "inputs": {},
+    "fields": {
+      "title": {
+        "description": "Full laptop name"
+      },
+      "price_text": {
+        "description": "Displayed price"
+      },
+      "product_url": {
+        "description": "Laptop link",
+        "link_path_prefix": "/scraping/ecommerce/product/"
+      }
+    },
+    "shape": "array",
+    "max_pages": 20,
+    "max_pages_input": "max_pages",
+    "unique_by": "product_url"
+  },
+  "result": {
+    "id": "f148346a-db5c-4354-8943-a8ab0c4461be",
+    "kind": "generate_workflow",
+    "generation": "client",
+    "state": "waiting_for_input",
+    "revision": 9,
+    "stage": "generate",
+    "created_at": 1793548066.078602,
+    "updated_at": 1793548068.605136,
+    "deadline": 1793548966.078602,
+    "budgets": {
+      "wall_seconds": 900,
+      "browser_actions": 6,
+      "model_requests": 0,
+      "tokens": 0,
+      "cost_microusd": 0,
+      "output_bytes": 262144
+    },
+    "usage": {
+      "browser_actions": 3,
+      "model_requests": 0,
+      "tokens": 0,
+      "cost_microusd": 0,
+      "output_bytes": 30652
+    },
+    "question": {
+      "id": "c7509113-8f2c-4f69-88e1-b3ac3142820a",
+      "kind": "draft_proposal",
+      "prompt": "Read this job's task context, then submit a JSON draft proposal with submit_task_proposal. No separate model installation is needed.",
+      "choices": []
+    },
+    "cancel_requested": false,
+    "error": null,
+    "artifact": null,
+    "report": null
+  },
+  "automatic_retries": 0
+}

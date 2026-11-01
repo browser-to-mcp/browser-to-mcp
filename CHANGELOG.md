@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Add the reviewed TestingURL laptop catalog and a literal text separator for
+  prices beside ratings. Retain original-site refusals and replacement live checks.
+
 - Support reviewed single-page catalogs and include the fixed travel-book example,
   with live shared-tool checks and a refusal if a Next link appears.
 

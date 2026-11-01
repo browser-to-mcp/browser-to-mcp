@@ -1,0 +1,24 @@
+{
+  "status": "draft",
+  "area": "body:not(:has(a[rel=\"next\"], a.next, nav.pagination)) main.site-main",
+  "bindings": {},
+  "record": {
+    "rows": ".grid > a.card",
+    "fields": {
+      "title": {
+        "selector": "h3"
+      },
+      "price_text": {
+        "selector": "p",
+        "text_before": " · "
+      },
+      "product_url": {
+        "selector": ":scope",
+        "source": "href",
+        "path_prefix": "/scraping/ecommerce/product/"
+      }
+    },
+    "duplicates": "deduplicate",
+    "unique_by": "product_url"
+  }
+}

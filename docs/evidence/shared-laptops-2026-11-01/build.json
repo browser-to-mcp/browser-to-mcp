@@ -1,0 +1,61 @@
+{
+  "id": "5d82d473-180f-46d8-b2ca-1f7c131cc4a1",
+  "kind": "generate_workflow",
+  "generation": "client",
+  "state": "ready_for_review",
+  "revision": 20,
+  "stage": "check_proposal",
+  "created_at": 1793548334.475787,
+  "updated_at": 1793548338.281454,
+  "deadline": 1793549234.475787,
+  "budgets": {
+    "wall_seconds": 900,
+    "browser_actions": 6,
+    "model_requests": 0,
+    "tokens": 0,
+    "cost_microusd": 0,
+    "output_bytes": 262144
+  },
+  "usage": {
+    "browser_actions": 6,
+    "model_requests": 0,
+    "tokens": 0,
+    "cost_microusd": 0,
+    "output_bytes": 35108
+  },
+  "question": {
+    "id": "c3b22013-8f95-4422-a82e-4cf3b7c3231f",
+    "kind": "review_draft",
+    "prompt": "Keep this checked draft? Keeping it does not run or publish it.",
+    "choices": [
+      "keep",
+      "discard"
+    ]
+  },
+  "cancel_requested": false,
+  "error": null,
+  "artifact": {
+    "filename": "5d82d473-180f-46d8-b2ca-1f7c131cc4a1.draft.candidate",
+    "sha256": "b599fbb0eb4f4fa853a6b5b60b01f6c82ff3b6db05601fe632d58600a25bf303",
+    "manifest_digest": "sha256:3a0439f44a6a505f28fc655371a3778886278d8add3b7199a1068825b5f86220"
+  },
+  "report": {
+    "provider": "mcp_client",
+    "model": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "model_seconds": null,
+    "browser_seconds": 3.6908415840007365,
+    "api_cost_microusd": null,
+    "estimated_cost_microusd": null,
+    "input_microusd_per_million": null,
+    "output_microusd_per_million": null,
+    "cost_basis": "external_client",
+    "checks": [
+      "schema",
+      "policy",
+      "compiler",
+      "first_page_preview"
+    ]
+  }
+}

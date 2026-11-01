@@ -67,6 +67,11 @@
         let value = spec.source === 'text' ? cell.innerText : cell.getAttribute(spec.source);
         if (value === null || value === undefined || value === '') { record[name] = null; continue; }
         if (value.length > cellLimit * 2 || [...value].length > cellLimit) return failure('cell_limit', i, name);
+        if (spec.text_before !== null && spec.text_before !== undefined) {
+          const parts = value.split(spec.text_before);
+          if (parts.length !== 2) return failure('text_separator', i, name);
+          value = parts[0];
+        }
         if (spec.source !== 'href' && spec.normalize_whitespace) value = value.replace(/\s+/g, ' ').trim();
         if (spec.source === 'href') {
           const url = new URL(value, document.baseURI);

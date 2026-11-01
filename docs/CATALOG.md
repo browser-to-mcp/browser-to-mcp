@@ -31,5 +31,10 @@ Every valid page limit returns that same complete page. A newly appearing Next
 link causes a refusal until the workflow is reviewed again.
 See the [dated live checks](evidence/shared-books-2026-11-01/README.md).
 
-Local checks cover three layouts. The live laptop and clothing sites remain
-blocked under the current access rules; this interface does not make them supported.
+The [laptop example](../examples/catalog/laptops.yaml) uses TestingURL's reviewed
+15-product practice page. After testing and publishing, use
+`--catalog laptops=practice_laptops`. Its prices exclude the neighboring star rating.
+See the [live evidence and site choice](evidence/shared-laptops-2026-11-01/README.md).
+
+The original Web Scraper laptop site and the clothing site remain blocked.
+Local paging checks still cover all three layouts.

@@ -98,6 +98,8 @@ def serve():
             url = urlsplit(self.path)
             query = parse_qs(url.query)
             page = query.get("page", ["1"])[0]
+            if page == "1" and self.server.scenarios:
+                self.server.mode = self.server.scenarios.pop(0)
             mode = self.server.mode
             if mode == "blocked":
                 body, code = "<h1>Denied</h1>", 403
@@ -192,7 +194,7 @@ def serve():
             self.wfile.write(data)
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    server.hits, server.mode = [], "normal"
+    server.hits, server.mode, server.scenarios = [], "normal", []
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:

@@ -3,6 +3,10 @@
 Some websites show only a few products at a time. Paging lets one reviewed
 workflow follow the site's Next link and collect the rest.
 
+Within a collection, listing-page starts are at least one second apart. The cancellable
+wait counts toward the collection deadline; it does not retry a request or add
+time to the approved limit.
+
 To let callers choose fewer pages, set `max_pages_input: max_pages` in the task
 request (or check **Let callers choose fewer pages** in the interface). The saved
 tool accepts an optional whole number from 1 to its reviewed maximum. Leaving it

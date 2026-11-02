@@ -206,6 +206,7 @@ def markup(query, number, port):
 @contextmanager
 def serve(port=0):
     hits = Counter()
+    request_times = []
     second_page = threading.Event()
     release = threading.Event()
 
@@ -221,6 +222,7 @@ def serve(port=0):
                 number = int(parsed.path.split("/")[3])
             case = query.get("case", ["full"])[0]
             hits[(case, number)] += 1
+            request_times.append(time.monotonic())
             if number == 2:
                 second_page.set()
             if number == 2 and case == "slow":
@@ -246,6 +248,7 @@ def serve(port=0):
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.base = f"http://127.0.0.1:{server.server_port}"
     server.hits, server.second_page, server.release = hits, second_page, release
+    server.request_times = request_times
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:

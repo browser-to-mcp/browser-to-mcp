@@ -52,6 +52,30 @@ def test_complete_ordered_unique_collection(paging_site, tmp_path, layout, style
         set(p) == {"page_number", "rows_read", "records_collected", "outcome", "duration_seconds"}
         for p in pages
     )
+    assert paging_site.request_times[1] - paging_site.request_times[0] >= 1
+
+
+@pytest.mark.parametrize("stop", ["timeout", "cancel"])
+def test_paging_pause_respects_deadline_and_cancellation(paging_site, tmp_path, stop):
+    data = contract(paging_site.base)
+    if stop == "timeout":
+        data["steps"][-1]["paging"]["timeout_seconds"] = 1
+    loaded = write_contract(tmp_path / "paced.yaml", data)
+
+    async def exercise():
+        pending = asyncio.create_task(replay_workflow(loaded, ["case=full"], tmp_path / "traces"))
+        if stop == "cancel":
+            async with asyncio.timeout(5):
+                while not paging_site.hits:
+                    await asyncio.sleep(0.01)
+            await asyncio.sleep(0.1)
+            pending.cancel()
+        with pytest.raises(asyncio.CancelledError if stop == "cancel" else WorkflowExecutionError):
+            await pending
+
+    asyncio.run(exercise())
+    assert paging_site.hits[("full", 1)] == 1
+    assert paging_site.hits[("full", 2)] == 0
 
 
 @pytest.mark.parametrize(

@@ -86,11 +86,13 @@ Use the example's JSON format:
 
 ### Synthetic failure pages for a live draft
 
-A single-page draft can test `zero_results` and `changed_page` with a case's
+A draft can test first-page `zero_results` and `changed_page` with a case's
 `fixture_html` string (at most 65,536 characters). Use `mode: "mixed"` and keep
 the same candidate bytes and inputs. Only a workflow with one navigation followed
-by one record extraction, without paging, supports these fixtures. Successful
-demonstration and changed-input cases cannot use them.
+by one record extraction supports these fixtures, including a paged extraction.
+Only the initial page is served: a fixture's Next link cannot load another page
+or reach the network. Successful demonstration and changed-input cases cannot
+use them.
 
 The evaluator serves this reviewed HTML at the original navigation address in an
 isolated browser. Website JavaScript is disabled and every other request is

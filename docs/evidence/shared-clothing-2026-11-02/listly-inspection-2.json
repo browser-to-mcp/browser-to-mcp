@@ -1,0 +1,79 @@
+{
+  "started_at": "2026-11-02T15:32:31.123736+00:00",
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:791c4ccffc0448af13f2f4c6e7bedbf4c8bd17257ae06df0647dcf3d9a83ee56",
+    "git_commit": "539e42ae02e5b569da641c07f761616b59beeb0f",
+    "worktree_dirty": true,
+    "python": "3.13.1",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "task": {
+    "name": "practice_clothing",
+    "start_url": "https://test.listly.io/en/pagination/basic",
+    "description": "Collect product titles, current displayed prices and product links from the fixed clothing, shoes and accessories listing in the public practice catalog.",
+    "allowed_domains": [
+      "test.listly.io"
+    ],
+    "inputs": {},
+    "fields": {
+      "title": {
+        "description": "Full product title"
+      },
+      "price_text": {
+        "description": "Current displayed price"
+      },
+      "product_url": {
+        "description": "Product link",
+        "link_path_prefix": "/goods/"
+      }
+    },
+    "shape": "array",
+    "max_items": 100,
+    "max_pages": 20,
+    "max_pages_input": "max_pages",
+    "unique_by": "product_url"
+  },
+  "result": {
+    "id": "0e968ed7-644f-40c2-be84-1612bc5a98ed",
+    "kind": "generate_workflow",
+    "generation": "client",
+    "state": "waiting_for_input",
+    "revision": 9,
+    "stage": "generate",
+    "created_at": 1793633551.1305652,
+    "updated_at": 1793633555.4772182,
+    "deadline": 1793637151.1305652,
+    "budgets": {
+      "wall_seconds": 3600,
+      "browser_actions": 6,
+      "model_requests": 0,
+      "tokens": 0,
+      "cost_microusd": 0,
+      "output_bytes": 262144
+    },
+    "usage": {
+      "browser_actions": 3,
+      "model_requests": 0,
+      "tokens": 0,
+      "cost_microusd": 0,
+      "output_bytes": 36459
+    },
+    "question": {
+      "id": "1b19cffb-8dd8-4fae-9fb6-6ff32795b68f",
+      "kind": "draft_proposal",
+      "prompt": "Read this job's task context, then submit a JSON draft proposal with submit_task_proposal. No separate model installation is needed.",
+      "choices": []
+    },
+    "cancel_requested": false,
+    "error": null,
+    "artifact": null,
+    "report": null
+  },
+  "seconds": 4.491,
+  "automatic_retries": 0,
+  "external_client_tokens": null,
+  "external_client_cost_usd": null,
+  "local_compute_cost_usd": null
+}

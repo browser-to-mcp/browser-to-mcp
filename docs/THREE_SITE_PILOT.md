@@ -12,14 +12,17 @@ Do not call this a proven customer need or a finished product.
 Real-user feedback is pending. On 2026-10-23, the project owner said they had no
 user task or feedback to supply and asked for the assessment to continue.
 No interviews, usage frequency, savings, or willingness to pay have been
-measured. No customer outreach has taken place. #57 must stay open until its
-real-user work is finished and the decision is reviewed.
+measured. No customer outreach has taken place. GitHub #57 is closed, but that
+closure does not supply user evidence: unfinished research and the decision
+remain explicit release requirements under #56/#66.
 
 The existing [book pilot](PILOT.md) and [journey evidence](JOURNEY_CHECKS.md)
 remain separate. This document does not change their results. The building blocks for lists and numbered Next-link paging are described in
 [record outputs](RECORD_OUTPUTS.md) and [paging](PAGING.md). The [shared catalog interface](CATALOG.md) now supports approved workflows and
 caller-supplied `max_pages`, with controlled checks for all three layouts.
-This does not establish support for all three live websites. The newcomer timing requirement in #48 is still pending.
+The dated evidence below covers the reviewed live entry points, including the
+replacement sites. It does not establish general website support. The newcomer
+timing requirement in #48 is still pending.
 
 ## Who might use it, and why
 
@@ -53,6 +56,14 @@ be enough for these pages; compare it before making performance claims.
 
 ## The three sites
 
+On November 2, the owner delegated the clothing replacement choice. The slot
+now uses [Listly's fashion pagination tutorial](https://test.listly.io/en/pagination/basic):
+100 practice clothing, shoe, bag and accessory records across ten pages. Its
+[tutorial introduction](https://test.listly.io/en/) explicitly offers collection
+practice. Only `test.listly.io` is allowed. This is a third independent website;
+the original ScrapingCourse entry remains unsupported. See the
+[dated checks and retained attempts](evidence/shared-clothing-2026-11-02/README.md).
+
 On November 1, the owner delegated the replacement-site choice. The laptop slot
 now uses [TestingURL's public laptop practice category](https://testingurl.dev/scraping/ecommerce/category/laptops),
 which contains 15 fictional products on one page. Its [site introduction](https://testingurl.dev/)
@@ -73,11 +84,11 @@ practice data, not three customers or three shops selling comparable products.
 | --- | --- | --- |
 | `books` | [Travel books](https://books.toscrape.com/catalogue/category/books/travel_2/index.html) | [Owner's introduction](https://toscrape.com/) invites scraping practice. Prices are made up. This category is a single-page control. |
 | `laptops` | [Practice laptops](https://testingurl.dev/scraping/ecommerce/category/laptops) | [Site introduction](https://testingurl.dev/) invites practice. Revised November 1: 15 fictional products on one page; reviewed font/logo hosts listed above. |
-| `clothing` | [Practice shop](https://www.scrapingcourse.com/ecommerce/) | [Owner's introduction](https://www.scrapingcourse.com/) offers a product scraping playground. Despite the short input name, this shop also includes accessories. |
+| `clothing` | [Fashion pagination tutorial](https://test.listly.io/en/pagination/basic) | [Tutorial introduction](https://test.listly.io/en/) offers collection practice. Revised November 2: 100 clothing, shoe, bag and accessory records, ten pages, no additional hosts. |
 
 Keep the entry URLs fixed in the reviewed workflow. Do not accept an arbitrary
 URL. The initial host sets are respectively `books.toscrape.com`,
-the reviewed TestingURL host set above, and `www.scrapingcourse.com`. The original laptop host was `webscraper.io`. These are reviewed hosts,
+the reviewed TestingURL host set above, and `test.listly.io`. The original laptop and clothing hosts were `webscraper.io` and `www.scrapingcourse.com`. These are reviewed hosts,
 not a claim that today's domain policy restricts every subdomain or path.
 Enforcement improvements belong to #58.
 
@@ -139,7 +150,10 @@ URLs remains two products.
 
 The replacement laptop listing is fixed to `/scraping/ecommerce/category/laptops`;
 its product links use `/scraping/ecommerce/product/<id>`. It does not accept filters
-or pagination. The following original-site paths remain historical.
+or pagination. The replacement clothing listing is fixed to `/en/pagination/basic`
+with numbered `page` query values. Product links use `/goods/<id>?lang=en`;
+the language query is preserved. Current prices come from the emphasized price,
+excluding struck-through original prices. The following original-site paths remain historical.
 For the original public sites, the reviewed listing paths are the travel category's
 `index.html` or `page-N.html`, the exact laptop listing path with its `page`
 query, and `/ecommerce/` or `/ecommerce/page/N/`. Product links must respectively
@@ -247,11 +261,13 @@ Do not publish identities or private catalog data without permission.
 The [October 31 book journey](evidence/book-journey-2026-10-31/README.md)
 records a live single-page category draft, independent checks, local publication
 and two successful MCP calls with different inputs. Empty and changed-page checks
-use labelled offline fixtures. Laptop/clothing live support, human measurements
-and the remaining release gates are still pending; this does not close #66.
+use labelled offline fixtures. Later shared book, replacement laptop and
+replacement clothing checks add live shared-tool evidence. Human measurements,
+complete cost evidence and the remaining release gates are still pending;
+this does not close #66.
 
-Proceed with #58's restrictions and #59–#60's list and paging work using the
-controlled specification. Recheck public permissions and page structure before
+The restrictions, list outputs and paging in #58–#60 are implemented. Continue
+verification against the controlled specification. Recheck public permissions and page structure before
 each opt-in live trial. Keep live traffic out of CI. A live-site result needs
 independent comparison against that day's page data, not these historical samples.
 
@@ -261,6 +277,6 @@ permission is unclear, correctness misses the gate, or actual users do not
 repeat the task. Fix the cause and explicitly revise the plan before trying a
 new evaluation; do not lower targets after seeing results.
 
-To finish #57: obtain real user evidence through an authorized channel, measure
+To finish the user research still required by #56/#66: obtain real user evidence through an authorized channel, measure
 the manual baseline, and review whether this technical task is worth a customer
 pilot. Until then, product demand and time saved remain unknown.

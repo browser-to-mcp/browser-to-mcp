@@ -154,6 +154,46 @@ def test_fixture_scripts_are_disabled(tmp_path):
         assert site.hits == []
 
 
+def test_paged_candidate_keeps_offline_refusals_and_requires_real_paging_evidence(tmp_path):
+    with serve() as (site, base):
+        candidate, plan = prepare(tmp_path, base)
+        request = TaskRequest.model_validate(task(base, timeout_seconds=2))
+        _, data = make_candidate(request, json.dumps(proposal()))
+        candidate.write_bytes(data)
+        plan["not_applicable"].pop("multiple_pages")
+        plan["cases"][0]["covers"].append("multiple_pages")
+        plan["cases"][0]["expected"]["outputs"] = {
+            "result": expected(base),
+            "collection": dict(pages_read=2, complete=True, stop_reason="end"),
+        }
+        plan["cases"][1]["expected"]["outputs"]["collection"] = dict(
+            pages_read=1, complete=True, stop_reason="end"
+        )
+        for case in plan["cases"]:
+            if "fixture_html" in case:
+                case["fixture_html"] += '<b class="end">End</b>'
+        path = tmp_path / "plan.json"
+        path.write_text(json.dumps(plan))
+        pin = digest(path.read_bytes())
+        evidence = tmp_path / "evidence"
+        report = asyncio.run(evaluate(candidate, path, evidence, pin))
+        assert report.eligible, report.blockers
+        assert len(site.hits) == 3  # Two real pages and the changed-input page only.
+        assert verify_evaluation(candidate, path, evidence, pin) == report
+
+
+def test_offline_paged_candidate_cannot_follow_next_link_to_network(tmp_path):
+    with serve() as (site, base):
+        _, data = make_candidate(TaskRequest.model_validate(task(base)), json.dumps(proposal()))
+        loaded, _ = check_candidate(data.decode())
+        html = BROKEN.replace("<i>£1</i>", '<b class="price">£1</b>')
+        html += f'<a class="next" href="{base}/books/?q=notebook&amp;page=2">Next</a>'
+        with pytest.raises(WorkflowExecutionError) as error:
+            asyncio.run(replay_workflow(loaded, ["query=notebook"], evaluation_html=html))
+        assert error.value.category == "permission"
+        assert site.hits == []
+
+
 @pytest.mark.parametrize("mutation", ["live", "controlled", "all_fixture", "success_fixture"])
 def test_fixture_evidence_cannot_be_labelled_as_live_success(tmp_path, mutation):
     _, plan = prepare(tmp_path, "http://127.0.0.1:1")

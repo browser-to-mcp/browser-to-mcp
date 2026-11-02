@@ -1,0 +1,1708 @@
+{
+  "kind": "controlled three-layout creation-to-published-MCP journey",
+  "interface": "collect_catalog",
+  "started_at": "2026-11-02T15:45:19.941667+00:00",
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:8f08ad1bebcdbddb11cfa3474b5fdf0a68a99de8cbf2d4e2dc848ff524e69719",
+    "git_commit": "539e42ae02e5b569da641c07f761616b59beeb0f",
+    "worktree_dirty": true,
+    "python": "3.13.1",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "proposal_source": "fixed protocol replies; no actual model inference",
+  "client": "Python MCP SDK over STDIO; not a native assistant client",
+  "installation_seconds": null,
+  "manual_baseline_seconds": null,
+  "newcomer_seconds": null,
+  "repeat_users": null,
+  "external_client_tokens": null,
+  "external_client_cost_usd": null,
+  "local_compute_cost_usd": null,
+  "live_trials": "separate opt-in evidence; not part of this controlled result",
+  "builds": [
+    {
+      "layout": "books",
+      "attempt": 1,
+      "matched": true,
+      "seconds": 6.951,
+      "job_id": "b09c50d8-7d38-4fb3-be1c-685e8680fc9b",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.4021267089992762,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:713d30b905554f300275583f01dcbf52dcdd12d059d594b9855864a54bf006b1",
+      "manifest_digest": "sha256:7028cdf7d0978c22ec1cf2925ac67e4d1321b02354deebc26faec899776d7821",
+      "tool_id": "6ab7552964e94f04be8ce332fbc3f90e",
+      "version": 1,
+      "evaluation_operation": "d6a1491e570e4c1cb519cdd71e2e6f19"
+    },
+    {
+      "layout": "books",
+      "attempt": 2,
+      "matched": true,
+      "seconds": 6.653,
+      "job_id": "94e8aedd-1b37-45bc-b3ff-7cfe2b6a8c87",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.371620208985405,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:aab624cc2e9a69a76c4f1dd7b91339e9f555694724d208840392cbd7b696fabf",
+      "manifest_digest": "sha256:8bd74086084cd79d543b007a800f801b849396d6a57a8c6c894877f043114097",
+      "tool_id": "6ab7552964e94f04be8ce332fbc3f90e",
+      "version": 2,
+      "evaluation_operation": "e3124f275bb345b6802dc0b58d891cf0"
+    },
+    {
+      "layout": "books",
+      "attempt": 3,
+      "matched": true,
+      "seconds": 7.603,
+      "job_id": "47a5263d-d68b-444f-9bf9-1dc5fc105b1b",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.4096338330127764,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:25fc49b8a774911d1b9d8c50a8ac93acec63ed6eb8042a58069cd02869c17520",
+      "manifest_digest": "sha256:80f5c7f57ece33109ab8d49cd9c64a46495f381a1d5da33caa2c59a29ef7a146",
+      "tool_id": "6ab7552964e94f04be8ce332fbc3f90e",
+      "version": 3,
+      "evaluation_operation": "fd02d4bbdb7843a493bfdf8568c49787"
+    },
+    {
+      "layout": "laptops",
+      "attempt": 1,
+      "matched": true,
+      "seconds": 6.498,
+      "job_id": "ceb3926e-468b-4c2d-b240-69cf27b29bd5",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.3274361669900827,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:30e890bd26c9a8c16371f204c6f573c37f4d611b55435973accfb6e792f0bd1a",
+      "manifest_digest": "sha256:2e676487e7a5790736b1bbe9092430cd7502698881aaa90dfebaa3734e0960b9",
+      "tool_id": "736b59a8f0324706b63ee128cf4d57d6",
+      "version": 1,
+      "evaluation_operation": "39006aba2f1c4b66ab920c0250935cb2"
+    },
+    {
+      "layout": "laptops",
+      "attempt": 2,
+      "matched": true,
+      "seconds": 6.504,
+      "job_id": "da436128-1444-4002-9628-33a9e7c007c2",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.2853682510030922,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:4133d411f0a48c7e57d87022b13d37fbf37cdbd0039b91488192d6114840aaa3",
+      "manifest_digest": "sha256:8efb217710cbfacc2bb46671c5fd9844c1b4e2b4671d99716df63af16e3e816f",
+      "tool_id": "736b59a8f0324706b63ee128cf4d57d6",
+      "version": 2,
+      "evaluation_operation": "82fb4760d2d54638aec08499457596c4"
+    },
+    {
+      "layout": "laptops",
+      "attempt": 3,
+      "matched": true,
+      "seconds": 6.291,
+      "job_id": "b3c629ad-8aec-4331-8b43-03ccfa8f8638",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.2771580010012258,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:0b9ca4f44475aee69f4baa761fcfb1679f914d13ff0b53b5844451315ba82ae3",
+      "manifest_digest": "sha256:ee96740dff3d749aa6a26be04fa2d78d2a799b136f5c83a05f661db6fb960406",
+      "tool_id": "736b59a8f0324706b63ee128cf4d57d6",
+      "version": 3,
+      "evaluation_operation": "cad93af1887041e68e42a7c31666695a"
+    },
+    {
+      "layout": "clothing",
+      "attempt": 1,
+      "matched": true,
+      "seconds": 8.11,
+      "job_id": "1f96d39e-611f-4ccf-8b81-88d87ef812ec",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.5681657090317458,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:06be07dd956d3d9d51282fc5862afb74db01382258fdad472a7027ce18a97b6c",
+      "manifest_digest": "sha256:3302a8069b3d075d530857f9fb5d486b097e342a9bede2a284c689f39b2a4323",
+      "tool_id": "7839ad8b423e4fa98db1f3ad54ddcbbe",
+      "version": 1,
+      "evaluation_operation": "3359732fe6bc496c8f88f8fdcfdea82e"
+    },
+    {
+      "layout": "clothing",
+      "attempt": 2,
+      "matched": true,
+      "seconds": 8.132,
+      "job_id": "11aa4678-0052-4b56-a4cc-5a102e78d947",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.5476932080055121,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:d2a3e9f1c0e2aae1b1f6f1e18f7e1e5442f25a09f575a19d081d110c4987603d",
+      "manifest_digest": "sha256:f263f4f45b03838455bbfcb11490e19a72df998c556cbcf0ddbb49785a358f98",
+      "tool_id": "7839ad8b423e4fa98db1f3ad54ddcbbe",
+      "version": 2,
+      "evaluation_operation": "2ca75e69964c4f958bace97c1795d6fe"
+    },
+    {
+      "layout": "clothing",
+      "attempt": 3,
+      "matched": true,
+      "seconds": 8.008,
+      "job_id": "68a214f8-0ab9-44ff-85a4-ad035b2c232a",
+      "generation": {
+        "provider": "mcp_client",
+        "model": null,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "model_seconds": null,
+        "browser_seconds": 1.5453644999943208,
+        "api_cost_microusd": null,
+        "estimated_cost_microusd": null,
+        "input_microusd_per_million": null,
+        "output_microusd_per_million": null,
+        "cost_basis": "external_client",
+        "checks": [
+          "schema",
+          "policy",
+          "compiler",
+          "first_page_preview"
+        ]
+      },
+      "candidate_sha256": "sha256:2f2f9fc684c393022a9a10163088f9deda3a5bdc74963ad66d8aeed04e0c2e6a",
+      "manifest_digest": "sha256:f54ad79114fd3ef97529eff87f7d781c4f3f885246c89cee41452de2d7182d3e",
+      "tool_id": "7839ad8b423e4fa98db1f3ad54ddcbbe",
+      "version": 3,
+      "evaluation_operation": "6fccce5e53ee464383d60d4521971d8a"
+    }
+  ],
+  "runs": [
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.54,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/9ba0d9702ead49518ac5a8a2910eb010.json",
+      "run_id": "9ba0d9702ead49518ac5a8a2910eb010",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.535
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.447,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/aad951d2f345455cbb5bce7ce0993b65.json",
+      "run_id": "aad951d2f345455cbb5bce7ce0993b65",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.443
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.535,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/83a366135cac4131a8c8ba75446e90fe.json",
+      "run_id": "83a366135cac4131a8c8ba75446e90fe",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.531
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.477,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/1cee8e65aba643e5a660de451d9bab49.json",
+      "run_id": "1cee8e65aba643e5a660de451d9bab49",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.472
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.517,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/c10ff847476a4d789006ab92945f995f.json",
+      "run_id": "c10ff847476a4d789006ab92945f995f",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.513
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.412,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/073d91ff22c64dc6be7745e87e9e1440.json",
+      "run_id": "073d91ff22c64dc6be7745e87e9e1440",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.408
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.445,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/9177537ee66443c0be071ecaca94e0cf.json",
+      "run_id": "9177537ee66443c0be071ecaca94e0cf",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.441
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.431,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/14a90acfb5184ec782a2b614c6d028f1.json",
+      "run_id": "14a90acfb5184ec782a2b614c6d028f1",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.427
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.439,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/5363fc43fbdf4e889c45fb4673e0ad88.json",
+      "run_id": "5363fc43fbdf4e889c45fb4673e0ad88",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.435
+    },
+    {
+      "layout": "books",
+      "case": "full",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 1.437,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/fabcf273049f45d1976e47453958a480.json",
+      "run_id": "fabcf273049f45d1976e47453958a480",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.432
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.401,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/319fd5c451404284a3f4b0474c004a6d.json",
+      "run_id": "319fd5c451404284a3f4b0474c004a6d",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.398
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.4,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/ff51d96ba34e447e80cd60a43a804c92.json",
+      "run_id": "ff51d96ba34e447e80cd60a43a804c92",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.396
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.413,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/b7436da55fdf45c9a06d20d05e53a1fc.json",
+      "run_id": "b7436da55fdf45c9a06d20d05e53a1fc",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.409
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.394,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/d704601fe9954b14827d5c642c4d2a46.json",
+      "run_id": "d704601fe9954b14827d5c642c4d2a46",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.391
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.404,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/54d78f617ecd47c98d40d4a1cc759619.json",
+      "run_id": "54d78f617ecd47c98d40d4a1cc759619",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.401
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.395,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/7de8463392c54dd9ad188ac9efb4c25a.json",
+      "run_id": "7de8463392c54dd9ad188ac9efb4c25a",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.39
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.393,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/59bfae690eb04127a79ef28ff641aa4c.json",
+      "run_id": "59bfae690eb04127a79ef28ff641aa4c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.39
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.399,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/e449d0a77bc543a08dba6c2ff7d73d8b.json",
+      "run_id": "e449d0a77bc543a08dba6c2ff7d73d8b",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.395
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.398,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/1fc3b7f4112a446cb418a3875dc4c078.json",
+      "run_id": "1fc3b7f4112a446cb418a3875dc4c078",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.394
+    },
+    {
+      "layout": "books",
+      "case": "limited",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.399,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/204824b2349c4df385fff66023ca0fca.json",
+      "run_id": "204824b2349c4df385fff66023ca0fca",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.396
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.4,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/6c6b82c7cef14fb7b8213b120684f96b.json",
+      "run_id": "6c6b82c7cef14fb7b8213b120684f96b",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.397
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.394,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/6ba64c980c3347818e52726373a76cc8.json",
+      "run_id": "6ba64c980c3347818e52726373a76cc8",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.391
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.396,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/1870ab2a4b454182aba61c3bf8140aea.json",
+      "run_id": "1870ab2a4b454182aba61c3bf8140aea",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.392
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.455,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/3cfd2cfce4bc4d03bd9a8902036f4826.json",
+      "run_id": "3cfd2cfce4bc4d03bd9a8902036f4826",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.451
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.393,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/49bc892440584b5ebbb17437ac30b6cc.json",
+      "run_id": "49bc892440584b5ebbb17437ac30b6cc",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.389
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.392,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/e3da864fdd14495899a3b6a2b64f7c08.json",
+      "run_id": "e3da864fdd14495899a3b6a2b64f7c08",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.389
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.425,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/f5c9b903d43c4fba929903abc47f28d8.json",
+      "run_id": "f5c9b903d43c4fba929903abc47f28d8",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.422
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.418,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/ce707b47b83640c0a689daae645162ef.json",
+      "run_id": "ce707b47b83640c0a689daae645162ef",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.414
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.401,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/79b07e6b49034e51b518344389597ddb.json",
+      "run_id": "79b07e6b49034e51b518344389597ddb",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.397
+    },
+    {
+      "layout": "books",
+      "case": "empty",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "books"
+      },
+      "matched": true,
+      "seconds": 0.398,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/books/traces/bb31d162340d4aef96d77c085c2d6ff2.json",
+      "run_id": "bb31d162340d4aef96d77c085c2d6ff2",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.394
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.455,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/844c3e5c5ab64e9d8a1fed3ec1bf5382.json",
+      "run_id": "844c3e5c5ab64e9d8a1fed3ec1bf5382",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.451
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.427,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/51d019ff4c7046f7808f83fcbef8548c.json",
+      "run_id": "51d019ff4c7046f7808f83fcbef8548c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.423
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.434,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/7959441a52fa4fdd891244066e476563.json",
+      "run_id": "7959441a52fa4fdd891244066e476563",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.43
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.428,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/567e14f20a7c466d82136134de7a6257.json",
+      "run_id": "567e14f20a7c466d82136134de7a6257",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.423
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.445,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/6ce6ae55c352419990a6fa8bee13777b.json",
+      "run_id": "6ce6ae55c352419990a6fa8bee13777b",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.44
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.445,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/7d9d63d48d7844d19246de03ad449a91.json",
+      "run_id": "7d9d63d48d7844d19246de03ad449a91",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.441
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.423,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/558a55c96eb14c229ee23c9c05f01462.json",
+      "run_id": "558a55c96eb14c229ee23c9c05f01462",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.419
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.432,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/3d9ad3296b584f5cb2b7e355814f602e.json",
+      "run_id": "3d9ad3296b584f5cb2b7e355814f602e",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.428
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.447,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/3171d348f1a34df190680bc3c1ee17c7.json",
+      "run_id": "3171d348f1a34df190680bc3c1ee17c7",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.443
+    },
+    {
+      "layout": "laptops",
+      "case": "full",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 1.457,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/65de2db7fbc649038f8082493c05f773.json",
+      "run_id": "65de2db7fbc649038f8082493c05f773",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.453
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.404,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/850e1b0b17bf4f1eae6a36072b463c8c.json",
+      "run_id": "850e1b0b17bf4f1eae6a36072b463c8c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.401
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.394,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/f3595e735caf4460b520c77479fb5fcb.json",
+      "run_id": "f3595e735caf4460b520c77479fb5fcb",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.391
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.397,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/fefe63c6356e41b490a95e60a5a71164.json",
+      "run_id": "fefe63c6356e41b490a95e60a5a71164",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.394
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.397,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/08e1097ad6a84a1dba0f6d9d9402c2e0.json",
+      "run_id": "08e1097ad6a84a1dba0f6d9d9402c2e0",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.393
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.396,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/edd2a4eb3f7e428d81632878cd47f61c.json",
+      "run_id": "edd2a4eb3f7e428d81632878cd47f61c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.392
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.396,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/32837d6a5ea041828e0466e4605a3681.json",
+      "run_id": "32837d6a5ea041828e0466e4605a3681",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.392
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.394,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/6e80ba0b86044c03ae3d7ac2ac5d64c3.json",
+      "run_id": "6e80ba0b86044c03ae3d7ac2ac5d64c3",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.391
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.404,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/cd4d11a8125547cda953334b7d6f13a1.json",
+      "run_id": "cd4d11a8125547cda953334b7d6f13a1",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.401
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.428,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/904e8d01432244f5b19e9ed73c82f71c.json",
+      "run_id": "904e8d01432244f5b19e9ed73c82f71c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.425
+    },
+    {
+      "layout": "laptops",
+      "case": "limited",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.398,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/5eaf769f3be243e888ed322e14d08242.json",
+      "run_id": "5eaf769f3be243e888ed322e14d08242",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.395
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.404,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/6dac3dd193344050b9433d360e152e19.json",
+      "run_id": "6dac3dd193344050b9433d360e152e19",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.4
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.427,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/9ba47ff7e20c4da3874b31b02287500a.json",
+      "run_id": "9ba47ff7e20c4da3874b31b02287500a",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.423
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.398,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/51035f60cb0c454ca74de726daafc0a6.json",
+      "run_id": "51035f60cb0c454ca74de726daafc0a6",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.395
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.396,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/f5233703583243b08ec3d75e37b43572.json",
+      "run_id": "f5233703583243b08ec3d75e37b43572",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.392
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.402,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/1d0b608a4d81445e8881024c903853e3.json",
+      "run_id": "1d0b608a4d81445e8881024c903853e3",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.398
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.414,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/dc0bf18381cf49ee9ed343423ceb988f.json",
+      "run_id": "dc0bf18381cf49ee9ed343423ceb988f",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.41
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.417,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/1ddbd68133f64e3dbd6e82892bb37865.json",
+      "run_id": "1ddbd68133f64e3dbd6e82892bb37865",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.413
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.396,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/753cd62c47464846a4a2ba7f29888339.json",
+      "run_id": "753cd62c47464846a4a2ba7f29888339",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.393
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.392,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/2329a35eb67a4fda8cebcd1ee1a60f22.json",
+      "run_id": "2329a35eb67a4fda8cebcd1ee1a60f22",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.389
+    },
+    {
+      "layout": "laptops",
+      "case": "empty",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "laptops"
+      },
+      "matched": true,
+      "seconds": 0.395,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/laptops/traces/de56017f383542e1b8ec529cc1edbbb1.json",
+      "run_id": "de56017f383542e1b8ec529cc1edbbb1",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.391
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.723,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/27f838c742fe4d118e83245900959d25.json",
+      "run_id": "27f838c742fe4d118e83245900959d25",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.719
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.695,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/9a0dfbdc750c468fa5e6d9439a3a72e9.json",
+      "run_id": "9a0dfbdc750c468fa5e6d9439a3a72e9",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.69
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.733,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/221af773df1544388240ae19d80bbdd2.json",
+      "run_id": "221af773df1544388240ae19d80bbdd2",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.728
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.702,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/cac1ba4dd47c429cb9991600f04655a7.json",
+      "run_id": "cac1ba4dd47c429cb9991600f04655a7",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.696
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.704,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/8a0d39169bfa41c2bd51270454c46ae2.json",
+      "run_id": "8a0d39169bfa41c2bd51270454c46ae2",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.699
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.692,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/db8d0bb58ca149d6a310a880125e7575.json",
+      "run_id": "db8d0bb58ca149d6a310a880125e7575",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.687
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.717,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/71c4b16473b54c3d9f895c676bb7dfce.json",
+      "run_id": "71c4b16473b54c3d9f895c676bb7dfce",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.712
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.706,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/9ff178357c0e46fe9a42e8fa5f3144e6.json",
+      "run_id": "9ff178357c0e46fe9a42e8fa5f3144e6",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.7
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.717,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/e45d1dd55aa74b658fb2685ae4196036.json",
+      "run_id": "e45d1dd55aa74b658fb2685ae4196036",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.712
+    },
+    {
+      "layout": "clothing",
+      "case": "full",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 1.673,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/f85180f2c2244092814dfa65aebdcb43.json",
+      "run_id": "f85180f2c2244092814dfa65aebdcb43",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 1.669
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.691,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/d8f8cf1d93904ad397cf21ddc370cf80.json",
+      "run_id": "d8f8cf1d93904ad397cf21ddc370cf80",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.686
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.664,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/9adaf5c72b914100b6c5718b29f349b3.json",
+      "run_id": "9adaf5c72b914100b6c5718b29f349b3",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.659
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.688,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/58a0218513074a33968a96777019313c.json",
+      "run_id": "58a0218513074a33968a96777019313c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.682
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.678,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/4f73fa6a49b344b4b46ae8683bf6e715.json",
+      "run_id": "4f73fa6a49b344b4b46ae8683bf6e715",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.673
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.682,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/708b61babd5b482fb091414c6d58d481.json",
+      "run_id": "708b61babd5b482fb091414c6d58d481",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.677
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.672,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/6bf642c4193a4416aefeba0343e7ce21.json",
+      "run_id": "6bf642c4193a4416aefeba0343e7ce21",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.667
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.684,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/5739a26efe0e4a13953e4a081f774a3c.json",
+      "run_id": "5739a26efe0e4a13953e4a081f774a3c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.679
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.679,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/77a2f4c68d6c4b798f15cd6403ec3354.json",
+      "run_id": "77a2f4c68d6c4b798f15cd6403ec3354",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.674
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.667,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/93cf145ee7f14a3fa32b8365eef938a4.json",
+      "run_id": "93cf145ee7f14a3fa32b8365eef938a4",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.662
+    },
+    {
+      "layout": "clothing",
+      "case": "limited",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 1
+      },
+      "matched": true,
+      "seconds": 0.704,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/30e6594c80374b339088a61cab925ac5.json",
+      "run_id": "30e6594c80374b339088a61cab925ac5",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.698
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 1,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.683,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/7732e16cd4d24dd4a9b3f500aaca0355.json",
+      "run_id": "7732e16cd4d24dd4a9b3f500aaca0355",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.678
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 2,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.68,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/a9839c9acf1d4c308c8f4f099146c98f.json",
+      "run_id": "a9839c9acf1d4c308c8f4f099146c98f",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.675
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 3,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.686,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/c643154bae4e41349c577a6f1df98878.json",
+      "run_id": "c643154bae4e41349c577a6f1df98878",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.681
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 4,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.675,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/1123f60269c045eead7319cf26d2e316.json",
+      "run_id": "1123f60269c045eead7319cf26d2e316",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.67
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 5,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.669,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/651708c76cb446858e1e367811be7cbe.json",
+      "run_id": "651708c76cb446858e1e367811be7cbe",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.664
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 6,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.669,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/84622944e1df4330879848e578c4e212.json",
+      "run_id": "84622944e1df4330879848e578c4e212",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.664
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 7,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.703,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/71d3a99d9a29402892497db5c5b29433.json",
+      "run_id": "71d3a99d9a29402892497db5c5b29433",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.698
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 8,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.679,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/87cdabcf20d44873a927a5019f3cd9da.json",
+      "run_id": "87cdabcf20d44873a927a5019f3cd9da",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.674
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 9,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.687,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/c4b63cf9955845c29848332d1defffb8.json",
+      "run_id": "c4b63cf9955845c29848332d1defffb8",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.681
+    },
+    {
+      "layout": "clothing",
+      "case": "empty",
+      "attempt": 10,
+      "inputs": {
+        "catalog": "clothing"
+      },
+      "matched": true,
+      "seconds": 0.705,
+      "trace_path": "reports/shared-catalog-2026-11-02-paced/clothing/traces/801dae36c9054b6f80134434efa8364c.json",
+      "run_id": "801dae36c9054b6f80134434efa8364c",
+      "browser_version": "149.0.7827.55",
+      "browser_seconds": 0.699
+    }
+  ],
+  "refusals": [
+    {
+      "layout": "books",
+      "inputs": {},
+      "matched": true
+    },
+    {
+      "layout": "books",
+      "inputs": {
+        "catalog": "unknown"
+      },
+      "matched": true
+    },
+    {
+      "layout": "books",
+      "inputs": {
+        "catalog": "books",
+        "max_pages": 0
+      },
+      "matched": true
+    },
+    {
+      "layout": "laptops",
+      "inputs": {},
+      "matched": true
+    },
+    {
+      "layout": "laptops",
+      "inputs": {
+        "catalog": "unknown"
+      },
+      "matched": true
+    },
+    {
+      "layout": "laptops",
+      "inputs": {
+        "catalog": "laptops",
+        "max_pages": 0
+      },
+      "matched": true
+    },
+    {
+      "layout": "clothing",
+      "inputs": {},
+      "matched": true
+    },
+    {
+      "layout": "clothing",
+      "inputs": {
+        "catalog": "unknown"
+      },
+      "matched": true
+    },
+    {
+      "layout": "clothing",
+      "inputs": {
+        "catalog": "clothing",
+        "max_pages": 0
+      },
+      "matched": true
+    }
+  ],
+  "cleanup": [
+    {
+      "layout": "books",
+      "worker_exited": true,
+      "interface_closed": true
+    },
+    {
+      "layout": "laptops",
+      "worker_exited": true,
+      "interface_closed": true
+    },
+    {
+      "layout": "clothing",
+      "worker_exited": true,
+      "interface_closed": true
+    }
+  ],
+  "journeys": [
+    {
+      "layout": "books",
+      "matched": true
+    },
+    {
+      "layout": "laptops",
+      "matched": true
+    },
+    {
+      "layout": "clothing",
+      "matched": true
+    }
+  ],
+  "mcp_sdk_version": "1.28.1",
+  "finished_at": "2026-11-02T15:51:27.841849+00:00",
+  "gates": {
+    "controlled_creation": true,
+    "controlled_first_result": true,
+    "controlled_correctness": true,
+    "controlled_latency": true,
+    "complete_journeys": true,
+    "model_cost": "unmeasured; no inference performed",
+    "live_creation": "pending real-model trials (#62)",
+    "human_baseline_and_newcomer": "pending (#48)",
+    "repeat_use": "pending real users (#57/#66)",
+    "release": "pending; controlled checks alone do not complete #66"
+  },
+  "latency_seconds": {
+    "median": 0.6735,
+    "p95_nearest_rank": 1.706
+  }
+}

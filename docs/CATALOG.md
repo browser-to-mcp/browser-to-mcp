@@ -36,5 +36,12 @@ The [laptop example](../examples/catalog/laptops.yaml) uses TestingURL's reviewe
 `--catalog laptops=practice_laptops`. Its prices exclude the neighboring star rating.
 See the [live evidence and site choice](evidence/shared-laptops-2026-11-01/README.md).
 
-The original Web Scraper laptop site and the clothing site remain blocked.
+The [clothing example](../examples/catalog/clothing.yaml) reads Listly's reviewed
+fashion tutorial: 100 products on ten numbered pages, using only `test.listly.io`.
+After testing and publishing, use `--catalog clothing=practice_clothing`.
+One page returns ten products with `complete: false`; the default and 20-page
+limits return all 100 with `complete: true`. Sale prices exclude struck-through
+original prices. See the [live evidence and retained attempts](evidence/shared-clothing-2026-11-02/README.md).
+
+The original Web Scraper laptop and ScrapingCourse clothing sites remain blocked.
 Local paging checks still cover all three layouts.

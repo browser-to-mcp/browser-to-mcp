@@ -214,8 +214,8 @@ async def build(service, session, base, layout, attempt, report, *, catalog_site
             assert {t.name for t in listed} == (
                 {request["name"], "collect_catalog"} if catalog else {request["name"]}
             )
-            tool = next(t for t in listed if t.name == request["name"])
-            limit = tool.inputSchema["properties"]["max_pages"]
+            schema_tool = next(t for t in listed if t.name == request["name"])
+            limit = schema_tool.inputSchema["properties"]["max_pages"]
             assert (limit["minimum"], limit["maximum"], limit["default"]) == (1, 20, 20)
             result = await tools.call_tool(
                 "collect_catalog" if catalog else request["name"],

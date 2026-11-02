@@ -36,7 +36,7 @@ def test_compiled_proposal_and_imported_measurements_share_the_gate(
             "unique_by": "product_url",
             "max_pages": 2,
             "max_items": 10,
-            "timeout_seconds": 1,
+            "timeout_seconds": 2,  # Two pages include the required one-second pacing wait.
         }
     )
     proposal = {

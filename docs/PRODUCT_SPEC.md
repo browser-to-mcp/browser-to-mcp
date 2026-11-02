@@ -46,7 +46,7 @@ V0 does:
 
 V0 does not:
 
-- plan or repair workflows with an LLM;
+- automatically repair published workflows;
 - execute writes, payments, uploads, messages, or destructive actions;
 - handle authentication-sensitive workflows;
 - execute native WebMCP tools;
@@ -111,8 +111,9 @@ YAML
   -> redacted trace
 ```
 
-The replay engine is usable independently of the CLI so the future MCP server
-can call the same interface.
+The replay engine is shared by the CLI and local MCP server. The task builder
+can prepare declarative drafts through a connected assistant or configured
+provider; independent evaluation and explicit review precede publication.
 
 ## Safety Rules
 

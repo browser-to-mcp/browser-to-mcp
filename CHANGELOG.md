@@ -12,6 +12,13 @@
 
 ## Unreleased
 
+- Add the reviewed Listly clothing catalog with exact ten-page live/MCP evidence,
+  current sale prices, and retained blocked/expired attempts. Pace sequential
+  pages at least one second apart within the existing timeout. Allow paged drafts
+  to use isolated first-page refusal fixtures without permitting fixture paging.
+- Verify nine independently tested fixed-catalog builds and 90 shared
+  `collect_catalog` calls, separately from the existing search-tool journey.
+
 - Add the reviewed TestingURL laptop catalog and a literal text separator for
   prices beside ratings. Retain original-site refusals and replacement live checks.
 

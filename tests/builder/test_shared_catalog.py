@@ -437,12 +437,13 @@ def test_saved_book_evidence_is_complete_and_matches_example():
                 assert digest((directory / call["trace_file"]).read_bytes()) == call["trace_sha256"]
 
 
-def test_saved_laptop_evidence_is_complete_and_matches_example():
+@pytest.mark.parametrize("catalog,date", [("laptops", "2026-11-01"), ("clothing", "2026-11-02")])
+def test_saved_catalog_evidence_is_complete_and_matches_example(catalog, date):
     from browser_to_mcp.evaluation.service import verify_evaluation
 
-    root = Path("docs/evidence/shared-laptops-2026-11-01")
+    root = Path(f"docs/evidence/shared-{catalog}-{date}")
     report = verify_evaluation(
-        Path("examples/catalog/laptops.yaml"),
+        Path(f"examples/catalog/{catalog}.yaml"),
         root / "plan.json",
         root / "evaluation",
         (root / "plan.sha256").read_text().strip(),
@@ -451,7 +452,43 @@ def test_saved_laptop_evidence_is_complete_and_matches_example():
     expected_rows = json.loads((root / "expected.json").read_text())
     for call in json.loads((root / "published-calls.json").read_text()):
         if not call["is_error"]:
-            assert call["outputs"]["items"] == expected_rows
+            rows = (
+                expected_rows[:10]
+                if catalog == "clothing" and call["inputs"].get("max_pages") == 1
+                else expected_rows
+            )
+            assert call["outputs"]["items"] == rows
             assert call["manifest_digest"] == report.manifest_digest
             assert call["publication"]["candidate_sha256"] == report.candidate_sha256
             assert digest((root / call["trace_file"]).read_bytes()) == call["trace_sha256"]
+
+
+@pytest.mark.parametrize("change", ["none", "ambiguous_price", "cart"])
+def test_clothing_example_preserves_current_price_and_product_query(change):
+    loaded = load_workflow(Path("examples/catalog/clothing.yaml"))
+    link = "/cart?add=1" if change == "cart" else "/goods/0?lang=en"
+    extra = "<strong>$20.00</strong>" if change == "ambiguous_price" else ""
+    html = (
+        '<ul id="goods"><li class="product-card">'
+        f'<a href="{link}"><h3>  Linen   Shirt </h3><div class="product-price">'
+        f"<strong>$18.00</strong><del>$24.00</del>{extra}</div></a></li></ul>"
+        '<nav class="data-pager"><a aria-current="page">1</a></nav>'
+    )
+    if change == "none":
+        result = asyncio.run(replay_workflow(loaded, [], evaluation_html=html))
+        assert result.outputs == {
+            "result": [
+                dict(
+                    title="Linen Shirt",
+                    price_text="$18.00",
+                    product_url="https://test.listly.io/goods/0?lang=en",
+                )
+            ],
+            "collection": dict(pages_read=1, complete=True, stop_reason="end"),
+        }
+    else:
+        from browser_to_mcp.replay import WorkflowExecutionError
+
+        with pytest.raises(WorkflowExecutionError) as error:
+            asyncio.run(replay_workflow(loaded, [], evaluation_html=html))
+        assert error.value.category == "assertion"

@@ -27,9 +27,10 @@ jobs:
         env:
           BROWSER_TO_MCP_JOURNEY_REPORT: reports/journey.json
         run: uv run pytest tests/authoring/test_journey.py -q --junitxml=reports/journey.xml
-      - name: Three layouts, nine builds and 90 published MCP calls
+      - name: Search and shared catalog journeys, nine builds and 90 calls each
         env:
           BROWSER_TO_MCP_RELEASE_REPORT: reports/release.json
+          BROWSER_TO_MCP_CATALOG_REPORT: reports/catalog.json
         run: uv run pytest tests/release -q --junitxml=reports/release.xml
       - name: Save test results and measured journey outcomes
         if: always()

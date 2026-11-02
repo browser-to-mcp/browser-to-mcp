@@ -233,7 +233,6 @@ class PlaywrightReplayEngine:
                         len(workflow.steps) != 2
                         or workflow.steps[0].action != StepAction.GOTO
                         or workflow.steps[1].action != StepAction.EXTRACT_RECORDS
-                        or workflow.steps[1].paging
                     ):
                         raise ValueError(
                             "Evaluation fixtures support one navigation and extraction only."

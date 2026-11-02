@@ -1,0 +1,114 @@
+name: practice_clothing
+description: Collect product titles, current displayed prices and product links from
+  the fixed clothing, shoes and accessories listing in the public practice catalog.
+version: 1
+risk: read_only
+manifest:
+  version: 1
+permissions:
+  allowed_domains:
+  - test.listly.io
+  downloads: false
+  uploads: false
+  submit_forms: false
+  send_messages: false
+  spend_money: false
+  requires_authentication: false
+inputs:
+  max_pages:
+    type: integer
+    required: false
+    sensitive: false
+    description: Pages to read, from 1 to 20; defaults to the limit.
+steps:
+- id: open
+  action: goto
+  url: https://test.listly.io/en/pagination/basic
+  timeout_seconds: 30
+  risk: read_only
+  idempotency: safe
+  retry: none
+  confirmation: never
+- id: result
+  action: extract_records
+  selector: ul#goods
+  record:
+    rows: li.product-card
+    fields:
+      title:
+        selector: h3
+        source: text
+        normalize_whitespace: true
+      price_text:
+        selector: .product-price strong
+        source: text
+        normalize_whitespace: true
+      product_url:
+        selector: :scope > a
+        source: href
+        normalize_whitespace: false
+        path_prefix: /goods/
+    duplicates: deduplicate
+    unique_by: product_url
+  paging:
+    next_selector: nav.data-pager a[aria-label="Next page"]
+    end_selector: nav.data-pager:has(a[aria-current="page"]):not(:has(a[aria-label="Next
+      page"]))
+    page_parameter: page
+    max_pages: 20
+    max_pages_input: max_pages
+    timeout_seconds: 30
+    status_output: collection
+  timeout_seconds: 30
+  risk: read_only
+  idempotency: safe
+  retry: none
+  confirmation: never
+outputs:
+  result:
+    type: array
+    items:
+      type: object
+      properties:
+        price_text:
+          type: string
+          description: Current displayed price
+          nullable: false
+          sensitive: false
+        product_url:
+          type: string
+          description: Product link
+          nullable: false
+          sensitive: false
+        title:
+          type: string
+          description: Full product title
+          nullable: false
+          sensitive: false
+    max_items: 100
+    allow_empty: false
+    sensitive: false
+  collection:
+    type: object
+    properties:
+      pages_read:
+        type: integer
+        nullable: false
+        sensitive: false
+      complete:
+        type: boolean
+        nullable: false
+        sensitive: false
+      stop_reason:
+        type: string
+        nullable: false
+        sensitive: false
+    allow_empty: false
+    sensitive: false
+success:
+- id: check_result
+  assertion: output_not_empty
+  field: result
+- id: check_collection
+  assertion: output_not_empty
+  field: collection

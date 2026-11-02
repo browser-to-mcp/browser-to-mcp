@@ -25,13 +25,23 @@ def no_live_provider(monkeypatch):
 
 @pytest.fixture(scope="session")
 def release_report(tmp_path_factory):
-    destination = os.environ.get("BROWSER_TO_MCP_RELEASE_REPORT")
+    yield from measured_report(tmp_path_factory, "BROWSER_TO_MCP_RELEASE_REPORT", "search")
+
+
+@pytest.fixture(scope="session")
+def shared_catalog_report(tmp_path_factory):
+    yield from measured_report(tmp_path_factory, "BROWSER_TO_MCP_CATALOG_REPORT", "collect_catalog")
+
+
+def measured_report(tmp_path_factory, variable, interface):
+    destination = os.environ.get(variable)
     path = Path(destination) if destination else tmp_path_factory.mktemp("release") / "report.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
         pytest.fail("Choose a new report path; keep earlier attempts for review.")
     report = {
         "kind": "controlled three-layout creation-to-published-MCP journey",
+        "interface": interface,
         "started_at": datetime.now(UTC).isoformat(),
         "source": _source_version().model_dump(mode="json"),
         "proposal_source": "fixed protocol replies; no actual model inference",

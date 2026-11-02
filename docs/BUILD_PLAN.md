@@ -58,16 +58,17 @@ This milestone turns validated workflows into local typed MCP tools.
 The server must reuse the existing loader, policy, replay engine, and trace
 format. It must never register an invalid workflow.
 
-### M4: Public Demo And Onboarding
+### M4: Initial Demo And Onboarding, complete
 
 - [#15](https://github.com/browser-to-mcp/browser-to-mcp/issues/15): publish a
   reproducible HN demo and first pre-release;
 - [#16](https://github.com/browser-to-mcp/browser-to-mcp/issues/16): write the
   public onboarding and trace walkthrough.
 
-This milestone starts only after M3 safety and repeatability gates pass.
+The initial demo shipped after the earlier safety and repeatability work.
+The later human walkthrough requirement remains open in #48.
 
-## Next: Recorder Pilot
+## Recorder Pilot: human walkthrough pending
 
 Issue [#42](https://github.com/browser-to-mcp/browser-to-mcp/issues/42) selects
 the first recorder example. The task, expected results, allowed websites, and
@@ -91,18 +92,22 @@ Recorded drafts do not expand the server's workflow list.
 [#56](https://github.com/browser-to-mcp/browser-to-mcp/issues/56) tracks the next
 local release. The [three-site pilot](THREE_SITE_PILOT.md) defines a provisional
 catalog task, fixed local cases, and measurement targets for #57. Real-user
-validation is still pending; this is not a completed customer pilot. Start with
-#58 (consistent restrictions), then #59 (lists) and #60 (paging), following the
-dependencies in the tracking issue. No new catalog tool is published by the brief.
+validation is still pending; this is not a completed customer pilot. Restrictions,
+lists, paging, jobs, independent checks, publication and the local interface are
+implemented (#58–#61, #63–#65). Shared book, replacement laptop and replacement
+clothing examples have dated live evidence. #62/#66 remain open for the remaining
+creation, cost and user evidence. The brief alone publishes no tool.
 
 ## Working Rules
 
 The [independent draft checks](DRAFT_CHECKS.md) implement #63's shared evidence
-gate. The [publishing lifecycle](TOOL_LIBRARY.md) in #64 consumes it. They do not complete #62's
-remaining live-site checks or the wider three-site trial.
+gate. The [publishing lifecycle](TOOL_LIBRARY.md) in #64 consumes it. The local
+interface (#65) uses these services. Separate search and shared-catalog release
+journeys each check nine builds and 90 calls; they do not complete the wider
+trial's user and cost requirements.
 
 - Keep the workflow contract reviewable and versioned.
-- Keep CLI and future MCP calls on the same engine path.
+- Keep CLI and MCP calls on the same engine path.
 - Fail closed on policy, domain, schema, and assertion failures.
 - Add focused tests with every behavior change.
 - Keep commits small enough to map to one implementation concern.

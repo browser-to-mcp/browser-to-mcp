@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "candidate_sha256": "sha256:8eea65c2a17c0520bd6af08887c7c440d19de03263f8b3a9c0b7a28f2d41f306",
+  "manifest_digest": "sha256:904c12825f54b479b0a65c1aa599de61bed8eebab3d23ac053d8bb51fe30ec4b",
+  "workflow": "practice_clothing",
+  "suite_sha256": "sha256:9ff992cafc1260f8ac82d2e3ce695ceb651abaa244aa43ae78097a5392cb44e5",
+  "mode": "mixed",
+  "started_at": "2026-11-02T15:43:46.572270+00:00",
+  "finished_at": "2026-11-02T15:44:34.400352+00:00",
+  "seconds": 47.82782995898742,
+  "source": {
+    "package_version": "0.0.1a1",
+    "source_sha256": "sha256:8f08ad1bebcdbddb11cfa3474b5fdf0a68a99de8cbf2d4e2dc848ff524e69719",
+    "git_commit": "539e42ae02e5b569da641c07f761616b59beeb0f",
+    "worktree_dirty": true,
+    "python": "3.13.1",
+    "playwright": "1.61.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "generation": {
+    "provider": "mcp_client",
+    "model": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "model_seconds": null,
+    "browser_seconds": 6.47385745801148,
+    "api_cost_microusd": null,
+    "estimated_cost_microusd": null,
+    "input_microusd_per_million": null,
+    "output_microusd_per_million": null,
+    "cost_basis": "external_client",
+    "checks": [
+      "schema",
+      "policy",
+      "compiler",
+      "first_page_preview"
+    ]
+  },
+  "replay_model_requests": 0,
+  "replay_api_cost_microusd": 0,
+  "local_compute_cost_microusd": null,
+  "observations": [
+    {
+      "case_id": "full",
+      "status": "passed",
+      "reason": "Every expected output value and type matched.",
+      "seconds": 14.320094541006256,
+      "outcome": "outputs",
+      "trace_file": "traces/550c1384bd164858bec3f8d52dcbbac7.json",
+      "trace_sha256": "sha256:212a318c9f944ec69c6bfc6c9a22da8c9b46b0d23239b042201ea56ddbf504be"
+    },
+    {
+      "case_id": "limited",
+      "status": "passed",
+      "reason": "Every expected output value and type matched.",
+      "seconds": 2.4230965829920024,
+      "outcome": "outputs",
+      "trace_file": "traces/fd662a041bb143668bdad31a8c476c2e.json",
+      "trace_sha256": "sha256:92e48f93d3c5549f83a931c47fecf79aa83715256dae90b1748b490572b6f45c"
+    },
+    {
+      "case_id": "invalid",
+      "status": "passed",
+      "reason": "Typed inputs were rejected before browsing; no trace needed.",
+      "seconds": 0.00002370899892412126,
+      "outcome": "error",
+      "trace_file": null,
+      "trace_sha256": null
+    },
+    {
+      "case_id": "empty",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 30.514294832973974,
+      "outcome": "error",
+      "trace_file": "traces/49aea154a26b4229ae7a61acf21a1965.json",
+      "trace_sha256": "sha256:8fe84b985ec6d035330e6b9486b549372eef64666e1a073f749ee2c21403bba4"
+    },
+    {
+      "case_id": "missing_price",
+      "status": "passed",
+      "reason": "The exact required refusal matched; no successful data was returned.",
+      "seconds": 0.5150456669798587,
+      "outcome": "error",
+      "trace_file": "traces/7ba596e51fcb4b46aa8a95306959d829.json",
+      "trace_sha256": "sha256:feb95f57ebda54c8dbf8744b75a5ecbe6ad99d3ea62563ef4af5f61bff250572"
+    }
+  ],
+  "blockers": [],
+  "eligible": true
+}

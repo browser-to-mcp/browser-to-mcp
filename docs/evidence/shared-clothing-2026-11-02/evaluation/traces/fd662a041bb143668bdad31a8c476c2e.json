@@ -1,0 +1,123 @@
+{
+  "actions": [
+    {
+      "action": "goto",
+      "duration_seconds": 2.0329682499868795,
+      "output_key": null,
+      "status": "completed",
+      "step_id": "open"
+    },
+    {
+      "action": "extract_records",
+      "duration_seconds": 0.020991584024159238,
+      "output_key": "result",
+      "pages": [
+        {
+          "duration_seconds": 0.020934667001711205,
+          "outcome": "page_limit",
+          "page_number": 1,
+          "records_collected": 10,
+          "rows_read": 10
+        }
+      ],
+      "status": "completed",
+      "step_id": "result"
+    }
+  ],
+  "assertions": [
+    {
+      "assertion": "output_not_empty",
+      "assertion_id": "check_result",
+      "field": "result",
+      "status": "passed"
+    },
+    {
+      "assertion": "output_not_empty",
+      "assertion_id": "check_collection",
+      "field": "collection",
+      "status": "passed"
+    }
+  ],
+  "error": null,
+  "inputs": {
+    "max_pages": 1
+  },
+  "metadata": {
+    "browser_name": "chromium",
+    "browser_version": "149.0.7827.55",
+    "duration_seconds": 2.421668665978359,
+    "evaluation_fixture_sha256": null,
+    "finished_at": "2026-11-02T15:44:03.368350Z",
+    "manifest_digest": "sha256:904c12825f54b479b0a65c1aa599de61bed8eebab3d23ac053d8bb51fe30ec4b",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "playwright_version": "1.61.0",
+    "publication": null,
+    "python_version": "3.13.1",
+    "run_id": "fd662a041bb143668bdad31a8c476c2e",
+    "started_at": "2026-11-02T15:44:00.946804Z",
+    "workflow_name": "practice_clothing",
+    "workflow_version": 1
+  },
+  "outputs": {
+    "collection": {
+      "complete": false,
+      "pages_read": 1,
+      "stop_reason": "page_limit"
+    },
+    "result": [
+      {
+        "price_text": "$78.00",
+        "product_url": "https://test.listly.io/goods/0?lang=en",
+        "title": "Oxford Poplin Shirt"
+      },
+      {
+        "price_text": "$205.20",
+        "product_url": "https://test.listly.io/goods/1?lang=en",
+        "title": "Hazel Ring Satchel"
+      },
+      {
+        "price_text": "$138.00",
+        "product_url": "https://test.listly.io/goods/2?lang=en",
+        "title": "Cloud Crew Sweater"
+      },
+      {
+        "price_text": "$202.30",
+        "product_url": "https://test.listly.io/goods/3?lang=en",
+        "title": "City Trench Coat"
+      },
+      {
+        "price_text": "$184.00",
+        "product_url": "https://test.listly.io/goods/4?lang=en",
+        "title": "Sandstone Chain Crossbody"
+      },
+      {
+        "price_text": "$128.00",
+        "product_url": "https://test.listly.io/goods/5?lang=en",
+        "title": "Straight Selvedge Jeans"
+      },
+      {
+        "price_text": "$118.40",
+        "product_url": "https://test.listly.io/goods/6?lang=en",
+        "title": "Meadow Linen Dress"
+      },
+      {
+        "price_text": "$124.00",
+        "product_url": "https://test.listly.io/goods/7?lang=en",
+        "title": "Court Leather Sneaker"
+      },
+      {
+        "price_text": "$178.20",
+        "product_url": "https://test.listly.io/goods/8?lang=en",
+        "title": "Ivory Crescent Hobo"
+      },
+      {
+        "price_text": "$42.00",
+        "product_url": "https://test.listly.io/goods/9?lang=en",
+        "title": "Wool Rib Beanie"
+      }
+    ]
+  },
+  "schema_version": 3,
+  "screenshots": [],
+  "status": "completed"
+}

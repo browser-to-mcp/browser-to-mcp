@@ -1,0 +1,650 @@
+{
+  "name": "Reviewed Listly clothing catalog",
+  "mode": "mixed",
+  "requirements_source": "Issue #62/#66; owner-delegated clothing replacement on November 2",
+  "expectations_source": "Independent HTMLParser observation of all ten public pages; original synthetic refusal markup.",
+  "not_applicable": {
+    "combined_filters": "Only optional max_pages; no search or other filters."
+  },
+  "cases": [
+    {
+      "id": "full",
+      "inputs": {
+        "max_pages": 20
+      },
+      "covers": [
+        "demonstration",
+        "multiple_pages"
+      ],
+      "expected": {
+        "outcome": "outputs",
+        "outputs": {
+          "result": [
+            {
+              "product_url": "https://test.listly.io/goods/0?lang=en",
+              "title": "Oxford Poplin Shirt",
+              "price_text": "$78.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/1?lang=en",
+              "title": "Hazel Ring Satchel",
+              "price_text": "$205.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/2?lang=en",
+              "title": "Cloud Crew Sweater",
+              "price_text": "$138.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/3?lang=en",
+              "title": "City Trench Coat",
+              "price_text": "$202.30"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/4?lang=en",
+              "title": "Sandstone Chain Crossbody",
+              "price_text": "$184.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/5?lang=en",
+              "title": "Straight Selvedge Jeans",
+              "price_text": "$128.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/6?lang=en",
+              "title": "Meadow Linen Dress",
+              "price_text": "$118.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/7?lang=en",
+              "title": "Court Leather Sneaker",
+              "price_text": "$124.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/8?lang=en",
+              "title": "Ivory Crescent Hobo",
+              "price_text": "$178.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/9?lang=en",
+              "title": "Wool Rib Beanie",
+              "price_text": "$42.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/10?lang=en",
+              "title": "Weekend Linen Shirt",
+              "price_text": "$84.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/11?lang=en",
+              "title": "Cloud Zip Hobo",
+              "price_text": "$142.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/12?lang=en",
+              "title": "Moss Cable Cardigan",
+              "price_text": "$154.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/13?lang=en",
+              "title": "Harbor Quilted Jacket",
+              "price_text": "$156.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/14?lang=en",
+              "title": "Glacier Shopper",
+              "price_text": "$176.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/15?lang=en",
+              "title": "Pleated Wide Trousers",
+              "price_text": "$118.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/16?lang=en",
+              "title": "Dot Wrap Dress",
+              "price_text": "$129.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/17?lang=en",
+              "title": "Suede Penny Loafer",
+              "price_text": "$168.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/18?lang=en",
+              "title": "Silver Envelope Clutch",
+              "price_text": "$82.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/19?lang=en",
+              "title": "Silk Square Scarf",
+              "price_text": "$76.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/20?lang=en",
+              "title": "Studio Box Tee",
+              "price_text": "$38.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/21?lang=en",
+              "title": "Walnut Frame Satchel",
+              "price_text": "$194.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/22?lang=en",
+              "title": "Fine Gauge Turtleneck",
+              "price_text": "$89.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/23?lang=en",
+              "title": "Cropped Denim Jacket",
+              "price_text": "$112.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/24?lang=en",
+              "title": "Tangerine Mini Case",
+              "price_text": "$128.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/25?lang=en",
+              "title": "Everyday Chino",
+              "price_text": "$88.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/26?lang=en",
+              "title": "Column Knit Dress",
+              "price_text": "$139.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/27?lang=en",
+              "title": "Trail Runner",
+              "price_text": "$142.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/28?lang=en",
+              "title": "Cocoa Twist Shoulder Bag",
+              "price_text": "$187.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/29?lang=en",
+              "title": "Bridle Leather Belt",
+              "price_text": "$64.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/30?lang=en",
+              "title": "Mariner Stripe Tee",
+              "price_text": "$54.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/31?lang=en",
+              "title": "Graphite Top Handle",
+              "price_text": "$176.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/32?lang=en",
+              "title": "Coastal Knit Vest",
+              "price_text": "$74.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/33?lang=en",
+              "title": "Tailored Wool Blazer",
+              "price_text": "$210.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/34?lang=en",
+              "title": "Merlot Bucket Bag",
+              "price_text": "$174.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/35?lang=en",
+              "title": "Linen Drawstring Pants",
+              "price_text": "$98.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/36?lang=en",
+              "title": "Poplin Shirt Dress",
+              "price_text": "$124.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/37?lang=en",
+              "title": "Buckle Mary Jane",
+              "price_text": "$138.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/38?lang=en",
+              "title": "Pebble Soft Satchel",
+              "price_text": "$147.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/39?lang=en",
+              "title": "Oval Frame Sunglasses",
+              "price_text": "$108.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/40?lang=en",
+              "title": "Petal Wrap Blouse",
+              "price_text": "$92.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/41?lang=en",
+              "title": "Cedar Utility Crossbody",
+              "price_text": "$133.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/42?lang=en",
+              "title": "Apricot Cropped Cardigan",
+              "price_text": "$108.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/43?lang=en",
+              "title": "Rain Shell Anorak",
+              "price_text": "$132.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/44?lang=en",
+              "title": "Harbor Saddle Crossbody",
+              "price_text": "$182.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/45?lang=en",
+              "title": "Satin Midi Skirt",
+              "price_text": "$106.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/46?lang=en",
+              "title": "Sunset Slip Dress",
+              "price_text": "$113.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/47?lang=en",
+              "title": "Canvas High Top",
+              "price_text": "$86.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/48?lang=en",
+              "title": "Midnight Camera Bag",
+              "price_text": "$138.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/49?lang=en",
+              "title": "Hammered Hoop Earrings",
+              "price_text": "$58.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/50?lang=en",
+              "title": "Rib Tank Duo",
+              "price_text": "$28.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/51?lang=en",
+              "title": "Onyx Buckle Satchel",
+              "price_text": "$208.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/52?lang=en",
+              "title": "Fisherman Zip Knit",
+              "price_text": "$146.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/53?lang=en",
+              "title": "Sienna Suede Jacket",
+              "price_text": "$278.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/54?lang=en",
+              "title": "City Wing Tote",
+              "price_text": "$214.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/55?lang=en",
+              "title": "Utility Cargo Pants",
+              "price_text": "$114.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/56?lang=en",
+              "title": "Chelsea Ankle Boot",
+              "price_text": "$174.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/57?lang=en",
+              "title": "Freshwater Pearl Necklace",
+              "price_text": "$118.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/58?lang=en",
+              "title": "Velvet Chain Evening Bag",
+              "price_text": "$127.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/59?lang=en",
+              "title": "Gallery Denim Shirt",
+              "price_text": "$98.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/60?lang=en",
+              "title": "Open Stitch Sweater",
+              "price_text": "$98.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/61?lang=en",
+              "title": "Honey Two-Tone Satchel",
+              "price_text": "$169.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/62?lang=en",
+              "title": "Boucle Collarless Jacket",
+              "price_text": "$214.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/63?lang=en",
+              "title": "Corduroy A-Line Skirt",
+              "price_text": "$78.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/64?lang=en",
+              "title": "Pistachio Box Bag",
+              "price_text": "$168.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/65?lang=en",
+              "title": "Woven Slide Sandal",
+              "price_text": "$96.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/66?lang=en",
+              "title": "Canvas Bucket Hat",
+              "price_text": "$36.80"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/67?lang=en",
+              "title": "Crisp Resort Shirt",
+              "price_text": "$82.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/68?lang=en",
+              "title": "Persimmon Mini Satchel",
+              "price_text": "$122.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/69?lang=en",
+              "title": "Berry Rib Cardigan",
+              "price_text": "$118.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/70?lang=en",
+              "title": "Longline Puffer Vest",
+              "price_text": "$168.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/71?lang=en",
+              "title": "Emerald Dome Bag",
+              "price_text": "$201.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/72?lang=en",
+              "title": "Tailored Bermuda Shorts",
+              "price_text": "$78.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/73?lang=en",
+              "title": "Slingback Kitten Heel",
+              "price_text": "$151.30"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/74?lang=en",
+              "title": "Lilac Everyday Tote",
+              "price_text": "$198.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/75?lang=en",
+              "title": "Check Wool Scarf",
+              "price_text": "$88.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/76?lang=en",
+              "title": "Gathered Cotton Blouse",
+              "price_text": "$70.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/77?lang=en",
+              "title": "Argyle Sweater Vest",
+              "price_text": "$94.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/78?lang=en",
+              "title": "Citrine Open Tote",
+              "price_text": "$160.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/79?lang=en",
+              "title": "Weekend Fleece Jacket",
+              "price_text": "$124.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/80?lang=en",
+              "title": "Washed Barrel Jeans",
+              "price_text": "$136.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/81?lang=en",
+              "title": "Vanilla Garden Satchel",
+              "price_text": "$183.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/82?lang=en",
+              "title": "Suede Clog",
+              "price_text": "$112.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/83?lang=en",
+              "title": "Rib Sock Set",
+              "price_text": "$20.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/84?lang=en",
+              "title": "Clay Slouch Tote",
+              "price_text": "$186.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/85?lang=en",
+              "title": "Mesh Layer Top",
+              "price_text": "$45.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/86?lang=en",
+              "title": "Soft Collar Knit",
+              "price_text": "$102.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/87?lang=en",
+              "title": "Wool Wrap Coat",
+              "price_text": "$356.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/88?lang=en",
+              "title": "Forest Work Tote",
+              "price_text": "$196.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/89?lang=en",
+              "title": "Pleated Tennis Skirt",
+              "price_text": "$64.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/90?lang=en",
+              "title": "Fisherman Sandal",
+              "price_text": "$148.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/91?lang=en",
+              "title": "Rosewood Lock Tote",
+              "price_text": "$212.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/92?lang=en",
+              "title": "Minimal Steel Watch",
+              "price_text": "$186.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/93?lang=en",
+              "title": "Draped Satin Cami",
+              "price_text": "$52.70"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/94?lang=en",
+              "title": "Cream Contrast Crossbody",
+              "price_text": "$192.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/95?lang=en",
+              "title": "Utility Overshirt",
+              "price_text": "$112.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/96?lang=en",
+              "title": "Contrast Polo",
+              "price_text": "$54.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/97?lang=en",
+              "title": "Lace Collar Blouse",
+              "price_text": "$96.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/98?lang=en",
+              "title": "Almond Quilted Shoulder Bag",
+              "price_text": "$156.60"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/99?lang=en",
+              "title": "Pocket Rugby Shirt",
+              "price_text": "$86.00"
+            }
+          ],
+          "collection": {
+            "pages_read": 10,
+            "complete": true,
+            "stop_reason": "end"
+          }
+        }
+      }
+    },
+    {
+      "id": "limited",
+      "inputs": {
+        "max_pages": 1
+      },
+      "covers": [
+        "changed_inputs"
+      ],
+      "expected": {
+        "outcome": "outputs",
+        "outputs": {
+          "result": [
+            {
+              "product_url": "https://test.listly.io/goods/0?lang=en",
+              "title": "Oxford Poplin Shirt",
+              "price_text": "$78.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/1?lang=en",
+              "title": "Hazel Ring Satchel",
+              "price_text": "$205.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/2?lang=en",
+              "title": "Cloud Crew Sweater",
+              "price_text": "$138.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/3?lang=en",
+              "title": "City Trench Coat",
+              "price_text": "$202.30"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/4?lang=en",
+              "title": "Sandstone Chain Crossbody",
+              "price_text": "$184.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/5?lang=en",
+              "title": "Straight Selvedge Jeans",
+              "price_text": "$128.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/6?lang=en",
+              "title": "Meadow Linen Dress",
+              "price_text": "$118.40"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/7?lang=en",
+              "title": "Court Leather Sneaker",
+              "price_text": "$124.00"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/8?lang=en",
+              "title": "Ivory Crescent Hobo",
+              "price_text": "$178.20"
+            },
+            {
+              "product_url": "https://test.listly.io/goods/9?lang=en",
+              "title": "Wool Rib Beanie",
+              "price_text": "$42.00"
+            }
+          ],
+          "collection": {
+            "pages_read": 1,
+            "complete": false,
+            "stop_reason": "page_limit"
+          }
+        }
+      }
+    },
+    {
+      "id": "invalid",
+      "inputs": {
+        "max_pages": 0
+      },
+      "covers": [
+        "invalid_input"
+      ],
+      "expected": {
+        "outcome": "error",
+        "category": "input",
+        "path": "inputs"
+      }
+    },
+    {
+      "id": "empty",
+      "inputs": {
+        "max_pages": 20
+      },
+      "covers": [
+        "zero_results"
+      ],
+      "fixture_html": "<ul id=\"goods\"></ul><nav class=\"data-pager\"><a aria-current=\"page\">1</a></nav>",
+      "expected": {
+        "outcome": "error",
+        "category": "runtime",
+        "path": "steps.result"
+      }
+    },
+    {
+      "id": "missing_price",
+      "inputs": {
+        "max_pages": 20
+      },
+      "covers": [
+        "changed_page"
+      ],
+      "fixture_html": "<ul id=\"goods\"><li class=\"product-card\"><a href=\"/goods/0?lang=en\"><h3>Shirt</h3></a></li></ul><nav class=\"data-pager\"><a aria-current=\"page\">1</a></nav>",
+      "expected": {
+        "outcome": "error",
+        "category": "assertion",
+        "path": "outputs.result.0.price_text"
+      }
+    }
+  ],
+  "timeout_seconds": 120,
+  "wall_seconds": 300
+}

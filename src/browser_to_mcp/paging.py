@@ -157,6 +157,9 @@ async def collect_pages(page, step, output, allowed_domains, check_boundary, evi
                         "complete": "true" if reason == "end" else "false",
                         "stop_reason": reason,
                     }
+                # Keep sequential collection polite even on fast pages. This wait remains
+                # inside the collection deadline and is cancellable like navigation.
+                await asyncio.sleep(max(0, 1 - (monotonic() - page_started)))
                 page_number += 1
                 current_count = 0
                 page_started = monotonic()

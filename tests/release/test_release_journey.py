@@ -110,7 +110,8 @@ async def call(session, name, **arguments):
     return response.structuredContent
 
 
-async def build(service, session, base, layout, attempt, report):
+async def build(service, session, base, layout, attempt, report, *, catalog_site=None):
+    catalog = catalog_site is not None
     observation = dict(layout=layout, attempt=attempt, matched=False, seconds=0)
     report["builds"].append(observation)  # Keep every started attempt, including failures.
     started = monotonic()
@@ -118,6 +119,13 @@ async def build(service, session, base, layout, attempt, report):
         request = task(base, layout, max_pages=20, max_pages_input="max_pages", timeout_seconds=2)
         request["name"] = "collect_" + layout
         request["max_items"] = 10 + attempt
+        value = proposal(layout)
+        suite = plan(base)
+        if catalog:
+            request["inputs"] = {}
+            request["description"] = "Collect the fixed public practice catalog."
+            value["bindings"] = {}
+            suite = catalog_plan(base)
         job = await call(
             session,
             "start_task_build_job",
@@ -139,7 +147,7 @@ async def build(service, session, base, layout, attempt, report):
             job_id=key,
             question_id=job["question"]["id"],
             revision=job["revision"],
-            proposal=proposal(layout),
+            proposal=value,
         )
         job = await until(lambda: service.jobs.read(key), {"ready_for_review", "failed"})
         assert job["state"] == "ready_for_review", job
@@ -169,12 +177,15 @@ async def build(service, session, base, layout, attempt, report):
         )
         with pytest.raises(LibraryError, match="passing evidence"):
             service.dispatch("publish", publish)
+        if catalog:
+            # Independent fixture changes, not new workflow inputs or model answers.
+            catalog_site.scenarios = ["normal", "normal", "empty", "broken"]
         op = service.dispatch(
             "evaluate",
             dict(
                 tool_id=tool,
                 version=number,
-                suite=plan(base),
+                suite=suite,
                 approved_plan=True,
                 request_key=str(uuid4()),
             ),
@@ -184,6 +195,9 @@ async def build(service, session, base, layout, attempt, report):
         )
         assert checked["state"] == "completed", checked
         assert checked["result"]["report"]["eligible"], checked
+        if catalog:
+            assert catalog_site.scenarios == []
+            catalog_site.mode = "normal"
         review = service.library.review(tool, number)
         publish["revision"] = review["tool"]["revision"]
         service.dispatch("publish", publish)
@@ -194,14 +208,26 @@ async def build(service, session, base, layout, attempt, report):
             "server",
             "--trace-dir",
             service.directory / "traces",
+            *(["--catalog", f"{layout}={request['name']}"] if catalog else []),
         ) as tools:
             listed = (await tools.list_tools()).tools
-            assert [t.name for t in listed] == [request["name"]]
-            limit = listed[0].inputSchema["properties"]["max_pages"]
+            assert {t.name for t in listed} == (
+                {request["name"], "collect_catalog"} if catalog else {request["name"]}
+            )
+            schema_tool = next(t for t in listed if t.name == request["name"])
+            limit = schema_tool.inputSchema["properties"]["max_pages"]
             assert (limit["minimum"], limit["maximum"], limit["default"]) == (1, 20, 20)
-            result = await tools.call_tool(request["name"], {"query": "empty", "max_pages": 1})
+            result = await tools.call_tool(
+                "collect_catalog" if catalog else request["name"],
+                {"catalog": layout, "max_pages": 1}
+                if catalog
+                else {"query": "empty", "max_pages": 1},
+            )
             assert not result.isError, result
-            assert _exact(result.structuredContent["outputs"], outputs(base, "empty"))
+            if catalog:
+                assert _exact(result.structuredContent, catalog_outputs(base, layout, "limited"))
+            else:
+                assert _exact(result.structuredContent["outputs"], outputs(base, "empty"))
             assert result.meta["publication"]["version"] == number
         observation.update(
             matched=True,
@@ -214,6 +240,25 @@ async def build(service, session, base, layout, attempt, report):
         return review
     finally:
         observation["seconds"] = round(monotonic() - started, 3)
+
+
+def catalog_outputs(base, layout, case):
+    answer = outputs(base, case)
+    return dict(catalog=layout, items=answer["result"], **answer["collection"])
+
+
+def catalog_plan(base):
+    suite = plan(base)
+    suite["name"] = "Fixed catalog independent answers"
+    suite["not_applicable"] = {"combined_filters": "Only the page limit is an input."}
+    suite["cases"] = [case for case in suite["cases"] if case["id"] != "combined"]
+    for case in suite["cases"]:
+        case["inputs"].pop("query", None)
+        if case["id"] == "invalid":
+            case["inputs"] = {"max_pages": 0}
+        elif case["id"] in {"empty", "changed_page"}:
+            case["covers"] = ["zero_results" if case["id"] == "empty" else "changed_page"]
+    return suite
 
 
 @pytest.mark.parametrize("layout", ["books", "laptops", "clothing"])

@@ -91,7 +91,6 @@ def _prepare(candidate: Path, suite_path: Path, expected_suite_sha256: str):
             len(loaded.workflow.steps) != 2
             or loaded.workflow.steps[0].action != "goto"
             or loaded.workflow.steps[1].action != "extract_records"
-            or loaded.workflow.steps[1].paging is not None
         ):
             raise ValueError("Fixtures require a single navigation and record extraction.")
         if isinstance(case.expected, ExpectedOutputs):
